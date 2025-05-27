@@ -1,7 +1,8 @@
-import type { Message } from 'ai';
+import type { JSONValue, Message } from 'ai';
 import { useCallback, useState } from 'react';
 import { StreamingMessageParser } from '~/lib/runtime/message-parser';
 import { workbenchStore } from '~/lib/stores/workbench';
+import type { SegmentsGroupAnnotation } from '~/types/context';
 import { createScopedLogger } from '~/utils/logger';
 
 const logger = createScopedLogger('useMessageParser');
@@ -46,7 +47,13 @@ const extractTextContent = (message: Message) =>
   Array.isArray(message.content)
     ? (message.content.find((item) => item.type === 'text')?.text as string) || ''
     : message.content;
-
+    const segmentsGroupIdFromAnnotation = (annotation: JSONValue): string | null => {
+      if (annotation && typeof annotation === 'object' && 'type' in annotation && annotation.type === 'segmentsGroup') {
+        return (annotation as SegmentsGroupAnnotation).segmentsGroupId;
+      }
+    
+      return null;
+    };
 export function useMessageParser() {
   const [parsedMessages, setParsedMessages] = useState<{ [key: number]: string }>({});
 
@@ -57,14 +64,43 @@ export function useMessageParser() {
       reset = true;
       messageParser.reset();
     }
+    const messageContents: Record<number, string> = {};
+    const segmentGroups: Record<string, { firstGroupIndex: number }> = {};
 
     for (const [index, message] of messages.entries()) {
+      if (message.role === 'user') {
+        messageContents[index] = extractTextContent(message);
+      } else if (message.role === 'assistant') {
+        const segmentsGroupId = message.annotations?.reduce(
+          (groupId: string | null, a) => groupId ?? segmentsGroupIdFromAnnotation(a),
+          null,
+        );
+
+        if (!segmentsGroupId) {
+          messageContents[index] = extractTextContent(message);
+        } else {
+          const firstIndex = segmentGroups[segmentsGroupId]?.firstGroupIndex;
+
+          if (firstIndex === undefined) {
+            segmentGroups[segmentsGroupId] = { firstGroupIndex: index };
+            messageContents[index] = extractTextContent(message);
+          } else {
+            messageContents[firstIndex] += extractTextContent(message);
+          }
+        }
+      }
+    }
+    for (const [index, message] of messages.entries()) {
       if (message.role === 'assistant' || message.role === 'user') {
-        const newParsedContent = messageParser.parse(message.id, extractTextContent(message));
-        setParsedMessages((prevParsed) => ({
-          ...prevParsed,
-          [index]: !reset ? (prevParsed[index] || '') + newParsedContent : newParsedContent,
-        }));
+        const content = messageContents[index];
+
+        if (content !== undefined) {
+          const newParsedContent = messageParser.parse(message.id, content);
+          setParsedMessages((prevParsed) => ({
+            ...prevParsed,
+            [index]: !reset ? (prevParsed[index] || '') + newParsedContent : newParsedContent,
+          }));
+        }
       }
     }
   }, []);

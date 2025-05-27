@@ -16,3 +16,7 @@ export type ProgressAnnotation = {
   order: number;
   message: string;
 };
+export type SegmentsGroupAnnotation = {
+  type: 'segmentsGroup';
+  segmentsGroupId: string;
+};
