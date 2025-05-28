@@ -68,21 +68,21 @@ interface AnimatedSwitchProps {
 }
 
 const TAB_DESCRIPTIONS: Record<TabType, string> = {
-  profile: 'Manage your profile and account settings',
-  settings: 'Configure application preferences',
-  notifications: 'View and manage your notifications',
-  features: 'Explore new and upcoming features',
-  data: 'Manage your data and storage',
-  'cloud-providers': 'Configure cloud AI providers and models',
-  'local-providers': 'Configure local AI providers and models',
-  'service-status': 'Monitor cloud LLM service status',
-  connection: 'Check connection status and settings',
-  debug: 'Debug tools and system information',
-  'event-logs': 'View system events and logs',
-  update: 'Check for updates and release notes',
-  'task-manager': 'Monitor system resources and processes',
-  'tab-management': 'Configure visible tabs and their order',
-  'custom-prompts': 'Manage custom prompts',
+  profile: 'Gérer votre profil et les paramètres de compte',
+  settings: 'Configurer les préférences de l\'application',
+  notifications: 'Voir et gérer vos notifications',
+  features: 'Explorer les nouvelles fonctionnalités',
+  data: 'Gérer vos données et stockage',
+  'cloud-providers': 'Configurer les fournisseurs IA cloud et modèles',
+  'local-providers': 'Configurer les fournisseurs IA locaux et modèles',
+  'service-status': 'Surveiller l\'état des services LLM cloud',
+  connection: 'Vérifier l\'état de connexion et paramètres',
+  debug: 'Outils de débogage et informations système',
+  'event-logs': 'Voir les événements système et journaux',
+  update: 'Vérifier les mises à jour et notes de version',
+  'task-manager': 'Surveiller les ressources système et processus',
+  'tab-management': 'Configurer les onglets visibles et leur ordre',
+  'custom-prompts': 'Gérer les prompts personnalisés',
 };
 
 // Beta status for experimental features
@@ -464,7 +464,7 @@ export const ControlPanel = ({ open, onClose }: ControlPanelProps) => {
                       </button>
                     )}
                     <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-white">
-                      {showTabManagement ? 'Tab Management' : activeTab ? TAB_LABELS[activeTab] : 'Control Panel'}
+                      {showTabManagement ? 'Gestion des Onglets' : activeTab ? TAB_LABELS[activeTab] : 'Panneau de Contrôle'}
                     </DialogTitle>
                   </div>
 
@@ -475,7 +475,7 @@ export const ControlPanel = ({ open, onClose }: ControlPanelProps) => {
                         id="developer-mode"
                         checked={developerMode}
                         onCheckedChange={handleDeveloperModeChange}
-                        label={developerMode ? 'Developer Mode' : 'User Mode'}
+                        label={developerMode ? 'Développeur' : 'Utilisateur'}
                       />
                     </div>
 

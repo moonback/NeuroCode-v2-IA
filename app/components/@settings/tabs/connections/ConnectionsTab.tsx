@@ -14,7 +14,7 @@ const LoadingFallback = () => (
   <div className="p-4 bg-bolt-elements-background-depth-1 dark:bg-bolt-elements-background-depth-1 rounded-lg border border-bolt-elements-borderColor dark:border-bolt-elements-borderColor">
     <div className="flex items-center justify-center gap-2 text-bolt-elements-textSecondary dark:text-bolt-elements-textSecondary">
       <div className="i-ph:spinner-gap w-4 h-4 animate-spin" />
-      <span>Loading connection...</span>
+      <span>Chargement de la connexion...</span>
     </div>
   </div>
 );
@@ -35,7 +35,7 @@ export default function ConnectionsTab() {
         <div className="flex items-center gap-2">
           <div className="i-ph:plugs-connected w-5 h-5 text-bolt-elements-item-contentAccent dark:text-bolt-elements-item-contentAccent" />
           <h2 className="text-lg font-medium text-bolt-elements-textPrimary dark:text-bolt-elements-textPrimary">
-            Connection Settings
+            Paramètres de Connexion
           </h2>
         </div>
         <Button
@@ -46,18 +46,18 @@ export default function ConnectionsTab() {
           {showDiagnostics ? (
             <>
               <div className="i-ph:eye-slash w-4 h-4" />
-              Hide Diagnostics
+              Masquer les Diagnostics
             </>
           ) : (
             <>
               <div className="i-ph:wrench w-4 h-4" />
-              Troubleshoot Connections
+              Dépanner les Connexions
             </>
           )}
         </Button>
       </motion.div>
       <p className="text-sm text-bolt-elements-textSecondary dark:text-bolt-elements-textSecondary">
-        Manage your external service connections and integrations
+        Gérer vos connexions de services externes et intégrations
       </p>
 
       {/* Diagnostics Tool - Conditionally rendered */}
@@ -83,7 +83,7 @@ export default function ConnectionsTab() {
             <div className="flex items-center gap-2">
               <div className="i-ph:info w-5 h-5 text-bolt-elements-item-contentAccent dark:text-bolt-elements-item-contentAccent" />
               <h3 className="text-base font-medium text-bolt-elements-textPrimary dark:text-bolt-elements-textPrimary">
-                Environment Variables
+                Variables d'Environnement
               </h3>
             </div>
             <div
@@ -97,27 +97,27 @@ export default function ConnectionsTab() {
           {isEnvVarsExpanded && (
             <div className="mt-4">
               <p className="text-sm text-bolt-elements-textSecondary dark:text-bolt-elements-textSecondary mb-2">
-                You can configure connections using environment variables in your{' '}
+                Vous pouvez configurer les connexions en utilisant des variables d'environnement dans votre{' '}
                 <code className="px-1 py-0.5 bg-bolt-elements-background-depth-2 dark:bg-bolt-elements-background-depth-2 rounded">
                   .env.local
                 </code>{' '}
-                file:
+                fichier :
               </p>
               <div className="bg-bolt-elements-background-depth-2 dark:bg-bolt-elements-background-depth-2 p-3 rounded-md text-xs font-mono overflow-x-auto">
                 <div className="text-bolt-elements-textSecondary dark:text-bolt-elements-textSecondary">
-                  # GitHub Authentication
+                  # Authentification GitHub
                 </div>
                 <div className="text-bolt-elements-textPrimary dark:text-bolt-elements-textPrimary">
                   VITE_GITHUB_ACCESS_TOKEN=your_token_here
                 </div>
                 <div className="text-bolt-elements-textSecondary dark:text-bolt-elements-textSecondary">
-                  # Optional: Specify token type (defaults to 'classic' if not specified)
+                  # Optionnel : Spécifier le type de token (par défaut 'classic' si non spécifié)
                 </div>
                 <div className="text-bolt-elements-textPrimary dark:text-bolt-elements-textPrimary">
                   VITE_GITHUB_TOKEN_TYPE=classic|fine-grained
                 </div>
                 <div className="text-bolt-elements-textSecondary dark:text-bolt-elements-textSecondary mt-2">
-                  # Netlify Authentication
+                  # Authentification Netlify
                 </div>
                 <div className="text-bolt-elements-textPrimary dark:text-bolt-elements-textPrimary">
                   VITE_NETLIFY_ACCESS_TOKEN=your_token_here
@@ -125,23 +125,23 @@ export default function ConnectionsTab() {
               </div>
               <div className="mt-3 text-xs text-bolt-elements-textSecondary dark:text-bolt-elements-textSecondary space-y-1">
                 <p>
-                  <span className="font-medium">Token types:</span>
+                  <span className="font-medium">Types de tokens :</span>
                 </p>
                 <ul className="list-disc list-inside pl-2 space-y-1">
                   <li>
-                    <span className="font-medium">classic</span> - Personal Access Token with{' '}
+                    <span className="font-medium">classic</span> - Token d'Accès Personnel avec{' '}
                     <code className="px-1 py-0.5 bg-bolt-elements-background-depth-2 dark:bg-bolt-elements-background-depth-2 rounded">
                       repo, read:org, read:user
                     </code>{' '}
-                    scopes
+                    portées
                   </li>
                   <li>
-                    <span className="font-medium">fine-grained</span> - Fine-grained token with Repository and
-                    Organization access
+                    <span className="font-medium">fine-grained</span> - Token à granularité fine avec accès au Dépôt et à
+                    l'Organisation
                   </li>
                 </ul>
                 <p className="mt-2">
-                  When set, these variables will be used automatically without requiring manual connection.
+                  Lorsqu'elles sont définies, ces variables seront utilisées automatiquement sans nécessiter de connexion manuelle.
                 </p>
               </div>
             </div>
@@ -165,18 +165,18 @@ export default function ConnectionsTab() {
       <div className="text-sm text-bolt-elements-textSecondary dark:text-bolt-elements-textSecondary bg-bolt-elements-background-depth-2 dark:bg-bolt-elements-background-depth-2 p-4 rounded-lg">
         <p className="flex items-center gap-1 mb-2">
           <span className="i-ph:lightbulb w-4 h-4 text-bolt-elements-icon-success dark:text-bolt-elements-icon-success" />
-          <span className="font-medium">Troubleshooting Tip:</span>
+          <span className="font-medium">Conseil de Dépannage :</span>
         </p>
         <p className="mb-2">
-          If you're having trouble with connections, try using the troubleshooting tool at the top of this page. It can
-          help diagnose and fix common connection issues.
+          Si vous rencontrez des problèmes avec les connexions, essayez d'utiliser l'outil de dépannage en haut de cette page. Il peut
+          aider à diagnostiquer et résoudre les problèmes de connexion courants.
         </p>
-        <p>For persistent issues:</p>
+        <p>Pour les problèmes persistants :</p>
         <ol className="list-decimal list-inside pl-4 mt-1">
-          <li>Check your browser console for errors</li>
-          <li>Verify that your tokens have the correct permissions</li>
-          <li>Try clearing your browser cache and cookies</li>
-          <li>Ensure your browser allows third-party cookies if using integrations</li>
+          <li>Vérifiez la console de votre navigateur pour les erreurs</li>
+          <li>Vérifiez que vos tokens ont les bonnes permissions</li>
+          <li>Essayez de vider le cache et les cookies de votre navigateur</li>
+          <li>Assurez-vous que votre navigateur autorise les cookies tiers si vous utilisez des intégrations</li>
         </ol>
       </div>
     </div>

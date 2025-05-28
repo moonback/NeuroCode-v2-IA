@@ -339,12 +339,12 @@ export function DataTab() {
                     {isExporting ? (
                       <>
                         <div className="i-ph-spinner-gap-bold animate-spin w-4 h-4 mr-2" />
-                        Exporting...
+                        Exportation...
                       </>
                     ) : availableChats.length === 0 ? (
                       'No Chats to Export'
                     ) : (
-                      'Export All'
+                      'Tout Exporter'
                     )}
                   </Button>
                 </motion.div>
@@ -378,7 +378,7 @@ export function DataTab() {
                     {isExporting ? (
                       <>
                         <div className="i-ph-spinner-gap-bold animate-spin w-4 h-4 mr-2" />
-                        Exporting...
+                        Exportation...
                       </>
                     ) : (
                       'Select Chats'
@@ -415,7 +415,7 @@ export function DataTab() {
                     {isImporting ? (
                       <>
                         <div className="i-ph-spinner-gap-bold animate-spin w-4 h-4 mr-2" />
-                        Importing...
+                        Importation...
                       </>
                     ) : (
                       'Import Chats'
@@ -471,7 +471,7 @@ export function DataTab() {
 
       {/* Settings Section */}
       <div>
-        <h2 className="text-xl font-semibold mb-4 text-bolt-elements-textPrimary">Settings</h2>
+        <h2 className="text-xl font-semibold mb-4 text-bolt-elements-textPrimary">Paramètres</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <Card>
             <CardHeader>
@@ -480,10 +480,10 @@ export function DataTab() {
                   <div className="i-ph-download-duotone w-5 h-5" />
                 </motion.div>
                 <CardTitle className="text-lg group-hover:text-bolt-elements-item-contentAccent transition-colors">
-                  Export All Settings
+                  Exporter Tous les Paramètres
                 </CardTitle>
               </div>
-              <CardDescription>Export all your settings to a JSON file.</CardDescription>
+              <CardDescription>Exporter tous vos paramètres vers un fichier JSON.</CardDescription>
             </CardHeader>
             <CardFooter>
               <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="w-full">
@@ -500,10 +500,10 @@ export function DataTab() {
                   {isExporting ? (
                     <>
                       <div className="i-ph-spinner-gap-bold animate-spin w-4 h-4 mr-2" />
-                      Exporting...
+                      Exportation...
                     </>
                   ) : (
-                    'Export All'
+                    'Tout Exporter'
                   )}
                 </Button>
               </motion.div>
@@ -517,10 +517,10 @@ export function DataTab() {
                   <div className="i-ph-filter-duotone w-5 h-5" />
                 </motion.div>
                 <CardTitle className="text-lg group-hover:text-bolt-elements-item-contentAccent transition-colors">
-                  Export Selected Settings
+                  Exporter les Paramètres Sélectionnés
                 </CardTitle>
               </div>
-              <CardDescription>Choose specific settings to export.</CardDescription>
+              <CardDescription>Choisir des paramètres spécifiques à exporter.</CardDescription>
             </CardHeader>
             <CardFooter>
               <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="w-full">
@@ -537,10 +537,10 @@ export function DataTab() {
                   {isExporting ? (
                     <>
                       <div className="i-ph-spinner-gap-bold animate-spin w-4 h-4 mr-2" />
-                      Exporting...
+                      Exportation...
                     </>
                   ) : (
-                    'Select Settings'
+                    'Sélectionner les Paramètres'
                   )}
                 </Button>
               </motion.div>
@@ -554,10 +554,10 @@ export function DataTab() {
                   <div className="i-ph-upload-duotone w-5 h-5" />
                 </motion.div>
                 <CardTitle className="text-lg group-hover:text-bolt-elements-item-contentAccent transition-colors">
-                  Import Settings
+                  Importer les Paramètres
                 </CardTitle>
               </div>
-              <CardDescription>Import settings from a JSON file.</CardDescription>
+              <CardDescription>Importer les paramètres depuis un fichier JSON.</CardDescription>
             </CardHeader>
             <CardFooter>
               <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="w-full">
@@ -574,10 +574,10 @@ export function DataTab() {
                   {isImporting ? (
                     <>
                       <div className="i-ph-spinner-gap-bold animate-spin w-4 h-4 mr-2" />
-                      Importing...
+                      Importation...
                     </>
                   ) : (
-                    'Import Settings'
+                    'Importer les Paramètres'
                   )}
                 </Button>
               </motion.div>
@@ -595,10 +595,10 @@ export function DataTab() {
                   <div className="i-ph-arrow-counter-clockwise-duotone w-5 h-5" />
                 </motion.div>
                 <CardTitle className="text-lg group-hover:text-bolt-elements-item-contentAccent transition-colors">
-                  Reset All Settings
+                  Réinitialiser Tous les Paramètres
                 </CardTitle>
               </div>
-              <CardDescription>Reset all settings to their default values.</CardDescription>
+              <CardDescription>Réinitialiser tous les paramètres à leurs valeurs par défaut.</CardDescription>
             </CardHeader>
             <CardFooter>
               <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="w-full">
@@ -615,10 +615,10 @@ export function DataTab() {
                   {isResetting ? (
                     <>
                       <div className="i-ph-spinner-gap-bold animate-spin w-4 h-4 mr-2" />
-                      Resetting...
+                      Réinitialisation...
                     </>
                   ) : (
-                    'Reset All'
+                    'Tout Réinitialiser'
                   )}
                 </Button>
               </motion.div>
@@ -629,7 +629,7 @@ export function DataTab() {
 
       {/* API Keys Section */}
       <div>
-        <h2 className="text-xl font-semibold mb-4 text-bolt-elements-textPrimary">API Keys</h2>
+        <h2 className="text-xl font-semibold mb-4 text-bolt-elements-textPrimary">Clés API</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <Card>
             <CardHeader>
@@ -638,10 +638,10 @@ export function DataTab() {
                   <div className="i-ph-file-text-duotone w-5 h-5" />
                 </motion.div>
                 <CardTitle className="text-lg group-hover:text-bolt-elements-item-contentAccent transition-colors">
-                  Download Template
+                  Télécharger le Modèle
                 </CardTitle>
               </div>
-              <CardDescription>Download a template file for your API keys.</CardDescription>
+              <CardDescription>Télécharger un fichier modèle pour vos clés API.</CardDescription>
             </CardHeader>
             <CardFooter>
               <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="w-full">
@@ -658,10 +658,10 @@ export function DataTab() {
                   {isDownloadingTemplate ? (
                     <>
                       <div className="i-ph-spinner-gap-bold animate-spin w-4 h-4 mr-2" />
-                      Downloading...
+                      Téléchargement...
                     </>
                   ) : (
-                    'Download'
+                    'Télécharger'
                   )}
                 </Button>
               </motion.div>
@@ -675,10 +675,10 @@ export function DataTab() {
                   <div className="i-ph-upload-duotone w-5 h-5" />
                 </motion.div>
                 <CardTitle className="text-lg group-hover:text-bolt-elements-item-contentAccent transition-colors">
-                  Import API Keys
+                  Importer les Clés API
                 </CardTitle>
               </div>
-              <CardDescription>Import API keys from a JSON file.</CardDescription>
+              <CardDescription>Importer les clés API depuis un fichier JSON.</CardDescription>
             </CardHeader>
             <CardFooter>
               <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="w-full">
@@ -695,10 +695,10 @@ export function DataTab() {
                   {isImportingKeys ? (
                     <>
                       <div className="i-ph-spinner-gap-bold animate-spin w-4 h-4 mr-2" />
-                      Importing...
+                      Importation...
                     </>
                   ) : (
-                    'Import Keys'
+                    'Importer les Clés'
                   )}
                 </Button>
               </motion.div>
@@ -709,7 +709,7 @@ export function DataTab() {
 
       {/* Data Visualization */}
       <div>
-        <h2 className="text-xl font-semibold mb-4 text-bolt-elements-textPrimary">Data Usage</h2>
+        <h2 className="text-xl font-semibold mb-4 text-bolt-elements-textPrimary">Utilisation des Données</h2>
         <Card>
           <CardContent className="p-5">
             <DataVisualization chats={availableChats} />

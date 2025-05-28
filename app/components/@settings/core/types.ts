@@ -68,30 +68,30 @@ export interface TabWindowConfig {
 }
 
 export const TAB_LABELS: Record<TabType, string> = {
-  profile: 'Profile',
-  settings: 'Settings',
+  profile: 'Profil',
+  settings: 'Paramètres',
   notifications: 'Notifications',
-  features: 'Features',
-  data: 'Data Management',
-  'cloud-providers': 'Cloud Providers',
-  'local-providers': 'Local Providers',
-  'service-status': 'Service Status',
-  connection: 'Connections',
-  debug: 'Debug',
-  'event-logs': 'Event Logs',
-  update: 'Updates',
-  'task-manager': 'Task Manager',
-  'tab-management': 'Tab Management',
-  'custom-prompts': 'Custom Prompts',
+  features: 'Fonctionnalités',
+  data: 'Gestion des Données',
+  'cloud-providers': 'Fournisseurs Cloud',
+  'local-providers': 'Fournisseurs Locaux',
+  'service-status': 'État des Services',
+  connection: 'Connexions',
+  debug: 'Débogage',
+  'event-logs': 'Journaux d\'Événements',
+  update: 'Mises à Jour',
+  'task-manager': 'Gestionnaire de Tâches',
+  'tab-management': 'Gestion des Onglets',
+  'custom-prompts': 'Prompts Personnalisés',
 };
 
 export const categoryLabels: Record<SettingCategory, string> = {
-  profile: 'Profile & Account',
-  file_sharing: 'File Sharing',
-  connectivity: 'Connectivity',
-  system: 'System',
+  profile: 'Profil et Compte',
+  file_sharing: 'Partage de Fichiers',
+  connectivity: 'Connectivité',
+  system: 'Système',
   services: 'Services',
-  preferences: 'Preferences',
+  preferences: 'Préférences',
 };
 
 export const categoryIcons: Record<SettingCategory, string> = {
