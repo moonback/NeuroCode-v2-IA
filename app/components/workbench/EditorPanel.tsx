@@ -2,6 +2,8 @@ import { useStore } from '@nanostores/react';
 import { memo, useMemo } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import * as Tabs from '@radix-ui/react-tabs';
+import ContextButton from '~/components/editor/ContextButton';
+import ContextPanel from '~/components/editor/ContextPanel';
 import {
   CodeMirrorEditor,
   type EditorDocument,
@@ -180,7 +182,10 @@ export const EditorPanel = memo(
         </Panel>
         <PanelResizeHandle />
         <TerminalTabs />
+        <ContextButton />
+      <ContextPanel />
       </PanelGroup>
+      
     );
   },
 );

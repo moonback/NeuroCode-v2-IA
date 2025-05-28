@@ -27,6 +27,7 @@ import { getTheme, reconfigureTheme } from './cm-theme';
 import { indentKeyBinding } from './indent';
 import { getLanguage } from './languages';
 import { createEnvMaskingExtension } from './EnvMasking';
+import ContextMenu from '../ContextMenu';
 
 const logger = createScopedLogger('CodeMirrorEditor');
 
@@ -310,10 +311,39 @@ export const CodeMirrorEditor = memo(
       }
     }, [doc?.value, editable, doc?.filePath, autoFocusOnDocumentChange]);
 
+    // Fonction pour obtenir le texte sélectionné
+    const getSelectedText = () => {
+      if (!viewRef.current || !docRef.current) return '';
+      
+      const selection = viewRef.current.state.selection.main;
+      if (selection.empty) return '';
+      
+      return viewRef.current.state.sliceDoc(selection.from, selection.to);
+    };
+
+    // Fonction pour obtenir la position de la sélection
+    const getSelectionPosition = () => {
+      if (!viewRef.current || !docRef.current) return undefined;
+      
+      const selection = viewRef.current.state.selection.main;
+      if (selection.empty) return undefined;
+      
+      const line = viewRef.current.state.doc.lineAt(selection.from).number - 1; // 0-indexed
+      const column = selection.from - viewRef.current.state.doc.line(line + 1).from;
+      
+      return { line, column };
+    };
+
     return (
       <div className={classNames('relative h-full', className)}>
         {doc?.isBinary && <BinaryContent />}
-        <div className="h-full overflow-hidden" ref={containerRef} />
+        <ContextMenu 
+          filePath={doc?.filePath || ''}
+          getSelectedText={getSelectedText}
+          getSelectionPosition={getSelectionPosition}
+        >
+          <div className="h-full overflow-hidden" ref={containerRef} />
+        </ContextMenu>
       </div>
     );
   },
@@ -341,7 +371,10 @@ function newEditorState(
             return;
           }
 
-          onScrollRef.current?.({ left: view.scrollDOM.scrollLeft, top: view.scrollDOM.scrollTop });
+          onScrollRef.current?.({
+            left: view.scrollDOM.scrollLeft,
+            top: view.scrollDOM.scrollTop,
+          });
         }, debounceScroll),
         keydown: (event, view) => {
           if (view.state.readOnly) {
