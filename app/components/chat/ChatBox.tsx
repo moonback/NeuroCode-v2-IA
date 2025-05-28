@@ -217,7 +217,7 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
             minHeight: props.TEXTAREA_MIN_HEIGHT,
             maxHeight: props.TEXTAREA_MAX_HEIGHT,
           }}
-          placeholder={props.chatMode === 'build' ? 'Comment NeuroCode peut-il vous aider aujourd\'hui ?' : 'Quel est votre question ?'}
+          placeholder={props.chatMode === 'build' ? 'Comment NeuroCode peut-il vous aider aujourd\'hui ?' : 'Quelle est votre question ?'}
           translate="no"
         />
         <ClientOnly>
@@ -244,19 +244,19 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
             {/* Groupe 1: Actions de fichiers */}
             <div className="flex gap-1 items-center">
               <IconButton 
-                title="Upload file" 
+                title="Télécharger un fichier" 
                 className="transition-all hover:bg-bolt-elements-item-backgroundAccent/50" 
                 onClick={() => props.handleFileUpload()}
               >
                 <div className="i-ph:paperclip text-xl"></div>
               </IconButton>
               <IconButton
-                title="Enhance prompt"
+                title="Améliorer le prompt"
                 disabled={props.input.length === 0 || props.enhancingPrompt}
                 className={classNames('transition-all hover:bg-bolt-elements-item-backgroundAccent/50', props.enhancingPrompt ? 'opacity-100' : '')}
                 onClick={() => {
                   props.enhancePrompt?.();
-                  toast.success('Prompt enhanced!');
+                  toast.success('Prompt amélioré !');
                 }}
               >
                 {props.enhancingPrompt ? (
@@ -296,7 +296,7 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
             {props.chatStarted && (
               <div className="flex gap-1 items-center">
                 <IconButton
-                  title="Discuss"
+                  title="Discussion"
                   className={classNames(
                     'transition-all flex items-center gap-1 px-1.5 hover:bg-bolt-elements-item-backgroundAccent/50',
                     props.chatMode === 'discuss'
@@ -308,7 +308,7 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
                   }}
                 >
                   <div className={`i-ph:chats text-xl`} />
-                  {props.chatMode === 'discuss' ? <span>Discuss</span> : <span />}
+                  {props.chatMode === 'discuss' ? <span>Discussion</span> : <span />}
                 </IconButton>
                 <ClientOnly>{() => <ExportChatButton exportChat={props.exportChat} />}</ClientOnly>
               </div>
@@ -319,7 +319,7 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
 
             {/* Groupe 4: Paramètres */}
             <IconButton
-              title="Model Settings"
+              title="Paramètres du modèle"
               className={classNames('transition-all flex items-center gap-1 hover:bg-bolt-elements-item-backgroundAccent/50', {
                 'bg-bolt-elements-item-backgroundAccent text-bolt-elements-item-contentAccent':
                   props.isModelSettingsCollapsed,
@@ -335,8 +335,8 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
           </div>
           {props.input.length > 3 ? (
             <div className="text-xs text-bolt-elements-textTertiary">
-              Use <kbd className="kdb px-1.5 py-0.5 rounded bg-bolt-elements-background-depth-2">Shift</kbd> +{' '}
-              <kbd className="kdb px-1.5 py-0.5 rounded bg-bolt-elements-background-depth-2">Return</kbd> a new line
+              Utilisez <kbd className="kdb px-1.5 py-0.5 rounded bg-bolt-elements-background-depth-2">Shift</kbd> +{' '}
+              <kbd className="kdb px-1.5 py-0.5 rounded bg-bolt-elements-background-depth-2">Entrée</kbd> pour une nouvelle ligne
             </div>
           ) : null}
           <SupabaseConnection />
