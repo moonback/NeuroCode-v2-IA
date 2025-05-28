@@ -1,4 +1,12 @@
 import { atom, map, computed } from 'nanostores';
+import { getLocalStorage, setLocalStorage } from '~/lib/persistence/localStorage';
+import { createScopedLogger } from '~/utils/logger';
+import { getCurrentChatId } from '~/utils/fileLocks';
+
+const logger = createScopedLogger('ContextStore');
+
+// Clé pour stocker les éléments de contexte dans localStorage
+export const CONTEXT_ITEMS_KEY = 'bolt.contextItems';
 
 // Interface pour représenter un élément de contexte
 export interface ContextItem {
@@ -21,8 +29,138 @@ export interface ContextItem {
   pinned?: boolean;
 }
 
-// Store pour gérer les éléments de contexte
+// Store pour gérer les éléments de contexte par projet (chatId)
 export const contextItems = map<Record<string, ContextItem>>({});
+
+// Map pour stocker les contextes par projet
+const projectContextsMap = new Map<string, Record<string, ContextItem>>();
+
+// Obtenir le contexte du projet actuel
+function getCurrentProjectContext(): Record<string, ContextItem> {
+  const chatId = getCurrentChatId();
+  if (!projectContextsMap.has(chatId)) {
+    projectContextsMap.set(chatId, {});
+  }
+  return projectContextsMap.get(chatId) || {};
+}
+
+// Initialiser le store avec les données du localStorage
+function initializeContextItems() {
+  try {
+    const savedItems = getLocalStorage(CONTEXT_ITEMS_KEY);
+    if (savedItems && typeof savedItems === 'object') {
+      // Vérifier si c'est l'ancien format (sans chatId) ou le nouveau format
+      if (savedItems.byProject) {
+        // Nouveau format avec projets
+        const projectContexts = savedItems.byProject;
+        
+        // Reconstruire la map des projets
+        Object.entries(projectContexts).forEach(([chatId, items]) => {
+          const processedItems: Record<string, ContextItem> = {};
+          
+          Object.entries(items as Record<string, ContextItem>).forEach(([id, item]) => {
+            const typedItem = item as ContextItem;
+            processedItems[id] = {
+              ...typedItem,
+              createdAt: new Date(typedItem.createdAt)
+            };
+          });
+          
+          projectContextsMap.set(chatId, processedItems);
+        });
+        
+        // Charger le contexte du projet actuel dans le store
+        const currentContext = getCurrentProjectContext();
+        contextItems.set(currentContext);
+        
+        logger.info(`Chargé les contextes pour ${projectContextsMap.size} projets depuis localStorage`);
+      } else {
+        // Ancien format (sans chatId) - migrer vers le nouveau format
+        const processedItems: Record<string, ContextItem> = {};
+        
+        Object.entries(savedItems).forEach(([id, item]) => {
+          const typedItem = item as ContextItem;
+          processedItems[id] = {
+            ...typedItem,
+            createdAt: new Date(typedItem.createdAt)
+          };
+        });
+        
+        // Stocker dans le projet par défaut
+        projectContextsMap.set('default', processedItems);
+        
+        // Si nous sommes dans un projet spécifique, utiliser ce contexte
+        const chatId = getCurrentChatId();
+        if (chatId !== 'default') {
+          projectContextsMap.set(chatId, {});
+          contextItems.set({});
+        } else {
+          contextItems.set(processedItems);
+        }
+        
+        logger.info(`Migré ${Object.keys(processedItems).length} éléments de contexte vers le nouveau format`);
+        
+        // Sauvegarder immédiatement dans le nouveau format
+        saveContextItems();
+      }
+    }
+  } catch (error) {
+    logger.error('Erreur lors du chargement des éléments de contexte depuis localStorage', error);
+  }
+}
+
+// Sauvegarder les éléments de contexte dans localStorage
+function saveContextItems() {
+  try {
+    // Mettre à jour la map du projet actuel
+    const chatId = getCurrentChatId();
+    projectContextsMap.set(chatId, contextItems.get());
+    
+    // Sauvegarder tous les projets
+    const projectContexts: Record<string, Record<string, ContextItem>> = {};
+    projectContextsMap.forEach((items, projectId) => {
+      projectContexts[projectId] = items;
+    });
+    
+    setLocalStorage(CONTEXT_ITEMS_KEY, { byProject: projectContexts });
+    logger.info(`Sauvegardé les contextes pour ${projectContextsMap.size} projets dans localStorage`);
+  } catch (error) {
+    logger.error('Erreur lors de la sauvegarde des éléments de contexte dans localStorage', error);
+  }
+}
+
+// Initialiser au démarrage si on est côté client
+if (typeof window !== 'undefined') {
+  initializeContextItems();
+  
+  // Écouter les changements d'URL pour charger le contexte du projet approprié
+  window.addEventListener('popstate', () => {
+    const chatId = getCurrentChatId();
+    const projectContext = projectContextsMap.get(chatId) || {};
+    contextItems.set(projectContext);
+    logger.info(`Changé de projet: chargé le contexte pour ${chatId}`);
+  });
+}
+
+// S'abonner aux changements pour sauvegarder automatiquement
+contextItems.listen(() => {
+  saveContextItems();
+});
+
+// Fonction pour changer explicitement de projet
+export function switchProjectContext(chatId: string) {
+  // Sauvegarder le contexte actuel avant de changer
+  const currentChatId = getCurrentChatId();
+  projectContextsMap.set(currentChatId, contextItems.get());
+  
+  // Charger le nouveau contexte
+  const projectContext = projectContextsMap.get(chatId) || {};
+  contextItems.set(projectContext);
+  logger.info(`Changé manuellement de projet: chargé le contexte pour ${chatId}`);
+  
+  // Sauvegarder dans localStorage
+  saveContextItems();
+}
 
 // Store pour suivre si le panneau de contexte est ouvert
 export const isContextPanelOpen = atom<boolean>(false);
@@ -73,7 +211,7 @@ export const contextItemsByType = computed(contextItems, (items) => {
   return result;
 });
 
-// Ajouter un élément au contexte
+// Ajouter un élément au contexte du projet actuel
 export function addContextItem(item: Omit<ContextItem, 'id' | 'createdAt'>) {
   const id = `context-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
   const newItem: ContextItem = {
@@ -117,6 +255,7 @@ export function clearContextItems() {
 // Vider tous les éléments du contexte, y compris ceux qui sont épinglés
 export function clearAllContextItems() {
   contextItems.set({});
+  // La sauvegarde est automatique grâce à l'écouteur sur contextItems
 }
 
 // Épingler/désépingler un élément
