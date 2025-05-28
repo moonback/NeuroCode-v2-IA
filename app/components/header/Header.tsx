@@ -4,6 +4,7 @@ import { chatStore } from '~/lib/stores/chat';
 import { classNames } from '~/utils/classNames';
 import { HeaderActionButtons } from './HeaderActionButtons.client';
 import { ChatDescription } from '~/lib/persistence/ChatDescription.client';
+import { ConnectionStatusIndicator } from '~/components/ui/ConnectionStatusIndicator';
 
 export function Header() {
   const chat = useStore(chatStore);
@@ -22,6 +23,17 @@ export function Header() {
           <img src="/logo-light-styled.png" alt="logo" className="w-[90px] inline-block dark:hidden" />
           <img src="/logo-dark-styled.png" alt="logo" className="w-[90px] inline-block hidden dark:block" />
         </a>
+      </div>
+      
+      {/* Indicateurs de statut de connexion */}
+      <div className="ml-auto mr-4 flex items-center">
+        <ClientOnly>
+          {() => <ConnectionStatusIndicator 
+            className="transition-all duration-300 hover:shadow-xl" 
+            showLabels={false}
+            showBadge={true}
+          />}
+        </ClientOnly>
       </div>
       {chat.started && ( // Display ChatDescription and HeaderActionButtons only when the chat has started.
         <>
