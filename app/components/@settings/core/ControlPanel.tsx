@@ -5,6 +5,7 @@ import { Switch } from '@radix-ui/react-switch';
 import * as RadixDialog from '@radix-ui/react-dialog';
 import { classNames } from '~/utils/classNames';
 import { TabManagement } from '~/components/@settings/shared/components/TabManagement';
+import CustomPromptsTab from '~/components/@settings/tabs/custom-prompts/CustomPromptsTab';
 import { TabTile } from '~/components/@settings/shared/components/TabTile';
 import { useUpdateCheck } from '~/lib/hooks/useUpdateCheck';
 import { useFeatures } from '~/lib/hooks/useFeatures';
@@ -81,6 +82,7 @@ const TAB_DESCRIPTIONS: Record<TabType, string> = {
   update: 'Check for updates and release notes',
   'task-manager': 'Monitor system resources and processes',
   'tab-management': 'Configure visible tabs and their order',
+  'custom-prompts': 'Manage custom prompts',
 };
 
 // Beta status for experimental features
@@ -335,6 +337,8 @@ export const ControlPanel = ({ open, onClose }: ControlPanelProps) => {
         return <TaskManagerTab />;
       case 'service-status':
         return <ServiceStatusTab />;
+      case 'custom-prompts':
+        return <CustomPromptsTab />;
       default:
         return null;
     }

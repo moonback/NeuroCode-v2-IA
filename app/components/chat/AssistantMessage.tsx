@@ -6,6 +6,10 @@ import { workbenchStore } from '~/lib/stores/workbench';
 import { WORK_DIR } from '~/utils/constants';
 import WithTooltip from '~/components/ui/Tooltip';
 import type { Message } from 'ai';
+import { Dropdown, DropdownItem } from '~/components/ui/Dropdown';
+import { useSettings } from '~/lib/hooks/useSettings';
+import { PromptLibrary } from '~/lib/common/prompt-library';
+import { toast } from 'react-toastify';
 
 interface AssistantMessageProps {
   content: string;
@@ -42,6 +46,42 @@ function normalizedFilePath(path: string) {
 
   return normalizedPath;
 }
+
+// Composant pour sélectionner un prompt
+const PromptSelector = () => {
+  const { promptId, setPromptId } = useSettings();
+  const prompts = PromptLibrary.getList();
+  
+  const currentPrompt = prompts.find(p => p.id === promptId) || prompts[0];
+  
+  return (
+    <Dropdown
+      trigger={
+        <button className="flex bg-bolt-elements-background-depth-3 items-center gap-1 text-sm text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary transition-colors">
+          <span className="i-ph:book text-lg" />
+          <span className="hidden md:inline">{currentPrompt.label}</span>
+          <span className="i-ph:caret-down text-xs" />
+        </button>
+      }
+    >
+      {prompts.map((prompt) => (
+        <DropdownItem
+          key={prompt.id}
+          className={promptId === prompt.id ? 'bg-bolt-elements-background-depth-3' : ''}
+          onSelect={() => {
+            setPromptId(prompt.id);
+            toast.success(`Prompt "${prompt.label}" sélectionné`);
+          }}
+        >
+          <div className="flex flex-col">
+            <span>{prompt.label}</span>
+            <span className="text-xs text-bolt-elements-textTertiary">{prompt.description}</span>
+          </div>
+        </DropdownItem>
+      ))}
+    </Dropdown>
+  );
+};
 
 export const AssistantMessage = memo(
   ({
@@ -127,6 +167,7 @@ export const AssistantMessage = memo(
                   Tokens: {usage.totalTokens} (prompt: {usage.promptTokens}, completion: {usage.completionTokens})
                 </div>
               )}
+              <PromptSelector />
               {(onRewind || onFork) && messageId && (
                 <div className="flex gap-2 flex-col lg:flex-row ml-auto">
                   {onRewind && (
