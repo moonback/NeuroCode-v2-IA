@@ -15,6 +15,7 @@ export const TAB_ICONS: Record<TabType, string> = {
   update: 'i-ph:arrow-clockwise-fill',
   'task-manager': 'i-ph:chart-line-fill',
   'tab-management': 'i-ph:squares-four-fill',
+  'custom-prompts': 'i-ph:chat-text-fill',
 };
 
 export const TAB_LABELS: Record<TabType, string> = {
@@ -32,6 +33,7 @@ export const TAB_LABELS: Record<TabType, string> = {
   update: 'Updates',
   'task-manager': 'Task Manager',
   'tab-management': 'Tab Management',
+  'custom-prompts': 'Prompts Personnalisés',
 };
 
 export const TAB_DESCRIPTIONS: Record<TabType, string> = {
@@ -49,6 +51,7 @@ export const TAB_DESCRIPTIONS: Record<TabType, string> = {
   update: 'Check for updates and release notes',
   'task-manager': 'Monitor system resources and processes',
   'tab-management': 'Configure visible tabs and their order',
+  'custom-prompts': 'Créer et gérer vos prompts personnalisés',
 };
 
 export const DEFAULT_TAB_CONFIG = [
@@ -60,6 +63,7 @@ export const DEFAULT_TAB_CONFIG = [
   { id: 'connection', visible: true, window: 'user' as const, order: 4 },
   { id: 'notifications', visible: true, window: 'user' as const, order: 5 },
   { id: 'event-logs', visible: true, window: 'user' as const, order: 6 },
+  { id: 'custom-prompts', visible: true, window: 'user' as const, order: 7 },
 
   // User Window Tabs (In dropdown, initially hidden)
   { id: 'profile', visible: false, window: 'user' as const, order: 7 },

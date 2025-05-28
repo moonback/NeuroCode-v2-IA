@@ -16,7 +16,8 @@ export type TabType =
   | 'event-logs'
   | 'update'
   | 'task-manager'
-  | 'tab-management';
+  | 'tab-management'
+  | 'custom-prompts';
 
 export type WindowType = 'user' | 'developer';
 
@@ -81,6 +82,7 @@ export const TAB_LABELS: Record<TabType, string> = {
   update: 'Updates',
   'task-manager': 'Task Manager',
   'tab-management': 'Tab Management',
+  'custom-prompts': 'Custom Prompts',
 };
 
 export const categoryLabels: Record<SettingCategory, string> = {
