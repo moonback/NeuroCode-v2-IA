@@ -1,10 +1,10 @@
-import { motion, type Variants } from 'framer-motion';
+import { motion, type HTMLMotionProps, type Variants } from 'framer-motion';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { Dialog, DialogButton, DialogDescription, DialogRoot, DialogTitle } from '~/components/ui/Dialog';
 import { ThemeSwitch } from '~/components/ui/ThemeSwitch';
 import { ControlPanel } from '~/components/@settings/core/ControlPanel';
-import { SettingsButton } from '~/components/ui/SettingsButton';
+
 import { Button } from '~/components/ui/Button';
 import { db, deleteById, getAll, chatId, type ChatHistoryItem, useChatHistory } from '~/lib/persistence';
 import { cubicEasingFn } from '~/utils/easings';
@@ -14,6 +14,9 @@ import { useSearchFilter } from '~/lib/hooks/useSearchFilter';
 import { classNames } from '~/utils/classNames';
 import { useStore } from '@nanostores/react';
 import { profileStore } from '~/lib/stores/profile';
+import { workbenchStore } from '~/lib/stores/workbench';
+import { chatStore } from '~/lib/stores/chat';
+import SidebarTemplates from './SidebarTemplates';
 
 const menuVariants = {
   closed: {
@@ -73,6 +76,8 @@ export const Menu = () => {
   const profile = useStore(profileStore);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const chat = useStore(chatStore);
+  const isChatStarted = chat.started;
 
   const { filteredItems: filteredList, handleSearchChange } = useSearchFilter({
     items: list,
@@ -337,18 +342,18 @@ export const Menu = () => {
           isSettingsOpen ? 'z-40' : 'z-sidebar',
         )}
       >
-        <div className="h-12 flex items-center justify-between px-4 border-b border-gray-100 dark:border-gray-800/50 bg-gray-50/50 dark:bg-gray-900/50">
+        <div className="h-12 flex items-center justify-between px-4 border-b border-gray-100 dark:border-gray-800/50 bg-gradient-to-r from-purple-50/30 to-blue-50/30 dark:from-purple-900/20 dark:to-blue-900/20">
           <div className="text-gray-900 dark:text-white font-medium"></div>
           <div className="flex items-center gap-3">
             <span className="font-medium text-sm text-gray-900 dark:text-white truncate">
               {profile?.username || 'Guest User'}
             </span>
-            <div className="flex items-center justify-center w-[32px] h-[32px] overflow-hidden bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-500 rounded-full shrink-0">
+            <div className="flex items-center justify-center w-[32px] h-[32px] overflow-hidden bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 text-gray-600 dark:text-gray-500 rounded-full shrink-0 border-2 border-purple-200/50 dark:border-purple-700/50 shadow-sm">
               {profile?.avatar ? (
                 <img
                   src={profile.avatar}
                   alt={profile?.username || 'User'}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover rounded-full"
                   loading="eager"
                   decoding="sync"
                 />
@@ -364,39 +369,42 @@ export const Menu = () => {
             <div className="flex gap-2">
               <a
                 href="/"
-                className="flex-1 flex gap-2 items-center bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-500/20 rounded-lg px-4 py-2 transition-colors"
+                className="flex-1 flex gap-2 items-center bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-500/10 dark:to-blue-500/10 text-purple-700 dark:text-purple-300 hover:from-purple-100 hover:to-blue-100 dark:hover:from-purple-500/20 dark:hover:to-blue-500/20 rounded-xl px-4 py-3 transition-all duration-300 border border-purple-200/50 dark:border-purple-700/50 hover:shadow-md hover:scale-[1.02] group"
               >
-                <span className="inline-block i-ph:plus-circle h-4 w-4" />
-                <span className="text-sm font-medium">Start new chat</span>
+                <span className="inline-block i-ph:plus-circle h-4 w-4 group-hover:scale-110 transition-transform duration-300" />
+                <span className="text-sm font-medium">Nouveau chat</span>
               </a>
               <button
                 onClick={toggleSelectionMode}
                 className={classNames(
-                  'flex gap-1 items-center rounded-lg px-3 py-2 transition-colors',
+                  'flex gap-1 items-center rounded-xl px-3 py-3 transition-all duration-300 hover:scale-105',
                   selectionMode
-                    ? 'bg-purple-600 dark:bg-purple-500 text-white border border-purple-700 dark:border-purple-600'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700',
+                    ? 'bg-gradient-to-r from-purple-600 to-purple-700 dark:from-purple-500 dark:to-purple-600 text-white border-2 border-purple-700 dark:border-purple-600 shadow-lg'
+                    : 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 text-gray-700 dark:text-gray-300 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-700 dark:hover:to-gray-800 border-2 border-gray-200 dark:border-gray-700',
                 )}
                 aria-label={selectionMode ? 'Exit selection mode' : 'Enter selection mode'}
               >
                 <span className={selectionMode ? 'i-ph:x h-4 w-4' : 'i-ph:check-square h-4 w-4'} />
               </button>
             </div>
-            <div className="relative w-full">
-              <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                <span className="i-ph:magnifying-glass h-4 w-4 text-gray-400 dark:text-gray-500" />
+            <div className="relative w-full group">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10">
+                <span className="i-ph:magnifying-glass h-4 w-4 text-gray-400 dark:text-gray-500 group-focus-within:text-purple-500 transition-colors duration-300" />
               </div>
               <input
-                className="w-full bg-gray-50 dark:bg-gray-900 relative pl-9 pr-3 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-purple-500/50 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-500 border border-gray-200 dark:border-gray-800"
+                className="w-full bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 relative pl-9 pr-3 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-300 dark:focus:border-purple-600 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-500 border-2 border-gray-200 dark:border-gray-800 hover:border-purple-300 dark:hover:border-purple-700 transition-all duration-300 shadow-sm focus:shadow-md"
                 type="search"
-                placeholder="Search chats..."
+                placeholder="Rechercher dans les chats..."
                 onChange={handleSearchChange}
                 aria-label="Search chats"
               />
             </div>
           </div>
-          <div className="flex items-center justify-between text-sm px-4 py-2">
-            <div className="font-medium text-gray-600 dark:text-gray-400">Your Chats</div>
+          <div className="flex items-center justify-between text-sm px-4 py-2 bg-gradient-to-r from-gray-50/50 to-transparent dark:from-gray-900/50">
+            <div className="font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+              <div className="w-1.5 h-1.5 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full" />
+              Vos Conversations
+            </div>
             {selectionMode && (
               <div className="flex items-center gap-2">
                 <Button variant="ghost" size="sm" onClick={selectAll}>
@@ -524,9 +532,18 @@ export const Menu = () => {
               </Dialog>
             </DialogRoot>
           </div>
-          <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-800 px-4 py-3">
-            <SettingsButton onClick={handleSettingsClick} />
-            <ThemeSwitch />
+          
+          {/* Conditionally render SidebarTemplates only when no conversation is active */}
+            {!isChatStarted && <SidebarTemplates />}
+            <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-800 px-4 py-4 bg-gradient-to-r from-gray-50/30 to-blue-50/30 dark:from-gray-900/30 dark:to-blue-900/30">
+            <button
+              onClick={handleSettingsClick}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 hover:from-purple-100 hover:to-blue-100 dark:hover:from-purple-900/50 dark:hover:to-blue-900/50 text-gray-700 dark:text-gray-300 hover:text-purple-700 dark:hover:text-purple-300 transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 hover:shadow-md hover:scale-105 group"
+            >
+              <span className="i-ph:gear h-4 w-4 group-hover:rotate-90 transition-transform duration-300" />
+              <span className="text-sm font-medium">Paramètres</span>
+            </button>
+            <ThemeSwitch className="p-2 rounded-xl bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 hover:from-purple-100 hover:to-blue-100 dark:hover:from-purple-900/50 dark:hover:to-blue-900/50 border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 transition-all duration-300 hover:shadow-md hover:scale-105" />
           </div>
         </div>
       </motion.div>
