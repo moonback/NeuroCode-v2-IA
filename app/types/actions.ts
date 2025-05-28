@@ -40,6 +40,7 @@ export interface ActionAlert {
   description: string;
   content: string;
   source?: 'terminal' | 'preview'; // Add source to differentiate between terminal and preview errors
+  additionalContext?: string; // Champ pour stocker le contexte supplémentaire fourni par l'utilisateur
 }
 
 export interface SupabaseAlert {

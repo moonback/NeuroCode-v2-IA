@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
+import { useState } from 'react';
 import type { ActionAlert } from '~/types/actions';
 import { classNames } from '~/utils/classNames';
 
@@ -10,12 +11,23 @@ interface Props {
 
 export default function ChatAlert({ alert, clearAlert, postMessage }: Props) {
   const { description, content, source } = alert;
+  const [additionalContext, setAdditionalContext] = useState('');
 
   const isPreview = source === 'preview';
   const title = isPreview ? 'Preview Error' : 'Terminal Error';
   const message = isPreview
     ? 'We encountered an error while running the preview. Would you like Bolt to analyze and help resolve this issue?'
     : 'We encountered an error while running terminal commands. Would you like Bolt to analyze and help resolve this issue?';
+
+  const handleSubmit = () => {
+    const contextMessage = additionalContext.trim() 
+      ? `\n\nContexte supplémentaire: ${additionalContext}` 
+      : '';
+      
+    postMessage(
+      `*Fix this ${isPreview ? 'preview' : 'terminal'} error* \n\`\`\`${isPreview ? 'js' : 'sh'}\n${content}\n\`\`\`${contextMessage}\n`,
+    );
+  };
 
   return (
     <AnimatePresence>
@@ -58,6 +70,21 @@ export default function ChatAlert({ alert, clearAlert, postMessage }: Props) {
                   Error: {description}
                 </div>
               )}
+              
+              {/* Champ de texte pour le contexte supplémentaire */}
+              <div className="mt-4">
+                <label htmlFor="additionalContext" className="block text-xs text-bolt-elements-textSecondary mb-1">
+                  Contexte supplémentaire (optionnel):
+                </label>
+                <textarea
+                  id="additionalContext"
+                  value={additionalContext}
+                  onChange={(e) => setAdditionalContext(e.target.value)}
+                  placeholder="Décrivez ce que vous essayiez de faire lorsque cette erreur s'est produite..."
+                  className="w-full p-2 text-xs rounded border border-bolt-elements-borderColor bg-bolt-elements-background-depth-3 text-bolt-elements-textPrimary"
+                  rows={3}
+                />
+              </div>
             </motion.div>
 
             {/* Actions */}
@@ -69,11 +96,7 @@ export default function ChatAlert({ alert, clearAlert, postMessage }: Props) {
             >
               <div className={classNames(' flex gap-2')}>
                 <button
-                  onClick={() =>
-                    postMessage(
-                      `*Fix this ${isPreview ? 'preview' : 'terminal'} error* \n\`\`\`${isPreview ? 'js' : 'sh'}\n${content}\n\`\`\`\n`,
-                    )
-                  }
+                  onClick={handleSubmit}
                   className={classNames(
                     `px-2 py-1.5 rounded-md text-sm font-medium`,
                     'bg-bolt-elements-button-primary-background',
