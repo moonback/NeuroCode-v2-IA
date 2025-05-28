@@ -76,7 +76,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
 
   try {
     const totalMessageContent = messages.reduce((acc, message) => acc + message.content, '');
-    logger.debug(`Total message length: ${totalMessageContent.split(' ').length}, words`);
+    logger.debug(`Longueur totale du message : ${totalMessageContent.split(' ').length} mots`);
 
     let lastChunk: string | undefined = undefined;
 
@@ -101,7 +101,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
             message: 'Analyse de la requête',
           } satisfies ProgressAnnotation);
 
-          // Create a summary of the chat
+          // Créer un résumé de la conversation
           console.log(`Messages count: ${messages.length}`);
 
           summary = await createSummary({
@@ -113,7 +113,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
             contextOptimization,
             onFinish(resp) {
               if (resp.usage) {
-                logger.debug('createSummary token usage', JSON.stringify(resp.usage));
+                logger.debug('utilisation de tokens pour createSummary', JSON.stringify(resp.usage));
                 cumulativeUsage.completionTokens += resp.usage.completionTokens || 0;
                 cumulativeUsage.promptTokens += resp.usage.promptTokens || 0;
                 cumulativeUsage.totalTokens += resp.usage.totalTokens || 0;
@@ -144,7 +144,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
             message: 'Détermination des fichiers à lire',
           } satisfies ProgressAnnotation);
 
-          // Select context files
+          // Sélectionner les fichiers de contexte
           console.log(`Messages count: ${messages.length}`);
           filteredFiles = await selectContext({
             messages: [...messages],
@@ -157,7 +157,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
             summary,
             onFinish(resp) {
               if (resp.usage) {
-                logger.debug('selectContext token usage', JSON.stringify(resp.usage));
+                logger.debug('utilisation de tokens pour selectContext', JSON.stringify(resp.usage));
                 cumulativeUsage.completionTokens += resp.usage.completionTokens || 0;
                 cumulativeUsage.promptTokens += resp.usage.promptTokens || 0;
                 cumulativeUsage.totalTokens += resp.usage.totalTokens || 0;
@@ -166,7 +166,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
           });
 
           if (filteredFiles) {
-            logger.debug(`files in context : ${JSON.stringify(Object.keys(filteredFiles))}`);
+            logger.debug(`fichiers dans le contexte : ${JSON.stringify(Object.keys(filteredFiles))}`);
           }
 
           dataStream.writeMessageAnnotation({
@@ -190,14 +190,14 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
             message: 'Fichiers de code sélectionnés',
           } satisfies ProgressAnnotation);
 
-          // logger.debug('Code Files Selected');
+          // logger.debug('Fichiers de code sélectionnés');
         }
 
         const options: StreamingOptions = {
           supabaseConnection: supabase,
           toolChoice: 'none',
           onFinish: async ({ text: content, finishReason, usage }) => {
-            logger.debug('usage', JSON.stringify(usage));
+            logger.debug('utilisation', JSON.stringify(usage));
 
             if (usage) {
               cumulativeUsage.completionTokens += usage.completionTokens || 0;
@@ -233,7 +233,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
               dataStream.writeData({
                 type: 'error',
                 id: generateId(),
-                message: 'Cannot continue message: Maximum segments reached.',
+                message: 'Impossible de continuer le message : Nombre maximum de segments atteint.',
               } satisfies DataStreamError);
               dataStream.writeData({
                 type: 'progress',
@@ -329,7 +329,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
         })();
         result.mergeIntoDataStream(dataStream);
       },
-      onError: (error: any) => `Custom error: ${error.message}`,
+      onError: (error: any) => `Erreur personnalisée : ${error.message}`,
     }).pipeThrough(
       new TransformStream({
         transform: (chunk, controller) => {
@@ -361,7 +361,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
             transformedChunk = `0:${content}\n`;
           }
 
-          // Convert the string stream to a byte stream
+          // Convertir le flux de chaînes en flux d'octets
           const str = typeof transformedChunk === 'string' ? transformedChunk : JSON.stringify(transformedChunk);
           controller.enqueue(encoder.encode(str));
         },
@@ -383,13 +383,13 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
     if (error.message?.includes('API key')) {
       throw new Response('Clé API invalide ou manquante', {
         status: 401,
-        statusText: 'Unauthorized',
+        statusText: 'Non autorisé',
       });
     }
 
     throw new Response(null, {
       status: 500,
-      statusText: 'Internal Server Error',
+      statusText: 'Erreur interne du serveur',
     });
   }
 }
