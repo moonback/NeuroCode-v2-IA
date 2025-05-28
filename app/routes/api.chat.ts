@@ -92,13 +92,13 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
         }
 
         if (filePaths.length > 0 && contextOptimization) {
-          logger.debug('Generating Chat Summary');
+          logger.debug('Génération du résumé de conversation');
           dataStream.writeData({
             type: 'progress',
             label: 'summary',
             status: 'in-progress',
             order: progressCounter++,
-            message: 'Analysing Request',
+            message: 'Analyse de la requête',
           } satisfies ProgressAnnotation);
 
           // Create a summary of the chat
@@ -125,7 +125,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
             label: 'summary',
             status: 'complete',
             order: progressCounter++,
-            message: 'Analysis Complete',
+            message: 'Analyse terminée',
           } satisfies ProgressAnnotation);
 
           dataStream.writeMessageAnnotation({
@@ -135,13 +135,13 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
           } as ContextAnnotation);
 
           // Update context buffer
-          logger.debug('Updating Context Buffer');
+          logger.debug('Mise à jour du tampon de contexte');
           dataStream.writeData({
             type: 'progress',
             label: 'context',
             status: 'in-progress',
             order: progressCounter++,
-            message: 'Determining Files to Read',
+            message: 'Détermination des fichiers à lire',
           } satisfies ProgressAnnotation);
 
           // Select context files
@@ -187,7 +187,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
             label: 'context',
             status: 'complete',
             order: progressCounter++,
-            message: 'Code Files Selected',
+            message: 'Fichiers de code sélectionnés',
           } satisfies ProgressAnnotation);
 
           // logger.debug('Code Files Selected');
@@ -219,7 +219,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
                 label: 'response',
                 status: 'complete',
                 order: progressCounter++,
-                message: 'Response Generated',
+                message: 'Réponse générée',
               } satisfies ProgressAnnotation);
               await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -240,7 +240,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
                 label: 'summary',
                 status: 'error',
                 order: progressCounter++,
-                message: 'Error: maximum segments reached.',
+                message: 'Erreur : nombre maximum de segments atteint.',
               } satisfies ProgressAnnotation);
               await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -248,7 +248,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
             }
 
             const switchesLeft = MAX_RESPONSE_SEGMENTS - responseSegments;
-            logger.info(`Reached max token limit (${MAX_TOKENS}): Continuing message (${switchesLeft} switches left)`);
+            logger.info(`Limite maximale de tokens atteinte (${MAX_TOKENS}) : Poursuite du message (${switchesLeft} changements restants)`);
 
             const lastUserMessage = messages.filter((x) => x.role == 'user').slice(-1)[0];
             const { model, provider } = extractPropertiesFromMessage(lastUserMessage);
@@ -299,7 +299,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
           label: 'response',
           status: 'in-progress',
           order: progressCounter++,
-          message: 'Generating Response',
+          message: 'Génération de la réponse',
         } satisfies ProgressAnnotation);
 
         const result = await streamText({
@@ -381,7 +381,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
     logger.error(error);
 
     if (error.message?.includes('API key')) {
-      throw new Response('Invalid or missing API key', {
+      throw new Response('Clé API invalide ou manquante', {
         status: 401,
         statusText: 'Unauthorized',
       });
