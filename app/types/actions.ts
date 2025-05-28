@@ -41,6 +41,8 @@ export interface ActionAlert {
   content: string;
   source?: 'terminal' | 'preview'; // Add source to differentiate between terminal and preview errors
   additionalContext?: string; // Champ pour stocker le contexte supplémentaire fourni par l'utilisateur
+  errorCategory?: 'syntax' | 'runtime' | 'dependency' | 'configuration' | 'network' | 'unknown'; // Nouvelle propriété pour catégoriser l'erreur
+  severity?: 'critical' | 'high' | 'medium' | 'low'; // Niveau de sévérité de l'erreur
 }
 
 export interface SupabaseAlert {
@@ -74,4 +76,20 @@ export interface FileHistory {
 
   // Novo campo para rastrear a origem das mudanças
   changeSource?: 'user' | 'auto-save' | 'external';
+}
+
+export interface ErrorHistoryEntry {
+  timestamp: number;
+  alert: ActionAlert;
+  resolved: boolean;
+}
+
+export interface ErrorHistory {
+  entries: ErrorHistoryEntry[];
+  lastErrorTimestamp?: number;
+  frequentErrors?: {
+    pattern: string;
+    count: number;
+    lastOccurrence: number;
+  }[];
 }
