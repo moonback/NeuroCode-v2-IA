@@ -2,6 +2,8 @@ import { useStore } from '@nanostores/react';
 import { memo, useMemo } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import * as Tabs from '@radix-ui/react-tabs';
+import ContextButton from '~/components/editor/ContextButton';
+import ContextPanel from '~/components/editor/ContextPanel';
 import {
   CodeMirrorEditor,
   type EditorDocument,
@@ -38,6 +40,7 @@ interface EditorPanelProps {
   onFileSelect?: (value?: string) => void;
   onFileSave?: OnEditorSave;
   onFileReset?: () => void;
+  onSendToChat?: (text: string) => void;
 }
 
 const DEFAULT_EDITOR_SIZE = 100 - DEFAULT_TERMINAL_SIZE;
@@ -57,6 +60,7 @@ export const EditorPanel = memo(
     onEditorScroll,
     onFileSave,
     onFileReset,
+    onSendToChat,
   }: EditorPanelProps) => {
     renderLogger.trace('EditorPanel');
 
@@ -173,6 +177,7 @@ export const EditorPanel = memo(
                   onScroll={onEditorScroll}
                   onChange={onEditorChange}
                   onSave={onFileSave}
+                  onSendToChat={onSendToChat}
                 />
               </div>
             </Panel>
@@ -180,7 +185,10 @@ export const EditorPanel = memo(
         </Panel>
         <PanelResizeHandle />
         <TerminalTabs />
+        <ContextButton />
+      <ContextPanel />
       </PanelGroup>
+      
     );
   },
 );
