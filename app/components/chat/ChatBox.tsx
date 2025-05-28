@@ -12,10 +12,13 @@ import { IconButton } from '~/components/ui/IconButton';
 import { toast } from 'react-toastify';
 import { SpeechRecognitionButton } from '~/components/chat/SpeechRecognition';
 import { ExportChatButton } from '~/components/chat/chatExportAndImport/ExportChatButton';
+import { ImportButtons } from '~/components/chat/chatExportAndImport/ImportButtons';
+import GitCloneButton from './GitCloneButton';
 import { SupabaseConnection } from './SupabaseConnection';
 import { ExpoQrModal } from '~/components/workbench/ExpoQrModal';
 import styles from './BaseChat.module.scss';
 import type { ProviderInfo } from '~/types/model';
+import type { Message } from 'ai';
 
 interface ChatBoxProps {
   isModelSettingsCollapsed: boolean;
@@ -54,6 +57,7 @@ interface ChatBoxProps {
   enhancePrompt?: (() => void) | undefined;
   chatMode?: 'discuss' | 'build';
   setChatMode?: (mode: 'discuss' | 'build') => void;
+  importChat?: (description: string, messages: Message[]) => Promise<void>;
 }
 
 export const ChatBox: React.FC<ChatBoxProps> = (props) => {
@@ -236,53 +240,87 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
           )}
         </ClientOnly>
         <div className="flex justify-between items-center text-sm p-4 pt-2">
-          <div className="flex gap-1 items-center">
-            <IconButton title="Upload file" className="transition-all" onClick={() => props.handleFileUpload()}>
-              <div className="i-ph:paperclip text-xl"></div>
-            </IconButton>
-            <IconButton
-              title="Enhance prompt"
-              disabled={props.input.length === 0 || props.enhancingPrompt}
-              className={classNames('transition-all', props.enhancingPrompt ? 'opacity-100' : '')}
-              onClick={() => {
-                props.enhancePrompt?.();
-                toast.success('Prompt enhanced!');
-              }}
-            >
-              {props.enhancingPrompt ? (
-                <div className="i-svg-spinners:90-ring-with-bg text-bolt-elements-loader-progress text-xl animate-spin"></div>
-              ) : (
-                <div className="i-bolt:stars text-xl"></div>
-              )}
-            </IconButton>
-
-            <SpeechRecognitionButton
-              isListening={props.isListening}
-              onStart={props.startListening}
-              onStop={props.stopListening}
-              disabled={props.isStreaming}
-            />
-            {props.chatStarted && (
+          <div className="flex gap-3 items-center">
+            {/* Groupe 1: Actions de fichiers */}
+            <div className="flex gap-1 items-center">
+              <IconButton 
+                title="Upload file" 
+                className="transition-all hover:bg-bolt-elements-item-backgroundAccent/50" 
+                onClick={() => props.handleFileUpload()}
+              >
+                <div className="i-ph:paperclip text-xl"></div>
+              </IconButton>
               <IconButton
-                title="Discuss"
-                className={classNames(
-                  'transition-all flex items-center gap-1 px-1.5',
-                  props.chatMode === 'discuss'
-                    ? '!bg-bolt-elements-item-backgroundAccent !text-bolt-elements-item-contentAccent'
-                    : 'bg-bolt-elements-item-backgroundDefault text-bolt-elements-item-contentDefault',
-                )}
+                title="Enhance prompt"
+                disabled={props.input.length === 0 || props.enhancingPrompt}
+                className={classNames('transition-all hover:bg-bolt-elements-item-backgroundAccent/50', props.enhancingPrompt ? 'opacity-100' : '')}
                 onClick={() => {
-                  props.setChatMode?.(props.chatMode === 'discuss' ? 'build' : 'discuss');
+                  props.enhancePrompt?.();
+                  toast.success('Prompt enhanced!');
                 }}
               >
-                <div className={`i-ph:chats text-xl`} />
-                {props.chatMode === 'discuss' ? <span>Discuss</span> : <span />}
+                {props.enhancingPrompt ? (
+                  <div className="i-svg-spinners:90-ring-with-bg text-bolt-elements-loader-progress text-xl animate-spin"></div>
+                ) : (
+                  <div className="i-bolt:stars text-xl"></div>
+                )}
               </IconButton>
+            </div>
+
+            {/* Séparateur visuel */}
+            <div className="w-px h-6 bg-bolt-elements-borderColor"></div>
+
+            {/* Groupe 2: Communication et Import */}
+            <div className="flex gap-1 items-center">
+              <SpeechRecognitionButton
+                isListening={props.isListening}
+                onStart={props.startListening}
+                onStop={props.stopListening}
+                disabled={props.isStreaming}
+              />
+              
+              {/* Boutons Import groupés avec un style cohérent */}
+              <div className="flex gap-1 items-center">
+                {ImportButtons(props.importChat)}
+                <GitCloneButton 
+                  importChat={props.importChat} 
+                  iconOnly={true}
+                />
+              </div>
+            </div>
+
+            {/* Séparateur visuel conditionnel */}
+            {props.chatStarted && <div className="w-px h-6 bg-bolt-elements-borderColor"></div>}
+
+            {/* Groupe 3: Actions de chat */}
+            {props.chatStarted && (
+              <div className="flex gap-1 items-center">
+                <IconButton
+                  title="Discuss"
+                  className={classNames(
+                    'transition-all flex items-center gap-1 px-1.5 hover:bg-bolt-elements-item-backgroundAccent/50',
+                    props.chatMode === 'discuss'
+                      ? '!bg-bolt-elements-item-backgroundAccent !text-bolt-elements-item-contentAccent'
+                      : 'bg-bolt-elements-item-backgroundDefault text-bolt-elements-item-contentDefault',
+                  )}
+                  onClick={() => {
+                    props.setChatMode?.(props.chatMode === 'discuss' ? 'build' : 'discuss');
+                  }}
+                >
+                  <div className={`i-ph:chats text-xl`} />
+                  {props.chatMode === 'discuss' ? <span>Discuss</span> : <span />}
+                </IconButton>
+                <ClientOnly>{() => <ExportChatButton exportChat={props.exportChat} />}</ClientOnly>
+              </div>
             )}
-            {props.chatStarted && <ClientOnly>{() => <ExportChatButton exportChat={props.exportChat} />}</ClientOnly>}
+
+            {/* Séparateur visuel */}
+            <div className="w-px h-6 bg-bolt-elements-borderColor"></div>
+
+            {/* Groupe 4: Paramètres */}
             <IconButton
               title="Model Settings"
-              className={classNames('transition-all flex items-center gap-1', {
+              className={classNames('transition-all flex items-center gap-1 hover:bg-bolt-elements-item-backgroundAccent/50', {
                 'bg-bolt-elements-item-backgroundAccent text-bolt-elements-item-contentAccent':
                   props.isModelSettingsCollapsed,
                 'bg-bolt-elements-item-backgroundDefault text-bolt-elements-item-contentDefault':

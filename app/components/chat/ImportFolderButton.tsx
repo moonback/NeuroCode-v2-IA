@@ -5,14 +5,16 @@ import { MAX_FILES, isBinaryFile, shouldIncludeFile } from '~/utils/fileUtils';
 import { createChatFromFolder } from '~/utils/folderImport';
 import { logStore } from '~/lib/stores/logs'; // Assuming logStore is imported from this location
 import { Button } from '~/components/ui/Button';
+import { IconButton } from '~/components/ui/IconButton';
 import { classNames } from '~/utils/classNames';
 
 interface ImportFolderButtonProps {
   className?: string;
   importChat?: (description: string, messages: Message[]) => Promise<void>;
+  iconOnly?: boolean;
 }
 
-export const ImportFolderButton: React.FC<ImportFolderButtonProps> = ({ className, importChat }) => {
+export const ImportFolderButton: React.FC<ImportFolderButtonProps> = ({ className, importChat, iconOnly = false }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -114,28 +116,42 @@ export const ImportFolderButton: React.FC<ImportFolderButtonProps> = ({ classNam
         onChange={handleFileChange}
         {...({} as any)}
       />
-      <Button
-        onClick={() => {
-          const input = document.getElementById('folder-import');
-          input?.click();
-        }}
-        title="Import Folder"
-        variant="default"
-        size="lg"
-        className={classNames(
-          'gap-2 bg-bolt-elements-background-depth-1',
-          'text-bolt-elements-textPrimary',
-          'hover:bg-bolt-elements-background-depth-2',
-          'border border-bolt-elements-borderColor',
-          'h-10 px-4 py-2 min-w-[120px] justify-center',
-          'transition-all duration-200 ease-in-out',
-          className,
-        )}
-        disabled={isLoading}
-      >
-        <span className="i-ph:upload-simple w-4 h-4" />
-        {isLoading ? 'Importing...' : 'Import Folder'}
-      </Button>
+      {iconOnly ? (
+        <IconButton
+          title="Import Folder"
+          onClick={() => {
+            const input = document.getElementById('folder-import');
+            input?.click();
+          }}
+          className={classNames('transition-all hover:bg-bolt-elements-item-backgroundAccent/50', className)}
+          disabled={isLoading}
+        >
+          <div className="i-ph:folder-open text-xl"></div>
+        </IconButton>
+      ) : (
+        <Button
+          onClick={() => {
+            const input = document.getElementById('folder-import');
+            input?.click();
+          }}
+          title="Import Folder"
+          variant="default"
+          size="lg"
+          className={classNames(
+            'gap-2 bg-bolt-elements-background-depth-1',
+            'text-bolt-elements-textPrimary',
+            'hover:bg-bolt-elements-background-depth-2',
+            'border border-bolt-elements-borderColor',
+            'h-10 px-4 py-2 min-w-[120px] justify-center',
+            'transition-all duration-200 ease-in-out',
+            className,
+          )}
+          disabled={isLoading}
+        >
+          <span className="i-ph:upload-simple w-4 h-4" />
+          {isLoading ? 'Importing...' : 'Import Folder'}
+        </Button>
+      )}
     </>
   );
 };

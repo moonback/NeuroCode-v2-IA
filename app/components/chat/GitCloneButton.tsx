@@ -9,6 +9,7 @@ import { LoadingOverlay } from '~/components/ui/LoadingOverlay';
 import { RepositorySelectionDialog } from '~/components/@settings/tabs/connections/components/RepositorySelectionDialog';
 import { classNames } from '~/utils/classNames';
 import { Button } from '~/components/ui/Button';
+import { IconButton } from '~/components/ui/IconButton';
 import type { IChatMetadata } from '~/lib/persistence/db';
 
 const IGNORE_PATTERNS = [
@@ -40,9 +41,10 @@ const MAX_TOTAL_SIZE = 500 * 1024; // 500KB total limit
 interface GitCloneButtonProps {
   className?: string;
   importChat?: (description: string, messages: Message[], metadata?: IChatMetadata) => Promise<void>;
+  iconOnly?: boolean;
 }
 
-export default function GitCloneButton({ importChat, className }: GitCloneButtonProps) {
+export default function GitCloneButton({ importChat, className, iconOnly = false }: GitCloneButtonProps) {
   const { ready, gitClone } = useGit();
   const [loading, setLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -154,25 +156,36 @@ ${escapeBoltTags(file.content)}
 
   return (
     <>
-      <Button
-        onClick={() => setIsDialogOpen(true)}
-        title="Clone a Git Repo"
-        variant="default"
-        size="lg"
-        className={classNames(
-          'gap-2 bg-bolt-elements-background-depth-1',
-          'text-bolt-elements-textPrimary',
-          'hover:bg-bolt-elements-background-depth-2',
-          'border border-bolt-elements-borderColor',
-          'h-10 px-4 py-2 min-w-[120px] justify-center',
-          'transition-all duration-200 ease-in-out',
-          className,
-        )}
-        disabled={!ready || loading}
-      >
-        <span className="i-ph:git-branch w-4 h-4" />
-        Clone a Git Repo
-      </Button>
+      {iconOnly ? (
+        <IconButton
+          title="Clone a Git Repo"
+          onClick={() => setIsDialogOpen(true)}
+          className={classNames('transition-all hover:bg-bolt-elements-item-backgroundAccent/50', className)}
+          disabled={!ready || loading}
+        >
+          <div className="i-ph:git-branch text-xl"></div>
+        </IconButton>
+      ) : (
+        <Button
+          onClick={() => setIsDialogOpen(true)}
+          title="Clone a Git Repo"
+          variant="default"
+          size="lg"
+          className={classNames(
+            'gap-2 bg-bolt-elements-background-depth-1',
+            'text-bolt-elements-textPrimary',
+            'hover:bg-bolt-elements-background-depth-2',
+            'border border-bolt-elements-borderColor',
+            'h-10 px-4 py-2 min-w-[120px] justify-center',
+            'transition-all duration-200 ease-in-out',
+            className,
+          )}
+          disabled={!ready || loading}
+        >
+          <span className="i-ph:git-branch w-4 h-4" />
+          Clone a Git Repo
+        </Button>
+      )}
 
       <RepositorySelectionDialog isOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)} onSelect={handleClone} />
 

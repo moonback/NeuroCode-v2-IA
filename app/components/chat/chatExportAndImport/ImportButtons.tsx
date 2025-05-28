@@ -1,7 +1,7 @@
 import type { Message } from 'ai';
 import { toast } from 'react-toastify';
 import { ImportFolderButton } from '~/components/chat/ImportFolderButton';
-import { Button } from '~/components/ui/Button';
+import { IconButton } from '~/components/ui/IconButton';
 import { classNames } from '~/utils/classNames';
 
 type ChatData = {
@@ -11,7 +11,7 @@ type ChatData = {
 
 export function ImportButtons(importChat: ((description: string, messages: Message[]) => Promise<void>) | undefined) {
   return (
-    <div className="flex flex-col items-center justify-center w-auto">
+    <>
       <input
         type="file"
         id="chat-import"
@@ -57,40 +57,23 @@ export function ImportButtons(importChat: ((description: string, messages: Messa
           }
         }}
       />
-      <div className="flex flex-col items-center gap-4 max-w-2xl text-center">
-        <div className="flex gap-2">
-          <Button
-            onClick={() => {
-              const input = document.getElementById('chat-import');
-              input?.click();
-            }}
-            variant="default"
-            size="lg"
-            className={classNames(
-              'gap-2 bg-bolt-elements-background-depth-1',
-              'text-bolt-elements-textPrimary',
-              'hover:bg-bolt-elements-background-depth-2',
-              'border border-bolt-elements-borderColor',
-              'h-10 px-4 py-2 min-w-[120px] justify-center',
-              'transition-all duration-200 ease-in-out',
-            )}
-          >
-            <span className="i-ph:upload-simple w-4 h-4" />
-            Import Chat
-          </Button>
-          <ImportFolderButton
-            importChat={importChat}
-            className={classNames(
-              'gap-2 bg-bolt-elements-background-depth-1',
-              'text-bolt-elements-textPrimary',
-              'hover:bg-bolt-elements-background-depth-2',
-              'border border-[rgba(0,0,0,0.08)] dark:border-[rgba(255,255,255,0.08)]',
-              'h-10 px-4 py-2 min-w-[120px] justify-center',
-              'transition-all duration-200 ease-in-out rounded-lg',
-            )}
-          />
-        </div>
+      <div className="flex gap-1 items-center">
+        <IconButton
+          title="Import Chat"
+          onClick={() => {
+            const input = document.getElementById('chat-import');
+            input?.click();
+          }}
+          className="transition-all hover:bg-bolt-elements-item-backgroundAccent/50"
+        >
+          <div className="i-ph:upload-simple text-xl"></div>
+        </IconButton>
+        <ImportFolderButton
+          importChat={importChat}
+          className="hover:bg-bolt-elements-item-backgroundAccent/50"
+          iconOnly={true}
+        />
       </div>
-    </div>
+    </>
   );
 }
