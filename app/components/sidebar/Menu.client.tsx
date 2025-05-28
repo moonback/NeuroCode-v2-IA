@@ -76,6 +76,7 @@ export const Menu = () => {
   const profile = useStore(profileStore);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [showTemplates, setShowTemplates] = useState(false);
   const chat = useStore(chatStore);
   const isChatStarted = chat.started;
 
@@ -375,6 +376,14 @@ export const Menu = () => {
                 <span className="text-sm font-medium">Nouveau chat</span>
               </a>
               <button
+                onClick={() => setShowTemplates(!showTemplates)}
+                className="flex gap-2 items-center rounded-xl px-3 py-3 transition-all duration-300 hover:scale-105 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-500/10 dark:to-emerald-500/10 text-green-700 dark:text-green-300 hover:from-green-100 hover:to-emerald-100 dark:hover:from-green-500/20 dark:hover:to-emerald-500/20 border border-green-200/50 dark:border-green-700/50 hover:shadow-md group"
+                aria-label="Démarrer un projet"
+              >
+                <span className="i-ph:folder-plus h-4 w-4 group-hover:scale-110 transition-transform duration-300" />
+                <span className="text-sm font-medium">Projet</span>
+              </button>
+              <button
                 onClick={toggleSelectionMode}
                 className={classNames(
                   'flex gap-1 items-center rounded-xl px-3 py-3 transition-all duration-300 hover:scale-105',
@@ -533,8 +542,8 @@ export const Menu = () => {
             </DialogRoot>
           </div>
           
-          {/* Conditionally render SidebarTemplates only when no conversation is active */}
-            {!isChatStarted && <SidebarTemplates />}
+          {/* Conditionally render SidebarTemplates based on showTemplates state */}
+            {showTemplates && <SidebarTemplates />}
             <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-800 px-4 py-4 bg-gradient-to-r from-gray-50/30 to-blue-50/30 dark:from-gray-900/30 dark:to-blue-900/30">
             <button
               onClick={handleSettingsClick}
