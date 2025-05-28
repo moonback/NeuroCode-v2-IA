@@ -45,7 +45,7 @@ export const Markdown = memo(
           }
 
           if (className?.includes('__boltQuickAction__') || dataProps?.dataBoltQuickAction) {
-            return <div className="flex items-center gap-2 flex-wrap mt-3.5">{children}</div>;
+            return <div className="flex items-center gap-2 flex-wrap mt-3.5 cursor-pointer">{children}</div>;
           }
 
           return (
@@ -137,6 +137,29 @@ export const Markdown = memo(
           }
 
           return <button {...props}>{children}</button>;
+        },
+        a: ({ node, href, children, ...props }) => {
+          // Gestion spéciale pour les liens de fichiers
+          if (href?.startsWith('/') || href?.match(/^[a-zA-Z]:\\/) || href?.startsWith('file://')) {
+            return (
+              <a
+                {...props}
+                href="#"
+                className="text-bolt-elements-item-contentAccent hover:underline cursor-pointer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  const filePath = href.startsWith('file://') 
+                    ? decodeURIComponent(href.slice(7)) 
+                    : href;
+                  openArtifactInWorkbench(filePath);
+                }}
+              >
+                {children}
+              </a>
+            );
+          }
+          
+          return <a href={href} {...props}>{children}</a>;
         },
       } satisfies Components;
     }, []);
