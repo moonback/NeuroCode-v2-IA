@@ -63,7 +63,7 @@ const ContextMenu = memo(({ children, filePath, getSelectedText, getSelectionPos
               <ContextMenuItem onSelect={handleSendToChat}>
                 <div className="flex items-center gap-2">
                   <div className="i-ph:code" />
-                  Demander d'expliquer
+                Expliquer via LLM
                 </div>
               </ContextMenuItem>
               <ContextMenuItem onSelect={() => navigator.clipboard.writeText(selectedText)}>
