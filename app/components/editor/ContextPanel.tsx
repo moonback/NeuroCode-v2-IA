@@ -158,7 +158,7 @@ const ContextPanel = memo(() => {
                   className={classNames(
                     "flex items-center gap-1 rounded px-2 py-0.5 text-xs",
                     selectedType === 'code' 
-                      ? "bg-bolt-elements-accent text-white" 
+                      ? "bg-bolt-elements-background-depth-3 text-white" 
                       : "bg-bolt-elements-background-depth-2 text-bolt-elements-textSecondary hover:bg-bolt-elements-background-depth-3"
                   )}
                 >
@@ -170,7 +170,7 @@ const ContextPanel = memo(() => {
                   className={classNames(
                     "flex items-center gap-1 rounded px-2 py-0.5 text-xs",
                     selectedType === 'error' 
-                      ? "bg-bolt-elements-accent text-white" 
+                      ? "bg-bolt-elements-background-depth-3 text-white" 
                       : "bg-bolt-elements-background-depth-2 text-bolt-elements-textSecondary hover:bg-bolt-elements-background-depth-3"
                   )}
                 >
@@ -182,7 +182,7 @@ const ContextPanel = memo(() => {
                   className={classNames(
                     "flex items-center gap-1 rounded px-2 py-0.5 text-xs",
                     selectedType === 'comment' 
-                      ? "bg-bolt-elements-accent text-white" 
+                      ? "bg-bolt-elements-background-depth-3 text-white" 
                       : "bg-bolt-elements-background-depth-2 text-bolt-elements-textSecondary hover:bg-bolt-elements-background-depth-3"
                   )}
                 >
@@ -194,7 +194,7 @@ const ContextPanel = memo(() => {
                   className={classNames(
                     "flex items-center gap-1 rounded px-2 py-0.5 text-xs",
                     selectedType === 'text' 
-                      ? "bg-bolt-elements-accent text-white" 
+                      ? "bg-bolt-elements-background-depth-3 text-white" 
                       : "bg-bolt-elements-background-depth-2 text-bolt-elements-textSecondary hover:bg-bolt-elements-background-depth-3"
                   )}
                 >
@@ -242,7 +242,7 @@ const ContextPanel = memo(() => {
                       clearAllContextItems();
                     }
                   }}
-                  className="text-xs text-red-500 hover:text-red-600"
+                  className="bg-bolt-elements-background-depth-2 text-xs text-red-500 hover:text-red-600"
                 >
                   Tout supprimer
                 </button>
