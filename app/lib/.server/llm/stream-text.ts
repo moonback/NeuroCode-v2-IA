@@ -66,13 +66,13 @@ export async function streamText(props: {
       content = content.replace(/<div class=\\"__boltThought__\\">.*?<\/div>/s, '');
       content = content.replace(/<think>.*?<\/think>/s, '');
 
-      // Remove package-lock.json content specifically keeping token usage MUCH lower
+      // Supprimer le contenu de package-lock.json pour réduire considérablement l'utilisation de tokens
       content = content.replace(
         /<boltAction type="file" filePath="package-lock\.json">[\s\S]*?<\/boltAction>/g,
         '[package-lock.json content removed]',
       );
 
-      // Trim whitespace potentially left after removals
+      // Supprimer les espaces blancs potentiellement laissés après les suppressions
       content = content.trim();
 
       return { ...message, content };
@@ -96,15 +96,15 @@ export async function streamText(props: {
     ];
 
     if (!modelsList.length) {
-      throw new Error(`No models found for provider ${provider.name}`);
+      throw new Error(`Aucun modèle trouvé pour le fournisseur ${provider.name}`);
     }
 
     modelDetails = modelsList.find((m) => m.name === currentModel);
 
     if (!modelDetails) {
-      // Fallback to first model
+      // Repli sur le premier modèle
       logger.warn(
-        `MODEL [${currentModel}] not found in provider [${provider.name}]. Falling back to first model. ${modelsList[0].name}`,
+        `MODÈLE [${currentModel}] non trouvé chez le fournisseur [${provider.name}]. Repli sur le premier modèle. ${modelsList[0].name}`,
       );
       modelDetails = modelsList[0];
     }
@@ -112,7 +112,7 @@ export async function streamText(props: {
 
   const dynamicMaxTokens = modelDetails && modelDetails.maxTokenAllowed ? modelDetails.maxTokenAllowed : MAX_TOKENS;
   logger.info(
-    `Max tokens for model ${modelDetails.name} is ${dynamicMaxTokens} based on ${modelDetails.maxTokenAllowed} or ${MAX_TOKENS}`,
+    `Nombre maximum de tokens pour le modèle ${modelDetails.name} est ${dynamicMaxTokens} basé sur ${modelDetails.maxTokenAllowed} ou ${MAX_TOKENS}`,
   );
 
   let systemPrompt =
@@ -132,7 +132,7 @@ export async function streamText(props: {
 
     systemPrompt = `${systemPrompt}
 
-    Below is the artifact containing the context loaded into context buffer for you to have knowledge of and might need changes to fullfill current user request.
+    Ci-dessous se trouve l'artefact contenant le contexte chargé dans le tampon de contexte pour que vous en ayez connaissance et qui pourrait nécessiter des modifications pour répondre à la demande actuelle de l'utilisateur.
     CONTEXT BUFFER:
     ---
     ${codeContext}
@@ -141,7 +141,7 @@ export async function streamText(props: {
 
     if (summary) {
       systemPrompt = `${systemPrompt}
-      below is the chat history till now
+      ci-dessous se trouve l'historique de conversation jusqu'à présent
       CHAT SUMMARY:
       ---
       ${props.summary}
@@ -176,15 +176,15 @@ export async function streamText(props: {
       .join('\n');
     systemPrompt = `${systemPrompt}
 
-    IMPORTANT: The following files are locked and MUST NOT be modified in any way. Do not suggest or make any changes to these files. You can proceed with the request but DO NOT make any changes to these files specifically:
+    IMPORTANT : Les fichiers suivants sont verrouillés et NE DOIVENT PAS être modifiés de quelque manière que ce soit. Ne suggérez pas et n'apportez pas de modifications à ces fichiers. Vous pouvez procéder à la demande mais NE faites AUCUNE modification à ces fichiers spécifiquement :
     ${lockedFilesListString}
     ---
     `;
   } else {
-    console.log('No locked files found from any source for prompt.');
+    console.log('Aucun fichier verrouillé trouvé pour le prompt.');
   }
 
-  logger.info(`Sending llm call to ${provider.name} with model ${modelDetails.name}`);
+  logger.info(`Envoi d'un appel llm à ${provider.name} avec le modèle ${modelDetails.name}`);
 
   // console.log(systemPrompt, processedMessages);
 
