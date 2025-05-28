@@ -72,14 +72,14 @@ const ContextPanel = memo(() => {
             <div className="flex items-center gap-2">
               <button
                 onClick={clearContextItems}
-                className="p-1 text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary rounded-md hover:bg-bolt-elements-background-depth-3 transition-colors"
+                className="p-1 bg-red-900 text-white hover:text-bolt-elements-textPrimary hover:bg-red-500 rounded-md hover:bg-bolt-elements-background-depth-3 transition-colors"
                 title="Effacer les éléments non épinglés"
               >
                 <div className="i-ph:trash size-4" />
               </button>
               <button
                 onClick={closeContextPanel}
-                className="p-1 text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary rounded-md hover:bg-bolt-elements-background-depth-3 transition-colors"
+                className="p-1 bg-bolt-elements-background-depth-4 text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary rounded-md hover:bg-bolt-elements-background-depth-3 transition-colors"
                 title="Fermer le panneau"
               >
                 <div className="i-ph:x size-4" />
@@ -109,7 +109,7 @@ const ContextPanel = memo(() => {
                 className={classNames(
                   "rounded px-2 py-1 text-xs",
                   $viewMode === 'all' 
-                    ? "bg-bolt-elements-accent text-white" 
+                    ? "bg-bolt-elements-background-depth-3 text-white" 
                     : "bg-bolt-elements-background-depth-2 text-bolt-elements-textSecondary hover:bg-bolt-elements-background-depth-3"
                 )}
               >
@@ -120,7 +120,7 @@ const ContextPanel = memo(() => {
                 className={classNames(
                   "rounded px-2 py-1 text-xs",
                   $viewMode === 'pinned' 
-                    ? "bg-bolt-elements-accent text-white" 
+                    ? "bg-bolt-elements-background-depth-3 text-white" 
                     : "bg-bolt-elements-background-depth-2 text-bolt-elements-textSecondary hover:bg-bolt-elements-background-depth-3"
                 )}
               >
@@ -131,7 +131,7 @@ const ContextPanel = memo(() => {
                 className={classNames(
                   "rounded px-2 py-1 text-xs",
                   $viewMode === 'byType' 
-                    ? "bg-bolt-elements-accent text-white" 
+                    ? "bg-bolt-elements-background-depth-3 text-white" 
                     : "bg-bolt-elements-background-depth-2 text-bolt-elements-textSecondary hover:bg-bolt-elements-background-depth-3"
                 )}
               >
@@ -147,7 +147,7 @@ const ContextPanel = memo(() => {
                   className={classNames(
                     "rounded px-2 py-0.5 text-xs",
                     selectedType === null 
-                      ? "bg-bolt-elements-accent text-white" 
+                      ? "bg-bolt-elements-background-depth-3 text-white" 
                       : "bg-bolt-elements-background-depth-2 text-bolt-elements-textSecondary hover:bg-bolt-elements-background-depth-3"
                   )}
                 >
