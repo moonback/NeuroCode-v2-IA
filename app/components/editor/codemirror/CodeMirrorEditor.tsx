@@ -80,6 +80,7 @@ interface Props {
   onSave?: OnSaveCallback;
   className?: string;
   settings?: EditorSettings;
+  onSendToChat?: (text: string) => void;
 }
 
 type EditorStates = Map<string, EditorState>;
@@ -137,6 +138,7 @@ export const CodeMirrorEditor = memo(
     theme,
     settings,
     className = '',
+    onSendToChat,
   }: Props) => {
     renderLogger.trace('CodeMirrorEditor');
 
@@ -341,6 +343,7 @@ export const CodeMirrorEditor = memo(
           filePath={doc?.filePath || ''}
           getSelectedText={getSelectedText}
           getSelectionPosition={getSelectionPosition}
+          onSendToChat={onSendToChat}
         >
           <div className="h-full overflow-hidden" ref={containerRef} />
         </ContextMenu>

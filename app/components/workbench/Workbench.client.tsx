@@ -35,6 +35,7 @@ interface WorkspaceProps {
     gitUrl?: string;
   };
   updateChatMestaData?: (metadata: any) => void;
+  sendMessage?: (event: React.UIEvent, messageInput?: string) => void;
 }
 
 const viewTransition = { ease: cubicEasingFn };
@@ -278,7 +279,7 @@ const FileModifiedDropdown = memo(
 );
 
 export const Workbench = memo(
-  ({ chatStarted, isStreaming, actionRunner, metadata, updateChatMestaData }: WorkspaceProps) => {
+  ({ chatStarted, isStreaming, actionRunner, metadata, updateChatMestaData, sendMessage }: WorkspaceProps) => {
     renderLogger.trace('Workbench');
 
     const [isSyncing, setIsSyncing] = useState(false);
@@ -479,6 +480,11 @@ export const Workbench = memo(
                       onEditorChange={onEditorChange}
                       onFileSave={onFileSave}
                       onFileReset={onFileReset}
+                      onSendToChat={(text) => {
+                        if (sendMessage) {
+                          sendMessage({} as React.UIEvent, text);
+                        }
+                      }}
                     />
                   </View>
                   <View

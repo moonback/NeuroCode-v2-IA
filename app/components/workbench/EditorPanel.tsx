@@ -40,6 +40,7 @@ interface EditorPanelProps {
   onFileSelect?: (value?: string) => void;
   onFileSave?: OnEditorSave;
   onFileReset?: () => void;
+  onSendToChat?: (text: string) => void;
 }
 
 const DEFAULT_EDITOR_SIZE = 100 - DEFAULT_TERMINAL_SIZE;
@@ -59,6 +60,7 @@ export const EditorPanel = memo(
     onEditorScroll,
     onFileSave,
     onFileReset,
+    onSendToChat,
   }: EditorPanelProps) => {
     renderLogger.trace('EditorPanel');
 
@@ -175,6 +177,7 @@ export const EditorPanel = memo(
                   onScroll={onEditorScroll}
                   onChange={onEditorChange}
                   onSave={onFileSave}
+                  onSendToChat={onSendToChat}
                 />
               </div>
             </Panel>

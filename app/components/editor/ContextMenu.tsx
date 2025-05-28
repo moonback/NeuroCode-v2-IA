@@ -8,9 +8,10 @@ interface ContextMenuProps {
   filePath: string;
   getSelectedText: () => string;
   getSelectionPosition?: () => { line: number; column: number } | undefined;
+  onSendToChat?: (text: string) => void;
 }
 
-const ContextMenu = memo(({ children, filePath, getSelectedText, getSelectionPosition }: ContextMenuProps) => {
+const ContextMenu = memo(({ children, filePath, getSelectedText, getSelectionPosition, onSendToChat }: ContextMenuProps) => {
   const [selectedText, setSelectedText] = useState('');
   const [isTextSelected, setIsTextSelected] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -33,6 +34,14 @@ const ContextMenu = memo(({ children, filePath, getSelectedText, getSelectionPos
       });
     }
   };
+  
+  // Envoyer le texte sélectionné au chat pour explication ou correction
+  const handleSendToChat = () => {
+    if (selectedText && selectedText.trim().length > 0) {
+      const prompt = `Peux-tu expliquer ou corriger ce code :\n\n\`\`\`\n${selectedText}\n\`\`\`\n\nChemin du fichier: ${filePath}`;
+      onSendToChat?.(prompt);
+    }
+  };
 
   return (
     <ContextMenuPrimitive.Root onOpenChange={handleContextMenuOpen}>
@@ -49,6 +58,12 @@ const ContextMenu = memo(({ children, filePath, getSelectedText, getSelectionPos
                 <div className="flex items-center gap-2">
                   <div className="i-ph:brain" />
                   Ajouter au contexte LLM
+                </div>
+              </ContextMenuItem>
+              <ContextMenuItem onSelect={handleSendToChat}>
+                <div className="flex items-center gap-2">
+                  <div className="i-ph:code" />
+                  Demander à l'IA d'expliquer/corriger
                 </div>
               </ContextMenuItem>
               <ContextMenuItem onSelect={() => navigator.clipboard.writeText(selectedText)}>
