@@ -34,13 +34,7 @@ const SidebarTemplates: React.FC = () => {
           <div className="w-2 h-2 rounded-full animate-pulse bg-gradient-to-r from-purple-500 to-blue-500" />
           <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Démarrer un projet</h3>
         </div>
-        <button
-          className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-green-500/50"
-          title="Déployer le projet"
-        >
-          <span className="i-ph:rocket-launch w-3 h-3" />
-          <span>Déployer</span>
-        </button>
+        
       </div>
       <div className="flex flex-wrap gap-2 p-3 rounded-xl border border-gray-100 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50">
         {STARTER_TEMPLATES.map((template) => (
