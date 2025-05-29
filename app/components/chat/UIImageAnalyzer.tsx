@@ -34,8 +34,8 @@ const ANALYSIS_OPTIONS: AnalysisOption[] = [
       title: 'Reproduire le code',
       description: 'Génère le code pour reproduire cette interface avec précision',
       icon: 'i-ph:code',
-      gradient: 'from-violet-500/20 to-cyan-500/20',
-      color: 'text-violet-400',
+      gradient: 'from-bolt-elements-item-backgroundAccent to-bolt-elements-background-depth-3',
+      color: 'text-bolt-elements-item-contentAccent',
       prompt: `Analyse cette interface utilisateur et génère une application React + Vite complète qui la reproduit fidèlement.
   
   **Instructions spécifiques :**
@@ -62,8 +62,8 @@ const ANALYSIS_OPTIONS: AnalysisOption[] = [
       title: 'Améliorer l\'UI',
       description: 'Propose des améliorations concrètes de design et d\'expérience utilisateur',
       icon: 'i-ph:magic-wand',
-      gradient: 'from-purple-500/20 to-pink-500/20',
-      color: 'text-purple-400',
+      gradient: 'from-bolt-elements-item-backgroundAccent to-bolt-elements-background-depth-2',
+      color: 'text-bolt-elements-item-contentAccent',
       prompt: `Effectue une analyse UX/UI approfondie de cette interface et propose des améliorations concrètes.
   
   **Axes d'analyse :**
@@ -107,8 +107,8 @@ const ANALYSIS_OPTIONS: AnalysisOption[] = [
       title: 'Expliquer le design',
       description: 'Analyse détaillée des choix de design et des principes UX appliqués',
       icon: 'i-ph:lightbulb',
-      gradient: 'from-amber-500/20 to-orange-500/20',
-      color: 'text-amber-400',
+      gradient: 'from-bolt-elements-item-backgroundAccent to-bolt-elements-background-depth-2',
+      color: 'text-bolt-elements-item-contentAccent',
       prompt: `Analyse cette interface utilisateur selon une approche design thinking structurée.
   
   **1. Architecture de l'Information**
@@ -341,29 +341,18 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
         <IconButton
           title="Analyser une image UI"
           onClick={() => setIsOpen(true)}
-          className="relative transition-all duration-300 hover:bg-gradient-to-r hover:from-violet-500/15 hover:via-purple-500/15 hover:to-pink-500/15 border border-transparent hover:border-violet-500/40 hover:shadow-xl hover:shadow-violet-500/25"
+          className="relative transition-all duration-300 hover:bg-bolt-elements-item-backgroundActive border border-transparent hover:border-bolt-elements-borderColorActive hover:shadow-lg"
         >
-          <div className="i-ph:image text-xl" />
+          <div className="i-ph:image text-xl text-bolt-elements-item-contentDefault hover:text-bolt-elements-item-contentAccent" />
           <motion.div
-            className="absolute inset-0 rounded-lg bg-gradient-to-r from-violet-400/20 via-purple-400/20 to-pink-400/20 opacity-0 blur-sm"
+            className="absolute inset-0 rounded-lg bg-bolt-elements-item-backgroundAccent opacity-0 blur-sm"
             whileHover={{ 
-              opacity: 1,
-              scale: 1.1
+              opacity: 0.3,
+              scale: 1.05
             }}
             transition={{ 
               duration: 0.3,
               ease: "easeOut"
-            }}
-          />
-          <motion.div 
-            className="absolute -inset-1 bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500 rounded-lg opacity-0 blur-xl"
-            whileHover={{
-              opacity: 0.2,
-              scale: 1.2
-            }}
-            transition={{
-              duration: 0.4,
-              ease: "easeOut" 
             }}
           />
         </IconButton>
@@ -378,15 +367,15 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.2 }}
             >
-              <Dialog className="max-w-7xl p-0 overflow-hidden bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 shadow-2xl">
-                {/* Header avec gradient */}
-                <div className="relative p-6 bg-gradient-to-r from-violet-600/20 via-purple-600/20 to-pink-600/20 border-b border-slate-700/50">
+              <Dialog className="max-w-7xl p-0 overflow-hidden bg-bolt-elements-background-depth-1 backdrop-blur-xl border border-bolt-elements-borderColor shadow-2xl">
+                {/* Header */}
+                <div className="relative p-6 bg-bolt-elements-background-depth-2 border-b border-bolt-elements-borderColor">
                   <div className="flex items-center justify-between">
                     <div>
-                      <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">
+                      <DialogTitle className="text-2xl font-bold text-bolt-elements-textPrimary">
                         Analyser une interface utilisateur
                       </DialogTitle>
-                      <p className="text-sm text-slate-400 mt-1">
+                      <p className="text-sm text-bolt-elements-textSecondary mt-1">
                         Uploadez une image et choisissez votre type d'analyse
                       </p>
                     </div>
@@ -401,30 +390,30 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
                       <motion.div
                         className={classNames(
                           'w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all',
-                          currentStep >= 1 ? 'bg-violet-500 text-white' : 'bg-slate-700 text-slate-400'
+                          currentStep >= 1 ? 'bg-bolt-elements-item-contentAccent text-white' : 'bg-bolt-elements-background-depth-3 text-bolt-elements-textTertiary'
                         )}
                         animate={{ scale: currentStep === 1 ? 1.1 : 1 }}
                       >
                         1
                       </motion.div>
-                      <span className={classNames('text-sm font-medium', currentStep >= 1 ? 'text-violet-400' : 'text-slate-500')}>
+                      <span className={classNames('text-sm font-medium', currentStep >= 1 ? 'text-bolt-elements-item-contentAccent' : 'text-bolt-elements-textTertiary')}>
                         Image
                       </span>
                     </div>
                     
-                    <div className={classNames('flex-1 h-0.5 rounded-full transition-all', selectedFile ? 'bg-violet-500' : 'bg-slate-700')} />
+                    <div className={classNames('flex-1 h-0.5 rounded-full transition-all', selectedFile ? 'bg-bolt-elements-item-contentAccent' : 'bg-bolt-elements-background-depth-3')} />
                     
                     <div className="flex items-center gap-2">
                       <motion.div
                         className={classNames(
                           'w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all',
-                          currentStep >= 2 ? 'bg-purple-500 text-white' : 'bg-slate-700 text-slate-400'
+                          currentStep >= 2 ? 'bg-bolt-elements-item-contentAccent text-white' : 'bg-bolt-elements-background-depth-3 text-bolt-elements-textTertiary'
                         )}
                         animate={{ scale: currentStep === 2 ? 1.1 : 1 }}
                       >
                         2
                       </motion.div>
-                      <span className={classNames('text-sm font-medium', currentStep >= 2 ? 'text-purple-400' : 'text-slate-500')}>
+                      <span className={classNames('text-sm font-medium', currentStep >= 2 ? 'text-bolt-elements-item-contentAccent' : 'text-bolt-elements-textTertiary')}>
                         Analyse
                       </span>
                     </div>
@@ -442,8 +431,8 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
                         exit={{ opacity: 0, x: -20 }}
                         transition={{ duration: 0.3 }}
                       >
-                        <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-                          <div className="i-ph:upload text-violet-400" />
+                        <h3 className="text-xl font-semibold text-bolt-elements-textPrimary mb-4 flex items-center gap-2">
+                          <div className="i-ph:upload text-bolt-elements-item-contentAccent" />
                           Sélectionner une image
                         </h3>
                         
@@ -452,8 +441,8 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
                             className={classNames(
                               'relative border-2 border-dashed rounded-xl p-12 text-center transition-all cursor-pointer group overflow-hidden',
                               {
-                                'border-slate-600 hover:border-violet-400': !isDragOver,
-                                'border-violet-400 bg-violet-500/10': isDragOver
+                                'border-bolt-elements-borderColor hover:border-bolt-elements-borderColorActive': !isDragOver,
+                                'border-bolt-elements-borderColorActive bg-bolt-elements-item-backgroundAccent': isDragOver
                               }
                             )}
                             onDragOver={handleDragOver}
@@ -463,23 +452,23 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                           >
-                            {/* Background gradient effect */}
-                            <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 via-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            {/* Background effect */}
+                            <div className="absolute inset-0 bg-bolt-elements-item-backgroundAccent opacity-0 group-hover:opacity-50 transition-opacity" />
                             
                             <motion.div
                               className="relative z-10"
                               animate={{ y: isDragOver ? -5 : 0 }}
                             >
-                              <div className="i-ph:cloud-arrow-up text-6xl text-violet-400 mb-6 mx-auto" />
-                              <p className="text-white font-semibold text-lg mb-3">
+                              <div className="i-ph:cloud-arrow-up text-6xl text-bolt-elements-item-contentAccent mb-6 mx-auto" />
+                              <p className="text-bolt-elements-textPrimary font-semibold text-lg mb-3">
                                 Glissez-déposez une image ou cliquez pour sélectionner
                               </p>
-                              <p className="text-slate-400 text-sm mb-6">
+                              <p className="text-bolt-elements-textSecondary text-sm mb-6">
                                 Formats supportés: JPEG, PNG, GIF, WebP (max 10MB)
                               </p>
                               
                               <motion.div
-                                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-lg font-medium shadow-lg"
+                                className="inline-flex items-center gap-2 px-6 py-3 bg-bolt-elements-button-primary-background hover:bg-bolt-elements-button-primary-backgroundHover text-bolt-elements-button-primary-text rounded-lg font-medium shadow-lg transition-colors"
                                 whileHover={{ scale: 1.05 }}
                               >
                                 <div className="i-ph:folder-open" />
@@ -506,7 +495,7 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
                                 <img
                                   src={imagePreview}
                                   alt="Aperçu de l'image sélectionnée"
-                                  className="w-full max-h-80 object-contain rounded-xl border border-slate-700 shadow-lg"
+                                  className="w-full max-h-80 object-contain rounded-xl border border-bolt-elements-borderColor shadow-lg"
                                   onError={() => {
                                     toast.error('Erreur lors de l\'affichage de l\'image.');
                                     setImagePreview(null);
@@ -521,7 +510,7 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
                                   setImagePreview(null);
                                   setCurrentStep(1);
                                 }}
-                                className="absolute top-3 right-3 p-2 bg-red-500/90 backdrop-blur text-white rounded-full hover:bg-red-600 transition-all shadow-lg opacity-0 group-hover:opacity-100"
+                                className="absolute top-3 right-3 p-2 bg-bolt-elements-button-danger-background backdrop-blur text-bolt-elements-button-danger-text rounded-full hover:bg-bolt-elements-button-danger-backgroundHover transition-all shadow-lg opacity-0 group-hover:opacity-100"
                                 whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.9 }}
                               >
@@ -529,11 +518,11 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
                               </motion.button>
                             </div>
                             
-                            <div className="flex items-center gap-3 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
-                              <div className="i-ph:file-image text-2xl text-violet-400" />
+                            <div className="flex items-center gap-3 p-4 bg-bolt-elements-background-depth-2 rounded-lg border border-bolt-elements-borderColor">
+                              <div className="i-ph:file-image text-2xl text-bolt-elements-item-contentAccent" />
                               <div className="flex-1">
-                                <p className="text-white font-medium">{selectedFile.name}</p>
-                                <p className="text-slate-400 text-sm">
+                                <p className="text-bolt-elements-textPrimary font-medium">{selectedFile.name}</p>
+                                <p className="text-bolt-elements-textSecondary text-sm">
                                   {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                                 </p>
                               </div>
@@ -554,18 +543,43 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
                         transition={{ duration: 0.3 }}
                       >
                         <div className="flex items-center justify-between mb-6">
-                          <h3 className="text-xl font-semibold text-white flex items-center gap-2">
-                            <div className="i-ph:magic-wand text-violet-400" />
+                          <h3 className="text-xl font-semibold text-bolt-elements-textPrimary flex items-center gap-2">
+                            <div className="i-ph:magic-wand text-bolt-elements-item-contentAccent" />
                             Choisir le type d'analyse
                           </h3>
-                          <motion.button
-                            onClick={handleBackToStep1}
-                            className="flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white transition-colors rounded-lg border border-slate-600 hover:bg-slate-700"
-                            whileHover={{ x: -2 }}
-                          >
-                            <div className="i-ph:arrow-left" />
-                            <span className="text-sm">Modifier l'image</span>
-                          </motion.button>
+<motion.button
+  onClick={handleBackToStep1}
+  className={classNames(
+    "flex items-center gap-2 px-4 py-2.5",
+    "bg-bolt-elements-background-depth-3",
+    "text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary",
+    "transition-all duration-200 ease-out",
+    "rounded-lg border border-bolt-elements-borderColor",
+    "hover:border-bolt-elements-borderColorActive",
+    "hover:bg-bolt-elements-background-depth-3",
+    "hover:shadow-md",
+    "active:scale-95"
+  )}
+  whileHover={{ 
+    x: -4,
+    scale: 1.02
+  }}
+  whileTap={{
+    scale: 0.95
+  }}
+  transition={{
+    type: "spring",
+    stiffness: 400,
+    damping: 25
+  }}
+>
+  <motion.div 
+    className="i-ph:arrow-left"
+    initial={{ x: 0 }}
+    whileHover={{ x: -2 }}
+  />
+  <span className="text-sm font-medium">Modifier l'image</span>
+</motion.button>
                         </div>
                         
                         <div className="grid gap-4">
@@ -576,8 +590,8 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
                               className={classNames(
                                 'relative p-4 rounded-lg border text-left transition-all overflow-hidden group',
                                 selectedAnalysis === option.id
-                                  ? 'border-violet-400 bg-violet-500/10 shadow-lg'
-                                  : 'bg-slate-500/50 border-slate-600 hover:border-violet-400 hover:bg-slate-700/50'
+                                  ? 'border-bolt-elements-item-contentAccent bg-bolt-elements-item-backgroundAccent shadow-lg'
+                                  : 'bg-bolt-elements-background-depth-2 border-bolt-elements-borderColor hover:border-bolt-elements-item-contentAccent hover:bg-bolt-elements-background-depth-3'
                               )}
                               initial={{ opacity: 0, y: 20 }}
                               animate={{ opacity: 1, y: 0 }}
@@ -591,8 +605,8 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
                                     option.icon,
                                     'text-xl transition-all duration-300',
                                     selectedAnalysis === option.id 
-                                      ? 'text-violet-400 scale-110' 
-                                      : 'text-slate-400 group-hover:text-violet-400'
+                                      ? 'text-bolt-elements-item-contentAccent scale-110' 
+                                      : 'text-bolt-elements-textSecondary group-hover:text-bolt-elements-item-contentAccent'
                                   )}
                                   whileHover={{ rotate: [0, -5, 5, -5, 0] }}
                                   transition={{ duration: 0.4 }}
@@ -602,16 +616,16 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
                                   <h4 className={classNames(
                                     'text-base font-semibold transition-colors duration-300',
                                     selectedAnalysis === option.id
-                                      ? 'text-violet-400'
-                                      : 'text-white'
+                                      ? 'text-bolt-elements-item-contentAccent'
+                                      : 'text-bolt-elements-textPrimary'
                                   )}>
                                     {option.title}
                                   </h4>
                                   <p className={classNames(
                                     'text-sm leading-relaxed transition-colors duration-300',
                                     selectedAnalysis === option.id
-                                      ? 'text-slate-300'
-                                      : 'text-slate-400 group-hover:text-slate-300'
+                                      ? 'text-bolt-elements-textSecondary'
+                                      : 'text-bolt-elements-textTertiary group-hover:text-bolt-elements-textSecondary'
                                   )}>
                                     {option.description}
                                   </p>
@@ -623,7 +637,7 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
                                     scale: selectedAnalysis === option.id ? 1 : 0,
                                     opacity: selectedAnalysis === option.id ? 1 : 0
                                   }}
-                                  className="flex items-center justify-center w-5 h-5 rounded-full bg-violet-500"
+                                  className="flex items-center justify-center w-5 h-5 rounded-full bg-bolt-elements-item-contentAccent"
                                 >
                                   <div className="i-ph:check text-white text-sm" />
                                 </motion.div>
@@ -637,9 +651,9 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
                 </div>
 
                 {/* Footer avec boutons */}
-                <div className="p-6 bg-slate-800/50 border-t border-slate-700">
+                <div className="p-6 bg-bolt-elements-background-depth-2 border-t border-bolt-elements-borderColor">
                   <div className="flex justify-between items-center">
-                    <div className="text-sm text-slate-400">
+                    <div className="text-sm text-bolt-elements-textSecondary">
                       {currentStep === 1 && "Étape 1 sur 2 - Sélectionnez votre image"}
                       {currentStep === 2 && "Étape 2 sur 2 - Choisissez votre analyse"}
                     </div>
@@ -647,7 +661,7 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
                     <div className="flex gap-3">
                       <motion.button
                         onClick={handleClose}
-                        className="px-6 bg-slate-800/50 py-2 text-slate-400 hover:text-white transition-colors rounded-lg border border-slate-600 hover:bg-slate-700"
+                        className="px-6 bg-bolt-elements-background-depth-2 py-2 text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary transition-colors rounded-lg border border-bolt-elements-borderColor hover:bg-bolt-elements-background-depth-3"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                       >
@@ -660,8 +674,8 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
                         className={classNames(
                           'px-8 py-3 rounded-lg font-semibold transition-all flex items-center gap-2',
                           {
-                            'bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white border border-violet-400': Boolean(selectedFile && selectedAnalysis && !isAnalyzing),
-                            'bg-slate-700 text-slate-400 cursor-not-allowed border border-slate-600': !selectedFile || !selectedAnalysis || isAnalyzing
+                            'bg-bolt-elements-button-primary-background hover:bg-bolt-elements-button-primary-backgroundHover text-bolt-elements-button-primary-text border border-bolt-elements-item-contentAccent': Boolean(selectedFile && selectedAnalysis && !isAnalyzing),
+                            'bg-bolt-elements-background-depth-3 text-bolt-elements-textTertiary cursor-not-allowed border border-bolt-elements-borderColor': !selectedFile || !selectedAnalysis || isAnalyzing
                           }
                         )}
                         whileHover={selectedFile && selectedAnalysis && !isAnalyzing ? { scale: 1.02 } : {}}
