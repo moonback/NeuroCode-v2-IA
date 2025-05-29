@@ -4,7 +4,7 @@ import type { BundledLanguage } from 'shiki';
 import { createScopedLogger } from '~/utils/logger';
 import { rehypePlugins, remarkPlugins, allowedHTMLElements } from '~/utils/markdown';
 import { Artifact, openArtifactInWorkbench } from './Artifact';
-import { CodeBlock } from './CodeBlock';
+import { CodeBlock } from '~/components/ui/CodeBlock';
 import type { Message } from 'ai';
 import styles from './Markdown.module.scss';
 import ThoughtBox from './ThoughtBox';
@@ -68,7 +68,8 @@ export const Markdown = memo(
             const { className, ...rest } = firstChild.properties;
             const [, language = 'plaintext'] = /language-(\w+)/.exec(String(className) || '') ?? [];
 
-            return <CodeBlock code={firstChild.children[0].value} language={language as BundledLanguage} {...rest} />;
+            return <CodeBlock code={firstChild.children[0].value} language={language as BundledLanguage} useShiki={true} {...rest} />;
+
           }
 
           return <pre {...rest}>{children}</pre>;
