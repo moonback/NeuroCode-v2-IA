@@ -73,6 +73,7 @@ interface BaseChatProps {
   chatMode?: 'discuss' | 'build';
   setChatMode?: (mode: 'discuss' | 'build') => void;
   append?: (message: Message) => void;
+  runAnimation?: () => void;
 }
 
 export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
@@ -114,6 +115,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
       chatMode,
       setChatMode,
       append,
+      runAnimation,
     },
     ref,
   ) => {
@@ -441,6 +443,8 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                   chatMode={chatMode}
                   setChatMode={setChatMode}
                   importChat={importChat}
+                  append={append}
+                  runAnimation={runAnimation}
                 />
               </div>
             </StickToBottom>

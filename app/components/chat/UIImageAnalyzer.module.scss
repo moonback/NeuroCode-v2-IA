@@ -1,0 +1,202 @@
+// UIImageAnalyzer Module Styles
+
+.dropZone {
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  &.dragOver {
+    transform: scale(1.02);
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.15);
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(45deg, transparent 30%, rgba(59, 130, 246, 0.1) 50%, transparent 70%);
+      animation: shimmer 2s infinite;
+    }
+  }
+}
+
+.analysisOption {
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  &.selected {
+    position: relative;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, rgba(34, 197, 94, 0.1) 0%, transparent 100%);
+      pointer-events: none;
+    }
+    
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 3px;
+      height: 100%;
+      background: #22c55e;
+    }
+  }
+}
+
+// Animations
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// Loading states
+.loading {
+  animation: pulse 2s infinite;
+}
+
+.fadeInUp {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.scaleIn {
+  animation: scaleIn 0.2s ease-out;
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .dropZone {
+    padding: 2rem 1rem;
+    
+    &:hover {
+      transform: none;
+    }
+    
+    &.dragOver {
+      transform: scale(1.01);
+    }
+  }
+  
+  .analysisOption {
+    &:hover {
+      transform: none;
+    }
+  }
+}
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+  .dropZone {
+    &.dragOver {
+      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.25);
+    }
+  }
+  
+  .analysisOption {
+    &:hover {
+      box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+    }
+  }
+}
+
+// Accessibility
+@media (prefers-reduced-motion: reduce) {
+  .dropZone,
+  .analysisOption {
+    transition: none;
+    
+    &:hover {
+      transform: none;
+    }
+  }
+  
+  .dropZone.dragOver {
+    transform: none;
+    
+    &::before {
+      animation: none;
+    }
+  }
+  
+  .loading,
+  .fadeInUp,
+  .scaleIn {
+    animation: none;
+  }
+}
+
+// Focus states for keyboard navigation
+.dropZone:focus-visible,
+.analysisOption:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+// High contrast mode support
+@media (prefers-contrast: high) {
+  .dropZone {
+    border-width: 3px;
+  }
+  
+  .analysisOption {
+    border-width: 2px;
+    
+    &.selected {
+      border-width: 3px;
+    }
+  }
+}

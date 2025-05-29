@@ -16,6 +16,7 @@ import { ImportButtons } from '~/components/chat/chatExportAndImport/ImportButto
 import GitCloneButton from './GitCloneButton';
 import { SupabaseConnection } from './SupabaseConnection';
 import { ExpoQrModal } from '~/components/workbench/ExpoQrModal';
+import { UIImageAnalyzer } from './UIImageAnalyzer';
 import styles from './BaseChat.module.scss';
 import type { ProviderInfo } from '~/types/model';
 import type { Message } from 'ai';
@@ -58,6 +59,8 @@ interface ChatBoxProps {
   chatMode?: 'discuss' | 'build';
   setChatMode?: (mode: 'discuss' | 'build') => void;
   importChat?: (description: string, messages: Message[]) => Promise<void>;
+  append?: (message: Message) => void;
+  runAnimation?: () => void;
 }
 
 export const ChatBox: React.FC<ChatBoxProps> = (props) => {
@@ -250,6 +253,13 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
               >
                 <div className="i-ph:paperclip text-xl"></div>
               </IconButton>
+              <UIImageAnalyzer
+                sendMessage={props.handleSendMessage}
+                append={props.append}
+                model={props.model}
+                provider={props.provider}
+                onChatStart={props.runAnimation}
+              />
               <IconButton
                 title="Améliorer le prompt"
                 disabled={props.input.length === 0 || props.enhancingPrompt}

@@ -588,6 +588,7 @@ export const ChatImpl = memo(
         chatMode={chatMode}
         setChatMode={setChatMode}
         append={append}
+        runAnimation={runAnimation}
       />
     );
   },
