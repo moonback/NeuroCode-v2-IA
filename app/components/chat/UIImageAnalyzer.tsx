@@ -16,7 +16,7 @@ interface UIImageAnalyzerProps {
   onChatStart?: () => void;
 }
 
-type AnalysisType = 'reproduce' | 'improve' | 'explain'| 'convert' | 'optimize' | 'accessibility';
+type AnalysisType = 'reproduce' | 'improve' | 'explain';
 
 interface AnalysisOption {
   id: AnalysisType;
@@ -153,184 +153,7 @@ const ANALYSIS_OPTIONS: AnalysisOption[] = [
   - Benchmarks et références sectorielles
   - Recommandations d'optimisation`
     },
-    {
-      id: 'convert',
-      title: 'Convertir technologie',
-      description: 'Adapte le code vers d\'autres frameworks ou technologies',
-      icon: 'i-ph:arrow-square-out',
-      gradient: 'from-emerald-500/20 to-teal-500/20',
-      color: 'text-emerald-400',
-      prompt: `Analyse cette interface et propose des adaptations vers différentes technologies.
-  
-  **Options de conversion disponibles :**
-  
-  **1. Frameworks Frontend**
-  - Vue.js 3 (Composition API + TypeScript)
-  - Angular 17+ (Standalone components)
-  - Svelte/SvelteKit
-  - Next.js (App Router + Server Components)
-  - Nuxt 3 (Vue ecosystem)
-  - Solid.js (Fine-grained reactivity)
-  
-  **2. Frameworks CSS**
-  - Tailwind CSS (Utility-first)
-  - Bootstrap 5 (Component-based)
-  - Bulma (Modern CSS framework)
-  - Chakra UI / Mantine (Component libraries)
-  
-  **3. Technologies Natives**
-  - React Native (iOS/Android)
-  - Flutter (Dart)
-  - Tauri (Rust + Web)
-  - Electron (Desktop)
-  
-  **4. Alternatives No-Code/Low-Code**
-  - Webflow (Visual development)
-  - Framer (Interactive prototyping)
-  - Bubble (Full-stack no-code)
-  
-  **Pour chaque conversion :**
-  - Identifie les équivalences de composants
-  - Adapte les patterns spécifiques au framework
-  - Optimise selon les bonnes pratiques de la technologie cible
-  - Conserve l'expérience utilisateur originale
-  - Fournis le code complet avec configuration
-  - Explique les avantages/inconvénients de chaque approche
-  - Inclus les instructions de migration et déploiement
-  
-  **Choisis la technologie cible ou demande-moi de toutes les couvrir.**`
-    },
-    {
-      id: 'optimize',
-      title: 'Optimiser performance',
-      description: 'Analyse et améliore les performances techniques et UX',
-      icon: 'i-ph:rocket-launch',
-      gradient: 'from-red-500/20 to-orange-500/20',
-      color: 'text-red-400',
-      prompt: `Effectue un audit de performance complet de cette interface et propose des optimisations.
-  
-  **1. Performance Technique**
-  
-  **Core Web Vitals :**
-  - **LCP (Largest Contentful Paint) :** < 2.5s
-  - **FID (First Input Delay) :** < 100ms  
-  - **CLS (Cumulative Layout Shift) :** < 0.1
-  - **INP (Interaction to Next Paint) :** < 200ms
-  
-  **Optimisations Frontend :**
-  - Bundle analysis et code splitting
-  - Lazy loading des composants/images
-  - Tree shaking et dead code elimination
-  - Critical CSS et resource hints
-  - Service Workers et caching strategies
-  - Image optimization (WebP, AVIF, responsive)
-  
-  **2. Performance UX**
-  
-  **Perceived Performance :**
-  - Loading states et skeleton screens
-  - Progressive enhancement
-  - Optimistic UI updates
-  - Micro-interactions et feedback immédiat
-  - Error boundaries et graceful degradation
-  
-  **3. Optimisations Spécifiques**
-  
-  **React Performance :**
-  - Memo, useMemo, useCallback optimization
-  - Virtual scrolling pour les listes
-  - Concurrent features (React 18+)
-  - Code splitting avec Suspense
-  - State management optimization
-  
-  **CSS Performance :**
-  - Critical CSS inlining
-  - CSS containment
-  - Efficient selectors
-  - Animation optimization (transform, opacity)
-  - CSS-in-JS optimization
-  
-  **4. Monitoring et Métriques**
-  - Real User Monitoring (RUM)
-  - Synthetic testing setup
-  - Performance budgets
-  - Lighthouse CI integration
-  - Error tracking et analytics
-  
-  **Livrables :**
-  - Audit détaillé avec métriques actuelles
-  - Recommandations priorisées par impact
-  - Code optimisé avec before/after
-  - Configuration d'outils de monitoring
-  - Roadmap d'implémentation`
-    },
-    {
-      id: 'accessibility',
-      title: 'Audit accessibilité',
-      description: 'Évaluation complète WCAG et recommandations d\'amélioration',
-      icon: 'i-ph:heart',
-      gradient: 'from-blue-500/20 to-indigo-500/20',
-      color: 'text-blue-400',
-      prompt: `Effectue un audit d'accessibilité exhaustif selon les standards WCAG 2.1 AA/AAA.
-  
-  **1. Évaluation WCAG 2.1**
-  
-  **Perceivable (Perceptible) :**
-  - Contraste des couleurs (4.5:1 AA, 7:1 AAA)
-  - Alternatives textuelles pour images/médias
-  - Sous-titres et transcriptions
-  - Adaptabilité aux technologies d'assistance
-  - Distinguabilité visuelle et auditive
-  
-  **Operable (Utilisable) :**
-  - Navigation clavier complète (Tab, Enter, Espace, flèches)
-  - Pas de contenu provoquant des crises (flashs)
-  - Temps suffisant pour les interactions
-  - Navigation cohérente et prévisible
-  - Zones de clic suffisantes (44x44px minimum)
-  
-  **Understandable (Compréhensible) :**
-  - Langue du contenu définie
-  - Texte lisible et compréhensible
-  - Fonctionnalité prévisible
-  - Assistance à la saisie et gestion d'erreurs
-  
-  **Robust (Robuste) :**
-  - Compatibilité avec technologies d'assistance
-  - HTML sémantique valide
-  - ARIA labels et roles appropriés
-  - Support multi-navigateurs et devices
-  
-  **2. Tests Pratiques**
-  
-  **Navigation clavier :**
-  - Tab order logique
-  - Focus visible et cohérent
-  - Skip links et landmarks
-  - Trap focus dans les modals
-  - Keyboard shortcuts
-  
-  **Lecteurs d'écran :**
-  - NVDA, JAWS, VoiceOver compatibility
-  - Headings structure (h1-h6)
-  - Lists et tables semantics
-  - Form labels et descriptions
-  - Live regions pour les updates
-  
-  **3. Outils et Testing**
-  - axe-core automated testing
-  - Manual testing checklist
-  - Screen reader testing guide
-  - Color blindness simulation
-  - Accessibility audit tools integration
-  
-  **Livrables :**
-  - Score WCAG détaillé par critère
-  - Liste des violations avec priorité
-  - Code corrigé avec ARIA patterns
-  - Guide de test manuel
-  - Recommandations d'outils et workflow`
-    }
+   
   ];
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -555,7 +378,7 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.2 }}
             >
-              <Dialog className="max-w-3xl p-0 overflow-hidden bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 shadow-2xl">
+              <Dialog className="max-w-7xl p-0 overflow-hidden bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-slate-700/50 shadow-2xl">
                 {/* Header avec gradient */}
                 <div className="relative p-6 bg-gradient-to-r from-violet-600/20 via-purple-600/20 to-pink-600/20 border-b border-slate-700/50">
                   <div className="flex items-center justify-between">
@@ -568,14 +391,7 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
                       </p>
                     </div>
                     <DialogClose asChild>
-                      {/* <motion.button
-                        onClick={handleClose}
-                        className="p-2 rounded-full text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all"
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                      >
-                        <div className="i-ph:x text-xl" />
-                      </motion.button> */}
+                      
                     </DialogClose>
                   </div>
 
