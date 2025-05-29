@@ -167,7 +167,6 @@ export const AssistantMessage = memo(
                   Tokens: {usage.totalTokens} (prompt: {usage.promptTokens}, completion: {usage.completionTokens})
                 </div>
               )}
-              <PromptSelector />
               {(onRewind || onFork) && messageId && (
                 <div className="flex gap-2 flex-col lg:flex-row ml-auto">
                   {onRewind && (
@@ -196,6 +195,8 @@ export const AssistantMessage = memo(
         <Markdown append={append} chatMode={chatMode} setChatMode={setChatMode} isStreaming={isStreaming} html>
           {content}
         </Markdown>
+        <PromptSelector />
+
       </div>
     );
   },
