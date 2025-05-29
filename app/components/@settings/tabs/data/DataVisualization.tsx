@@ -11,12 +11,44 @@ import {
   PointElement,
   LineElement,
 } from 'chart.js';
-import { Bar, Pie } from 'react-chartjs-2';
+import { Bar, Pie, Line } from 'react-chartjs-2';
 import type { Chat } from '~/lib/persistence/chats';
 import { classNames } from '~/utils/classNames';
 
 // Register ChartJS components
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement);
+
+// Types for token usage tracking
+interface TokenUsage {
+  completionTokens: number;
+  promptTokens: number;
+  totalTokens: number;
+}
+
+interface TokenStats {
+  totalTokens: number;
+  averageTokensPerMessage: number;
+  tokensByDate: Record<string, TokenUsage>;
+  tokensByProvider: Record<string, TokenUsage>;
+  tokensByModel: Record<string, TokenUsage>;
+  costEstimation: Record<string, number>;
+}
+
+// Estimated costs per 1K tokens (in USD) - approximate values
+const TOKEN_COSTS: Record<string, { input: number; output: number }> = {
+  'OpenAI': { input: 0.0015, output: 0.002 },
+  'Anthropic': { input: 0.003, output: 0.015 },
+  'Google': { input: 0.00125, output: 0.00375 },
+  'Groq': { input: 0.0002, output: 0.0002 },
+  'Mistral': { input: 0.0007, output: 0.0007 },
+  'Cohere': { input: 0.0015, output: 0.002 },
+  'Together': { input: 0.0002, output: 0.0002 },
+  'Perplexity': { input: 0.001, output: 0.001 },
+  'HuggingFace': { input: 0.0005, output: 0.0005 },
+  'Deepseek': { input: 0.00014, output: 0.00028 },
+  'xAI': { input: 0.005, output: 0.015 },
+  'unknown': { input: 0.001, output: 0.001 },
+};
 
 type DataVisualizationProps = {
   chats: Chat[];
@@ -27,7 +59,16 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
   const [messagesByRole, setMessagesByRole] = useState<Record<string, number>>({});
   const [apiKeyUsage, setApiKeyUsage] = useState<Array<{ provider: string; count: number }>>([]);
   const [averageMessagesPerChat, setAverageMessagesPerChat] = useState<number>(0);
+  const [tokenStats, setTokenStats] = useState<TokenStats>({
+    totalTokens: 0,
+    averageTokensPerMessage: 0,
+    tokensByDate: {},
+    tokensByProvider: {},
+    tokensByModel: {},
+    costEstimation: {},
+  });
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [selectedView, setSelectedView] = useState<'overview' | 'tokens' | 'costs'>('overview');
 
   useEffect(() => {
     const isDark = document.documentElement.classList.contains('dark');
@@ -57,6 +98,14 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
     const apiUsage: Record<string, number> = {};
     let totalMessages = 0;
 
+    // Token usage tracking
+    const tokensByDate: Record<string, TokenUsage> = {};
+    const tokensByProvider: Record<string, TokenUsage> = {};
+    const tokensByModel: Record<string, TokenUsage> = {};
+    const costEstimation: Record<string, number> = {};
+    let totalTokensUsed = 0;
+    let messagesWithTokens = 0;
+
     chats.forEach((chat) => {
       const date = new Date(chat.timestamp).toLocaleDateString();
       chatDates[date] = (chatDates[date] || 0) + 1;
@@ -69,6 +118,38 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
           const providerMatch = message.content.match(/provider:\s*([\w-]+)/i);
           const provider = providerMatch ? providerMatch[1] : 'unknown';
           apiUsage[provider] = (apiUsage[provider] || 0) + 1;
+
+          // Extract token usage from message annotations
+          const annotations = (message as any).annotations || [];
+          const usageAnnotation = annotations.find((ann: any) => ann.type === 'usage');
+          
+          if (usageAnnotation && usageAnnotation.value) {
+            const usage = usageAnnotation.value as TokenUsage;
+            messagesWithTokens++;
+            totalTokensUsed += usage.totalTokens;
+
+            // Track by date
+            if (!tokensByDate[date]) {
+              tokensByDate[date] = { completionTokens: 0, promptTokens: 0, totalTokens: 0 };
+            }
+            tokensByDate[date].completionTokens += usage.completionTokens;
+            tokensByDate[date].promptTokens += usage.promptTokens;
+            tokensByDate[date].totalTokens += usage.totalTokens;
+
+            // Track by provider
+            if (!tokensByProvider[provider]) {
+              tokensByProvider[provider] = { completionTokens: 0, promptTokens: 0, totalTokens: 0 };
+            }
+            tokensByProvider[provider].completionTokens += usage.completionTokens;
+            tokensByProvider[provider].promptTokens += usage.promptTokens;
+            tokensByProvider[provider].totalTokens += usage.totalTokens;
+
+            // Estimate costs
+            const costs = TOKEN_COSTS[provider] || TOKEN_COSTS['unknown'];
+            const inputCost = (usage.promptTokens / 1000) * costs.input;
+            const outputCost = (usage.completionTokens / 1000) * costs.output;
+            costEstimation[provider] = (costEstimation[provider] || 0) + inputCost + outputCost;
+          }
         }
       });
     });
@@ -83,6 +164,15 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
     setMessagesByRole(roleCounts);
     setApiKeyUsage(Object.entries(apiUsage).map(([provider, count]) => ({ provider, count })));
     setAverageMessagesPerChat(totalMessages / chats.length);
+    
+    setTokenStats({
+      totalTokens: totalTokensUsed,
+      averageTokensPerMessage: messagesWithTokens > 0 ? totalTokensUsed / messagesWithTokens : 0,
+      tokensByDate,
+      tokensByProvider,
+      tokensByModel,
+      costEstimation,
+    });
   }, [chats]);
 
   // Get theme colors from CSS variables to ensure theme consistency
@@ -199,6 +289,51 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
           data: apiKeyUsage.map((item) => item.count),
           backgroundColor: apiKeyUsage.map((_, i) => getChartColors(i).bg),
           borderColor: apiKeyUsage.map((_, i) => getChartColors(i).border),
+          borderWidth: 1,
+        },
+      ],
+    },
+    tokensByDate: {
+      labels: Object.keys(tokenStats.tokensByDate),
+      datasets: [
+        {
+          label: 'Prompt Tokens',
+          data: Object.values(tokenStats.tokensByDate).map(usage => usage.promptTokens),
+          backgroundColor: getChartColors(0).bg,
+          borderColor: getChartColors(0).border,
+          borderWidth: 2,
+          fill: false,
+        },
+        {
+          label: 'Completion Tokens',
+          data: Object.values(tokenStats.tokensByDate).map(usage => usage.completionTokens),
+          backgroundColor: getChartColors(1).bg,
+          borderColor: getChartColors(1).border,
+          borderWidth: 2,
+          fill: false,
+        },
+      ],
+    },
+    tokensByProvider: {
+      labels: Object.keys(tokenStats.tokensByProvider),
+      datasets: [
+        {
+          label: 'Total Tokens',
+          data: Object.values(tokenStats.tokensByProvider).map(usage => usage.totalTokens),
+          backgroundColor: Object.keys(tokenStats.tokensByProvider).map((_, i) => getChartColors(i).bg),
+          borderColor: Object.keys(tokenStats.tokensByProvider).map((_, i) => getChartColors(i).border),
+          borderWidth: 1,
+        },
+      ],
+    },
+    costsByProvider: {
+      labels: Object.keys(tokenStats.costEstimation),
+      datasets: [
+        {
+          label: 'Estimated Cost (USD)',
+          data: Object.values(tokenStats.costEstimation),
+          backgroundColor: Object.keys(tokenStats.costEstimation).map((_, i) => getChartColors(i).bg),
+          borderColor: Object.keys(tokenStats.costEstimation).map((_, i) => getChartColors(i).border),
           borderWidth: 1,
         },
       ],
@@ -327,9 +462,9 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
 
   const statClasses = classNames('text-3xl font-bold text-bolt-elements-textPrimary', 'flex items-center gap-3');
 
-  return (
+  const renderOverviewTab = () => (
     <div className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className={cardClasses}>
           <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-4">Total Chats</h3>
           <div className={statClasses}>
@@ -343,6 +478,14 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
           <div className={statClasses}>
             <div className="i-ph-chat-text-duotone w-8 h-8 text-pink-500 dark:text-pink-400" />
             <span>{Object.values(messagesByRole).reduce((sum, count) => sum + count, 0)}</span>
+          </div>
+        </div>
+
+        <div className={cardClasses}>
+          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-4">Total Tokens</h3>
+          <div className={statClasses}>
+            <div className="i-ph-cpu-duotone w-8 h-8 text-blue-500 dark:text-blue-400" />
+            <span>{tokenStats.totalTokens.toLocaleString()}</span>
           </div>
         </div>
 
@@ -379,6 +522,254 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
           </div>
         </div>
       )}
+    </div>
+  );
+
+  const renderTokensTab = () => (
+    <div className="space-y-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className={cardClasses}>
+          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-4">Total Tokens Used</h3>
+          <div className={statClasses}>
+            <div className="i-ph-cpu-duotone w-8 h-8 text-blue-500 dark:text-blue-400" />
+            <span>{tokenStats.totalTokens.toLocaleString()}</span>
+          </div>
+        </div>
+
+        <div className={cardClasses}>
+          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-4">Avg. Tokens/Message</h3>
+          <div className={statClasses}>
+            <div className="i-ph-chart-line-duotone w-8 h-8 text-purple-500 dark:text-purple-400" />
+            <span>{Math.round(tokenStats.averageTokensPerMessage)}</span>
+          </div>
+        </div>
+
+        <div className={cardClasses}>
+          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-4">Active Providers</h3>
+          <div className={statClasses}>
+            <div className="i-ph-plugs-connected-duotone w-8 h-8 text-orange-500 dark:text-orange-400" />
+            <span>{Object.keys(tokenStats.tokensByProvider).length}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className={cardClasses}>
+          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-6">Token Usage Over Time</h3>
+          <div className="h-64">
+            <Line data={chartData.tokensByDate} options={{
+              ...baseChartOptions,
+              plugins: {
+                ...baseChartOptions.plugins,
+                title: {
+                  ...baseChartOptions.plugins.title,
+                  text: 'Token Consumption Timeline',
+                },
+              },
+              scales: {
+                x: {
+                  grid: { color: chartColors.grid, display: false },
+                  border: { display: false },
+                  ticks: { color: chartColors.text, font: { weight: 500 } },
+                },
+                y: {
+                  grid: { color: chartColors.grid, display: false },
+                  border: { display: false },
+                  ticks: { color: chartColors.text, font: { weight: 500 } },
+                },
+              },
+            }} />
+          </div>
+        </div>
+
+        <div className={cardClasses}>
+          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-6">Tokens by Provider</h3>
+          <div className="h-64">
+            <Pie data={chartData.tokensByProvider} options={{
+              ...pieOptions,
+              plugins: {
+                ...pieOptions.plugins,
+                title: {
+                  ...pieOptions.plugins.title,
+                  text: 'Token Distribution by Provider',
+                },
+              },
+            }} />
+          </div>
+        </div>
+      </div>
+
+      {Object.keys(tokenStats.tokensByProvider).length > 0 && (
+        <div className={cardClasses}>
+          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-6">Detailed Token Breakdown</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-bolt-elements-borderColor">
+                  <th className="text-left py-3 px-4 font-medium text-bolt-elements-textPrimary">Provider</th>
+                  <th className="text-right py-3 px-4 font-medium text-bolt-elements-textPrimary">Prompt Tokens</th>
+                  <th className="text-right py-3 px-4 font-medium text-bolt-elements-textPrimary">Completion Tokens</th>
+                  <th className="text-right py-3 px-4 font-medium text-bolt-elements-textPrimary">Total Tokens</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(tokenStats.tokensByProvider).map(([provider, usage]) => (
+                  <tr key={provider} className="border-b border-bolt-elements-borderColor/50">
+                    <td className="py-3 px-4 text-bolt-elements-textPrimary font-medium">{provider}</td>
+                    <td className="py-3 px-4 text-right text-bolt-elements-textSecondary">{usage.promptTokens.toLocaleString()}</td>
+                    <td className="py-3 px-4 text-right text-bolt-elements-textSecondary">{usage.completionTokens.toLocaleString()}</td>
+                    <td className="py-3 px-4 text-right text-bolt-elements-textPrimary font-medium">{usage.totalTokens.toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderCostsTab = () => (
+    <div className="space-y-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className={cardClasses}>
+          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-4">Total Estimated Cost</h3>
+          <div className={statClasses}>
+            <div className="i-ph-currency-dollar-duotone w-8 h-8 text-green-500 dark:text-green-400" />
+            <span>${Object.values(tokenStats.costEstimation).reduce((sum, cost) => sum + cost, 0).toFixed(4)}</span>
+          </div>
+        </div>
+
+        <div className={cardClasses}>
+          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-4">Avg. Cost/Message</h3>
+          <div className={statClasses}>
+            <div className="i-ph-calculator-duotone w-8 h-8 text-blue-500 dark:text-blue-400" />
+            <span>${(Object.values(tokenStats.costEstimation).reduce((sum, cost) => sum + cost, 0) / Math.max(Object.values(messagesByRole).reduce((sum, count) => sum + count, 0), 1)).toFixed(6)}</span>
+          </div>
+        </div>
+
+        <div className={cardClasses}>
+          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-4">Most Expensive Provider</h3>
+          <div className={statClasses}>
+            <div className="i-ph-trend-up-duotone w-8 h-8 text-red-500 dark:text-red-400" />
+            <span>{Object.entries(tokenStats.costEstimation).reduce((max, [provider, cost]) => cost > max.cost ? { provider, cost } : max, { provider: 'N/A', cost: 0 }).provider}</span>
+          </div>
+        </div>
+      </div>
+
+      {Object.keys(tokenStats.costEstimation).length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className={cardClasses}>
+            <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-6">Cost Distribution by Provider</h3>
+            <div className="h-64">
+              <Pie data={chartData.costsByProvider} options={{
+                ...pieOptions,
+                plugins: {
+                  ...pieOptions.plugins,
+                  title: {
+                    ...pieOptions.plugins.title,
+                    text: 'Estimated Costs by Provider',
+                  },
+                  tooltip: {
+                    ...pieOptions.plugins.tooltip,
+                    callbacks: {
+                      label: (context: any) => {
+                        const label = context.label || '';
+                        const value = context.parsed;
+                        return `${label}: $${value.toFixed(4)}`;
+                      },
+                    },
+                  },
+                },
+              }} />
+            </div>
+          </div>
+
+          <div className={cardClasses}>
+            <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-6">Cost Breakdown</h3>
+            <div className="space-y-4">
+              {Object.entries(tokenStats.costEstimation)
+                .sort(([,a], [,b]) => b - a)
+                .map(([provider, cost]) => {
+                  const usage = tokenStats.tokensByProvider[provider];
+                  const costs = TOKEN_COSTS[provider] || TOKEN_COSTS['unknown'];
+                  return (
+                    <div key={provider} className="flex items-center justify-between p-4 bg-bolt-elements-bg-depth-2 rounded-lg">
+                      <div>
+                        <div className="font-medium text-bolt-elements-textPrimary">{provider}</div>
+                        <div className="text-sm text-bolt-elements-textSecondary">
+                          {usage?.totalTokens.toLocaleString()} tokens • ${costs.input.toFixed(4)}/1K input • ${costs.output.toFixed(4)}/1K output
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-bolt-elements-textPrimary">${cost.toFixed(4)}</div>
+                        <div className="text-sm text-bolt-elements-textSecondary">
+                          {((cost / Object.values(tokenStats.costEstimation).reduce((sum, c) => sum + c, 0)) * 100).toFixed(1)}%
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className={cardClasses}>
+        <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-4">Cost Optimization Tips</h3>
+        <div className="space-y-3 text-sm text-bolt-elements-textSecondary">
+          <div className="flex items-start gap-3">
+            <div className="i-ph-lightbulb-duotone w-5 h-5 text-yellow-500 mt-0.5" />
+            <div>
+              <strong>Use efficient models:</strong> Consider using smaller models like GPT-4o Mini or Claude Haiku for simpler tasks to reduce costs.
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="i-ph-scissors-duotone w-5 h-5 text-blue-500 mt-0.5" />
+            <div>
+              <strong>Optimize prompts:</strong> Write concise, clear prompts to minimize token usage while maintaining quality.
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="i-ph-chart-line-down-duotone w-5 h-5 text-green-500 mt-0.5" />
+            <div>
+              <strong>Monitor usage:</strong> Regularly review your token consumption patterns to identify optimization opportunities.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      {/* Tab Navigation */}
+      <div className="flex space-x-1 bg-bolt-elements-bg-depth-2 p-1 rounded-lg">
+        {[
+          { id: 'overview', label: 'Vue d\'ensemble', icon: 'i-ph-chart-pie-duotone' },
+          { id: 'tokens', label: 'Analyse des Tokens', icon: 'i-ph-cpu-duotone' },
+          { id: 'costs', label: 'Estimation des Coûts', icon: 'i-ph-currency-dollar-duotone' },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setSelectedView(tab.id as any)}
+            className={classNames(
+              'flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors',
+              selectedView === tab.id
+                ? 'bg-bolt-elements-button-primary-background text-bolt-elements-button-primary-text'
+                : 'text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary hover:bg-bolt-elements-bg-depth-1'
+            )}
+          >
+            <div className={`${tab.icon} w-4 h-4`} />
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab Content */}
+      {selectedView === 'overview' && renderOverviewTab()}
+      {selectedView === 'tokens' && renderTokensTab()}
+      {selectedView === 'costs' && renderCostsTab()}
     </div>
   );
 }
