@@ -261,7 +261,7 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
       labels: Object.keys(chatsByDate),
       datasets: [
         {
-          label: 'Chats Created',
+          label: 'Conversations Créées',
           data: Object.values(chatsByDate),
           backgroundColor: getChartColors(0).bg,
           borderColor: getChartColors(0).border,
@@ -270,10 +270,17 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
       ],
     },
     roles: {
-      labels: Object.keys(messagesByRole),
+      labels: Object.keys(messagesByRole).map(role => {
+        const roleTranslations: Record<string, string> = {
+          'user': 'Utilisateur',
+          'assistant': 'Assistant',
+          'system': 'Système'
+        };
+        return roleTranslations[role] || role;
+      }),
       datasets: [
         {
-          label: 'Messages by Role',
+          label: 'Messages par Rôle',
           data: Object.values(messagesByRole),
           backgroundColor: Object.keys(messagesByRole).map((_, i) => getChartColors(i).bg),
           borderColor: Object.keys(messagesByRole).map((_, i) => getChartColors(i).border),
@@ -285,7 +292,7 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
       labels: apiKeyUsage.map((item) => item.provider),
       datasets: [
         {
-          label: 'API Usage',
+          label: 'Utilisation API',
           data: apiKeyUsage.map((item) => item.count),
           backgroundColor: apiKeyUsage.map((_, i) => getChartColors(i).bg),
           borderColor: apiKeyUsage.map((_, i) => getChartColors(i).border),
@@ -297,7 +304,7 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
       labels: Object.keys(tokenStats.tokensByDate),
       datasets: [
         {
-          label: 'Prompt Tokens',
+          label: 'Tokens de Prompt',
           data: Object.values(tokenStats.tokensByDate).map(usage => usage.promptTokens),
           backgroundColor: getChartColors(0).bg,
           borderColor: getChartColors(0).border,
@@ -305,7 +312,7 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
           fill: false,
         },
         {
-          label: 'Completion Tokens',
+          label: 'Tokens de Complétion',
           data: Object.values(tokenStats.tokensByDate).map(usage => usage.completionTokens),
           backgroundColor: getChartColors(1).bg,
           borderColor: getChartColors(1).border,
@@ -318,7 +325,7 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
       labels: Object.keys(tokenStats.tokensByProvider),
       datasets: [
         {
-          label: 'Total Tokens',
+          label: 'Total des Tokens',
           data: Object.values(tokenStats.tokensByProvider).map(usage => usage.totalTokens),
           backgroundColor: Object.keys(tokenStats.tokensByProvider).map((_, i) => getChartColors(i).bg),
           borderColor: Object.keys(tokenStats.tokensByProvider).map((_, i) => getChartColors(i).border),
@@ -330,7 +337,7 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
       labels: Object.keys(tokenStats.costEstimation),
       datasets: [
         {
-          label: 'Estimated Cost (USD)',
+          label: 'Coût Estimé (USD)',
           data: Object.values(tokenStats.costEstimation),
           backgroundColor: Object.keys(tokenStats.costEstimation).map((_, i) => getChartColors(i).bg),
           borderColor: Object.keys(tokenStats.costEstimation).map((_, i) => getChartColors(i).border),
@@ -384,7 +391,7 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
       ...baseChartOptions.plugins,
       title: {
         ...baseChartOptions.plugins.title,
-        text: 'Chat History',
+        text: 'Historique des Conversations',
       },
     },
     scales: {
@@ -427,7 +434,7 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
       ...baseChartOptions.plugins,
       title: {
         ...baseChartOptions.plugins.title,
-        text: 'Message Distribution',
+        text: 'Distribution des Messages',
       },
       legend: {
         ...baseChartOptions.plugins.legend,
@@ -446,9 +453,9 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
     return (
       <div className="text-center py-8">
         <div className="i-ph-chart-line-duotone w-12 h-12 mx-auto mb-4 text-bolt-elements-textTertiary opacity-80" />
-        <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-2">No Data Available</h3>
+        <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-2">Aucune Donnée Disponible</h3>
         <p className="text-bolt-elements-textSecondary">
-          Start creating chats to see your usage statistics and data visualization.
+          Commencez à créer des conversations pour voir vos statistiques d'utilisation et la visualisation des données.
         </p>
       </div>
     );
@@ -466,7 +473,7 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
     <div className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className={cardClasses}>
-          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-4">Total Chats</h3>
+          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-4">Total Conversations</h3>
           <div className={statClasses}>
             <div className="i-ph-chats-duotone w-8 h-8 text-indigo-500 dark:text-indigo-400" />
             <span>{chats.length}</span>
@@ -490,7 +497,7 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
         </div>
 
         <div className={cardClasses}>
-          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-4">Avg. Messages/Chat</h3>
+          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-4">Moy. Messages/Conv.</h3>
           <div className={statClasses}>
             <div className="i-ph-chart-bar-duotone w-8 h-8 text-green-500 dark:text-green-400" />
             <span>{averageMessagesPerChat.toFixed(1)}</span>
@@ -500,14 +507,14 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className={cardClasses}>
-          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-6">Chat History</h3>
+          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-6">Historique des Conversations</h3>
           <div className="h-64">
             <Bar data={chartData.history} options={chartOptions} />
           </div>
         </div>
 
         <div className={cardClasses}>
-          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-6">Message Distribution</h3>
+          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-6">Distribution des Messages</h3>
           <div className="h-64">
             <Pie data={chartData.roles} options={pieOptions} />
           </div>
@@ -516,7 +523,7 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
 
       {apiKeyUsage.length > 0 && (
         <div className={cardClasses}>
-          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-6">API Usage by Provider</h3>
+          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-6">Utilisation API par Fournisseur</h3>
           <div className="h-64">
             <Pie data={chartData.apiUsage} options={pieOptions} />
           </div>
@@ -529,7 +536,7 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
     <div className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className={cardClasses}>
-          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-4">Total Tokens Used</h3>
+          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-4">Tokens Utilisés</h3>
           <div className={statClasses}>
             <div className="i-ph-cpu-duotone w-8 h-8 text-blue-500 dark:text-blue-400" />
             <span>{tokenStats.totalTokens.toLocaleString()}</span>
@@ -537,7 +544,7 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
         </div>
 
         <div className={cardClasses}>
-          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-4">Avg. Tokens/Message</h3>
+          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-4">Moy. Tokens/Message</h3>
           <div className={statClasses}>
             <div className="i-ph-chart-line-duotone w-8 h-8 text-purple-500 dark:text-purple-400" />
             <span>{Math.round(tokenStats.averageTokensPerMessage)}</span>
@@ -545,7 +552,7 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
         </div>
 
         <div className={cardClasses}>
-          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-4">Active Providers</h3>
+          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-4">Fournisseurs Actifs</h3>
           <div className={statClasses}>
             <div className="i-ph-plugs-connected-duotone w-8 h-8 text-orange-500 dark:text-orange-400" />
             <span>{Object.keys(tokenStats.tokensByProvider).length}</span>
@@ -555,7 +562,7 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className={cardClasses}>
-          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-6">Token Usage Over Time</h3>
+          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-6">Évolution des Tokens</h3>
           <div className="h-64">
             <Line data={chartData.tokensByDate} options={{
               ...baseChartOptions,
@@ -563,7 +570,7 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
                 ...baseChartOptions.plugins,
                 title: {
                   ...baseChartOptions.plugins.title,
-                  text: 'Token Consumption Timeline',
+                  text: 'Chronologie de Consommation des Tokens',
                 },
               },
               scales: {
@@ -583,7 +590,7 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
         </div>
 
         <div className={cardClasses}>
-          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-6">Tokens by Provider</h3>
+          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-6">Tokens par Fournisseur</h3>
           <div className="h-64">
             <Pie data={chartData.tokensByProvider} options={{
               ...pieOptions,
@@ -591,7 +598,7 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
                 ...pieOptions.plugins,
                 title: {
                   ...pieOptions.plugins.title,
-                  text: 'Token Distribution by Provider',
+                  text: 'Distribution des Tokens par Fournisseur',
                 },
               },
             }} />
@@ -601,14 +608,14 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
 
       {Object.keys(tokenStats.tokensByProvider).length > 0 && (
         <div className={cardClasses}>
-          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-6">Detailed Token Breakdown</h3>
+          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-6">Détail des Tokens</h3>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-bolt-elements-borderColor">
-                  <th className="text-left py-3 px-4 font-medium text-bolt-elements-textPrimary">Provider</th>
-                  <th className="text-right py-3 px-4 font-medium text-bolt-elements-textPrimary">Prompt Tokens</th>
-                  <th className="text-right py-3 px-4 font-medium text-bolt-elements-textPrimary">Completion Tokens</th>
+                  <th className="text-left py-3 px-4 font-medium text-bolt-elements-textPrimary">Fournisseur</th>
+                  <th className="text-right py-3 px-4 font-medium text-bolt-elements-textPrimary">Tokens Prompt</th>
+                  <th className="text-right py-3 px-4 font-medium text-bolt-elements-textPrimary">Tokens Complétion</th>
                   <th className="text-right py-3 px-4 font-medium text-bolt-elements-textPrimary">Total Tokens</th>
                 </tr>
               </thead>
@@ -633,7 +640,7 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
     <div className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className={cardClasses}>
-          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-4">Total Estimated Cost</h3>
+          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-4">Coût Total Estimé</h3>
           <div className={statClasses}>
             <div className="i-ph-currency-dollar-duotone w-8 h-8 text-green-500 dark:text-green-400" />
             <span>${Object.values(tokenStats.costEstimation).reduce((sum, cost) => sum + cost, 0).toFixed(4)}</span>
@@ -641,7 +648,7 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
         </div>
 
         <div className={cardClasses}>
-          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-4">Avg. Cost/Message</h3>
+          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-4">Coût Moy./Message</h3>
           <div className={statClasses}>
             <div className="i-ph-calculator-duotone w-8 h-8 text-blue-500 dark:text-blue-400" />
             <span>${(Object.values(tokenStats.costEstimation).reduce((sum, cost) => sum + cost, 0) / Math.max(Object.values(messagesByRole).reduce((sum, count) => sum + count, 0), 1)).toFixed(6)}</span>
@@ -649,7 +656,7 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
         </div>
 
         <div className={cardClasses}>
-          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-4">Most Expensive Provider</h3>
+          <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-4">Fournisseur le Plus Cher</h3>
           <div className={statClasses}>
             <div className="i-ph-trend-up-duotone w-8 h-8 text-red-500 dark:text-red-400" />
             <span>{Object.entries(tokenStats.costEstimation).reduce((max, [provider, cost]) => cost > max.cost ? { provider, cost } : max, { provider: 'N/A', cost: 0 }).provider}</span>
@@ -660,16 +667,16 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
       {Object.keys(tokenStats.costEstimation).length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className={cardClasses}>
-            <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-6">Cost Distribution by Provider</h3>
+             <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-6">Répartition des Coûts par Fournisseur</h3>
             <div className="h-64">
               <Pie data={chartData.costsByProvider} options={{
                 ...pieOptions,
                 plugins: {
                   ...pieOptions.plugins,
                   title: {
-                    ...pieOptions.plugins.title,
-                    text: 'Estimated Costs by Provider',
-                  },
+                     ...pieOptions.plugins.title,
+                     text: 'Coûts Estimés par Fournisseur',
+                   },
                   tooltip: {
                     ...pieOptions.plugins.tooltip,
                     callbacks: {
@@ -686,7 +693,7 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
           </div>
 
           <div className={cardClasses}>
-            <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-6">Cost Breakdown</h3>
+             <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-6">Détail des Coûts</h3>
             <div className="space-y-4">
               {Object.entries(tokenStats.costEstimation)
                 .sort(([,a], [,b]) => b - a)
@@ -716,28 +723,28 @@ export function DataVisualization({ chats }: DataVisualizationProps) {
       )}
 
       <div className={cardClasses}>
-        <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-4">Cost Optimization Tips</h3>
-        <div className="space-y-3 text-sm text-bolt-elements-textSecondary">
-          <div className="flex items-start gap-3">
-            <div className="i-ph-lightbulb-duotone w-5 h-5 text-yellow-500 mt-0.5" />
-            <div>
-              <strong>Use efficient models:</strong> Consider using smaller models like GPT-4o Mini or Claude Haiku for simpler tasks to reduce costs.
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="i-ph-scissors-duotone w-5 h-5 text-blue-500 mt-0.5" />
-            <div>
-              <strong>Optimize prompts:</strong> Write concise, clear prompts to minimize token usage while maintaining quality.
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="i-ph-chart-line-down-duotone w-5 h-5 text-green-500 mt-0.5" />
-            <div>
-              <strong>Monitor usage:</strong> Regularly review your token consumption patterns to identify optimization opportunities.
-            </div>
-          </div>
-        </div>
-      </div>
+         <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-4">Conseils d'Optimisation des Coûts</h3>
+         <div className="space-y-3 text-sm text-bolt-elements-textSecondary">
+           <div className="flex items-start gap-3">
+             <div className="i-ph-lightbulb-duotone w-5 h-5 text-yellow-500 mt-0.5" />
+             <div>
+               <strong>Utilisez des modèles efficaces :</strong> Considérez l'utilisation de modèles plus petits comme GPT-4o Mini ou Claude Haiku pour les tâches simples afin de réduire les coûts.
+             </div>
+           </div>
+           <div className="flex items-start gap-3">
+             <div className="i-ph-scissors-duotone w-5 h-5 text-blue-500 mt-0.5" />
+             <div>
+               <strong>Optimisez vos prompts :</strong> Rédigez des prompts concis et clairs pour minimiser l'utilisation de tokens tout en maintenant la qualité.
+             </div>
+           </div>
+           <div className="flex items-start gap-3">
+             <div className="i-ph-chart-line-down-duotone w-5 h-5 text-green-500 mt-0.5" />
+             <div>
+               <strong>Surveillez l'utilisation :</strong> Examinez régulièrement vos patterns de consommation de tokens pour identifier les opportunités d'optimisation.
+             </div>
+           </div>
+         </div>
+       </div>
     </div>
   );
 
