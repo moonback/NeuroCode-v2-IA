@@ -18,6 +18,28 @@ export const TAB_ICONS: Record<TabType, string> = {
   'custom-prompts': 'i-ph:chat-text-fill',
 };
 
+// Define which tabs are beta
+export const BETA_TABS = new Set<TabType>(['task-manager', 'service-status', 'update', 'local-providers']);
+
+// Define which tabs are default in user mode
+export const DEFAULT_USER_TABS: TabType[] = [
+  'features',
+  'data',
+  'cloud-providers',
+  'local-providers',
+  'connection',
+  'notifications',
+  'event-logs',
+  'custom-prompts',
+];
+
+// Define which tabs can be added to user mode
+export const OPTIONAL_USER_TABS: TabType[] = ['profile', 'settings', 'task-manager', 'service-status', 'debug', 'update'];
+
+// All available tabs for user mode
+export const ALL_USER_TABS = [...DEFAULT_USER_TABS, ...OPTIONAL_USER_TABS];
+
+
 export const TAB_LABELS: Record<TabType, string> = {
   profile: 'Profil',
   settings: 'Paramètres',

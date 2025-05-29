@@ -67,23 +67,7 @@ export interface TabWindowConfig {
   developerTabs: DevTabConfig[];
 }
 
-export const TAB_LABELS: Record<TabType, string> = {
-  profile: 'Profil',
-  settings: 'Paramètres',
-  notifications: 'Notifications',
-  features: 'Fonctionnalités',
-  data: 'Gestion des Données',
-  'cloud-providers': 'Fournisseurs Cloud',
-  'local-providers': 'Fournisseurs Locaux',
-  'service-status': 'État des Services',
-  connection: 'Connexions',
-  debug: 'Débogage',
-  'event-logs': 'Journaux d\'Événements',
-  update: 'Mises à Jour',
-  'task-manager': 'Gestionnaire de Tâches',
-  'tab-management': 'Gestion des Onglets',
-  'custom-prompts': 'Prompts Personnalisés',
-};
+// TAB_LABELS a été déplacé vers constants.ts
 
 export const categoryLabels: Record<SettingCategory, string> = {
   profile: 'Profil et Compte',

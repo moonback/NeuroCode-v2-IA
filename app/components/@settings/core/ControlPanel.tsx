@@ -20,7 +20,7 @@ import {
 } from '~/lib/stores/settings';
 import { profileStore } from '~/lib/stores/profile';
 import type { TabType, TabVisibilityConfig, Profile } from './types';
-import { TAB_LABELS, DEFAULT_TAB_CONFIG } from './constants';
+import { TAB_LABELS, TAB_DESCRIPTIONS, DEFAULT_TAB_CONFIG, BETA_TABS } from './constants';
 import { DialogTitle } from '~/components/ui/Dialog';
 import { AvatarDropdown } from './AvatarDropdown';
 import BackgroundRays from '~/components/ui/BackgroundRays';
@@ -67,26 +67,7 @@ interface AnimatedSwitchProps {
   label: string;
 }
 
-const TAB_DESCRIPTIONS: Record<TabType, string> = {
-  profile: 'Gérer votre profil et les paramètres de compte',
-  settings: 'Configurer les préférences de l\'application',
-  notifications: 'Voir et gérer vos notifications',
-  features: 'Explorer les nouvelles fonctionnalités',
-  data: 'Gérer vos données et stockage',
-  'cloud-providers': 'Configurer les fournisseurs IA cloud et modèles',
-  'local-providers': 'Configurer les fournisseurs IA locaux et modèles',
-  'service-status': 'Surveiller l\'état des services LLM cloud',
-  connection: 'Vérifier l\'état de connexion et paramètres',
-  debug: 'Outils de débogage et informations système',
-  'event-logs': 'Voir les événements système et journaux',
-  update: 'Vérifier les mises à jour et notes de version',
-  'task-manager': 'Surveiller les ressources système et processus',
-  'tab-management': 'Configurer les onglets visibles et leur ordre',
-  'custom-prompts': 'Gérer les prompts personnalisés',
-};
-
-// Beta status for experimental features
-const BETA_TABS = new Set<TabType>(['task-manager', 'service-status', 'update', 'local-providers']);
+// Les constantes TAB_DESCRIPTIONS et BETA_TABS sont maintenant importées depuis constants.ts
 
 const BetaLabel = () => (
   <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-full bg-purple-500/10 dark:bg-purple-500/20">
