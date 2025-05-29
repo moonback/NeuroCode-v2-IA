@@ -28,14 +28,21 @@ const FrameworkLink: React.FC<FrameworkLinkProps> = ({ template }) => (
 
 const SidebarTemplates: React.FC = () => {
   return (
-    <div className="px-4 py-6 border-t border-gray-200 dark:border-gray-800 bg-gradient-to-b from-gray-50/50 to-transparent dark:from-gray-900/50">
-      <div className="flex items-center gap-2 mb-4 px-2">
-        <div className="w-2 h-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full animate-pulse" />
-        <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-          Démarrer un projet
-        </h3>
+    <div className="p-4 border-t border-gray-200 dark:border-gray-800 bg-gradient-to-b from-gray-50/50 to-transparent dark:from-gray-900/50">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full animate-pulse bg-gradient-to-r from-purple-500 to-blue-500" />
+          <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Démarrer un projet</h3>
+        </div>
+        <button
+          className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-green-500/50"
+          title="Déployer le projet"
+        >
+          <span className="i-ph:rocket-launch w-3 h-3" />
+          <span>Déployer</span>
+        </button>
       </div>
-      <div className="flex flex-wrap gap-2 bg-white/50 dark:bg-gray-900/50 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-sm">
+      <div className="flex flex-wrap gap-2 p-3 rounded-xl border border-gray-100 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50">
         {STARTER_TEMPLATES.map((template) => (
           <FrameworkLink key={template.name} template={template} />
         ))}

@@ -76,6 +76,7 @@ export const Menu = () => {
   const profile = useStore(profileStore);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [showTemplates, setShowTemplates] = useState(false);
   const chat = useStore(chatStore);
   const isChatStarted = chat.started;
 
@@ -375,6 +376,19 @@ export const Menu = () => {
                 <span className="text-sm font-medium">Nouveau chat</span>
               </a>
               <button
+                onClick={() => setShowTemplates(!showTemplates)}
+                className={classNames(
+                  'flex gap-1 items-center rounded-xl px-3 py-3 transition-all duration-300 hover:scale-105',
+                  showTemplates
+                    ? 'bg-gradient-to-r from-violet-600 to-violet-700 dark:from-violet-500 dark:to-violet-600 text-white border-2 border-violet-700 dark:border-violet-600 shadow-lg'
+                    : 'bg-gradient-to-r from-violet-100 to-violet-200 dark:from-violet-800 dark:to-violet-900 text-violet-700 dark:text-violet-300 hover:from-violet-200 hover:to-violet-300 dark:hover:from-violet-700 dark:hover:to-violet-800 border-2 border-violet-200 dark:border-violet-700',
+                )}
+                aria-label={showTemplates ? 'Masquer les projets' : 'Afficher les projets'}
+                title={showTemplates ? 'Masquer les projets' : 'Afficher les projets'}
+              >
+                <span className="i-ph:folder h-4 w-4" />
+              </button>
+              <button
                 onClick={toggleSelectionMode}
                 className={classNames(
                   'flex gap-1 items-center rounded-xl px-3 py-3 transition-all duration-300 hover:scale-105',
@@ -533,8 +547,8 @@ export const Menu = () => {
             </DialogRoot>
           </div>
           
-          {/* Conditionally render SidebarTemplates only when no conversation is active */}
-            {!isChatStarted && <SidebarTemplates />}
+          {/* Conditionally render SidebarTemplates based on showTemplates state */}
+            {showTemplates && <SidebarTemplates />}
             <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-800 px-4 py-4 bg-gradient-to-r from-gray-50/30 to-blue-50/30 dark:from-gray-900/30 dark:to-blue-900/30">
             <button
               onClick={handleSettingsClick}
