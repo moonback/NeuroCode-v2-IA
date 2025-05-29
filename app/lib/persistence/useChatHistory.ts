@@ -223,10 +223,13 @@ ${value.content}
   );
 
   const restoreSnapshot = useCallback(async (id: string, snapshot?: Snapshot) => {
-    // const snapshotStr = localStorage.getItem(`snapshot:${id}`); // Remove localStorage usage
+    if (!db) {
+      return;
+    }
+    
+    // Récupérer le snapshot depuis IndexedDB si non fourni
+    const validSnapshot = snapshot || await getSnapshot(db, id) || { chatIndex: '', files: {} };
     const container = await webcontainer;
-
-    const validSnapshot = snapshot || { chatIndex: '', files: {} };
 
     if (!validSnapshot?.files) {
       return;
