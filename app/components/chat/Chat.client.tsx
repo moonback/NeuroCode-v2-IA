@@ -12,6 +12,7 @@ import { useMessageParser, usePromptEnhancer, useShortcuts } from '~/lib/hooks';
 import { description, useChatHistory } from '~/lib/persistence';
 import { chatStore } from '~/lib/stores/chat';
 import { workbenchStore } from '~/lib/stores/workbench';
+import { contextItems } from '~/lib/stores/context';
 import { DEFAULT_MODEL, DEFAULT_PROVIDER, PROMPT_COOKIE_KEY, PROVIDER_LIST } from '~/utils/constants';
 import { cubicEasingFn } from '~/utils/easings';
 import { createScopedLogger, renderLogger } from '~/utils/logger';
@@ -329,8 +330,22 @@ export const ChatImpl = memo(
         return;
       }
 
+      // Récupérer les éléments de contexte
+      const currentContextItems = contextItems.get();
+      const contextItemsArray = Object.values(currentContextItems);
+      
+      // Formater le contexte si des éléments existent
+      let contextSection = '';
+      if (contextItemsArray.length > 0) {
+        contextSection = '\n\n--- CONTEXTE ---\n';
+        contextItemsArray.forEach((item, index) => {
+          contextSection += `\n**Contexte ${index + 1}** (${item.filePath}):\n\`\`\`\n${item.content}\n\`\`\`\n`;
+        });
+        contextSection += '\n--- FIN CONTEXTE ---\n\n';
+      }
+
       // If no locked items, proceed normally with the original message
-      const finalMessageContent = messageContent;
+      const finalMessageContent = contextSection + messageContent;
 
       runAnimation();
 

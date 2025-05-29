@@ -114,12 +114,16 @@ function saveContextItems() {
   try {
     // Mettre à jour la map du projet actuel
     const chatId = getCurrentChatId();
-    projectContextsMap.set(chatId, contextItems.get());
+    const currentItems = contextItems.get();
+    logger.info(`Sauvegarde pour le projet ${chatId} avec ${Object.keys(currentItems).length} éléments:`, Object.keys(currentItems));
+    
+    projectContextsMap.set(chatId, currentItems);
     
     // Sauvegarder tous les projets
     const projectContexts: Record<string, Record<string, ContextItem>> = {};
     projectContextsMap.forEach((items, projectId) => {
       projectContexts[projectId] = items;
+      logger.info(`Projet ${projectId}: ${Object.keys(items).length} éléments`);
     });
     
     setLocalStorage(CONTEXT_ITEMS_KEY, { byProject: projectContexts });
@@ -236,25 +240,46 @@ export function addContextItem(item: Omit<ContextItem, 'id' | 'createdAt'>) {
 
 // Supprimer un élément du contexte
 export function removeContextItem(id: string) {
+  logger.info(`Tentative de suppression de l'élément: ${id}`);
   const items = contextItems.get();
+  logger.info(`Éléments avant suppression:`, Object.keys(items));
+  
+  if (!items[id]) {
+    logger.warn(`Élément ${id} non trouvé dans le contexte`);
+    return;
+  }
+  
   const newItems = { ...items };
   delete newItems[id];
+  logger.info(`Éléments après suppression:`, Object.keys(newItems));
+  
   contextItems.set(newItems);
+  logger.info(`Suppression de l'élément ${id} terminée`);
 }
 
 // Vider tous les éléments du contexte sauf ceux qui sont épinglés
 export function clearContextItems() {
+  logger.info('Tentative de suppression des éléments non épinglés');
   const items = contextItems.get();
+  logger.info(`Éléments avant suppression:`, Object.keys(items));
+  
   const pinnedItems = Object.entries(items)
     .filter(([_, item]) => item.pinned)
     .reduce((acc, [id, item]) => ({ ...acc, [id]: item }), {});
   
+  logger.info(`Éléments épinglés conservés:`, Object.keys(pinnedItems));
   contextItems.set(pinnedItems);
+  logger.info('Suppression des éléments non épinglés terminée');
 }
 
 // Vider tous les éléments du contexte, y compris ceux qui sont épinglés
 export function clearAllContextItems() {
+  logger.info('Tentative de suppression de tous les éléments');
+  const items = contextItems.get();
+  logger.info(`Éléments avant suppression complète:`, Object.keys(items));
+  
   contextItems.set({});
+  logger.info('Suppression de tous les éléments terminée');
   // La sauvegarde est automatique grâce à l'écouteur sur contextItems
 }
 
