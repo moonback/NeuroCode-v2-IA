@@ -100,8 +100,17 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
     const reader = new FileReader();
     reader.onload = (e) => {
       const result = e.target?.result as string;
-      setImagePreview(result);
-      setCurrentStep(2);
+      if (result && result.startsWith('data:image/')) {
+        setImagePreview(result);
+        setCurrentStep(2);
+      } else {
+        toast.error('Erreur lors du chargement de l\'image.');
+        setSelectedFile(null);
+      }
+    };
+    reader.onerror = () => {
+      toast.error('Erreur lors de la lecture du fichier.');
+      setSelectedFile(null);
     };
     reader.readAsDataURL(file);
   }, [validateFile]);
@@ -284,14 +293,14 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
                       </p>
                     </div>
                     <DialogClose asChild>
-                      <motion.button
+                      {/* <motion.button
                         onClick={handleClose}
                         className="p-2 rounded-full text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all"
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
                       >
                         <div className="i-ph:x text-xl" />
-                      </motion.button>
+                      </motion.button> */}
                     </DialogClose>
                   </div>
 
@@ -402,11 +411,19 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
                             className="space-y-4"
                           >
                             <div className="relative group">
-                              <img
-                                src={imagePreview!}
-                                alt="Aperçu de l'image sélectionnée"
-                                className="w-full max-h-80 object-contain rounded-xl border border-slate-700 shadow-lg"
-                              />
+                              {imagePreview && (
+                                <img
+                                  src={imagePreview}
+                                  alt="Aperçu de l'image sélectionnée"
+                                  className="w-full max-h-80 object-contain rounded-xl border border-slate-700 shadow-lg"
+                                  onError={() => {
+                                    toast.error('Erreur lors de l\'affichage de l\'image.');
+                                    setImagePreview(null);
+                                    setSelectedFile(null);
+                                    setCurrentStep(1);
+                                  }}
+                                />
+                              )}
                               <motion.button
                                 onClick={() => {
                                   setSelectedFile(null);
@@ -447,12 +464,12 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
                       >
                         <div className="flex items-center justify-between mb-6">
                           <h3 className="text-xl font-semibold text-white flex items-center gap-2">
-                            <div className="i-ph:magic-wand text-purple-400" />
+                            <div className="i-ph:magic-wand text-violet-400" />
                             Choisir le type d'analyse
                           </h3>
                           <motion.button
                             onClick={handleBackToStep1}
-                            className="flex bg-bolt-elements-background-depth-4 items-center gap-2 px-3 py-2 text-slate-400 hover:text-white transition-colors rounded-lg hover:bg-slate-700/50"
+                            className="flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white transition-colors rounded-lg border border-slate-600 hover:bg-slate-700"
                             whileHover={{ x: -2 }}
                           >
                             <div className="i-ph:arrow-left" />
@@ -466,11 +483,10 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
                               key={option.id}
                               onClick={() => setSelectedAnalysis(option.id)}
                               className={classNames(
-                                'relative p-6 rounded-xl border text-left transition-all overflow-hidden group',
-                                {
-                                  'border-slate-700 hover:border-slate-600': selectedAnalysis !== option.id,
-                                  'border-purple-500/50 bg-purple-500/10': selectedAnalysis === option.id
-                                }
+                                'relative p-4 rounded-lg border text-left transition-all overflow-hidden group',
+                                selectedAnalysis === option.id
+                                  ? 'border-violet-400 bg-violet-500/10 shadow-lg'
+                                  : 'bg-slate-500/50 border-slate-600 hover:border-violet-400 hover:bg-slate-700/50'
                               )}
                               initial={{ opacity: 0, y: 20 }}
                               animate={{ opacity: 1, y: 0 }}
@@ -478,34 +494,48 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
                               whileHover={{ scale: 1.02, y: -2 }}
                               whileTap={{ scale: 0.98 }}
                             >
-                              {/* Background gradient */}
-                                <div className={classNames(
-                                'absolute inset-0 bg-bolt-elements-background-depth-3 transition-all duration-300',
-                                'bg-bolt-elements-background-depth-3 group-hover:opacity-100',
-                                option.gradient
-                                )} />
-                              
-                              <div className="relative z-10 flex items-start gap-4">
-                                <div className={classNames(
-                                  option.icon,
-                                  'text-2xl mt-1 transition-colors',
-                                  selectedAnalysis === option.id ? option.color : 'text-slate-400 group-hover:' + option.color
-                                )} />
-                                <div className="flex-1">
-                                  <h4 className="text-lg font-semibold text-white mb-2 group-hover:text-white transition-colors">
+                              <div className="relative z-10 flex items-start gap-3">
+                                <motion.div 
+                                  className={classNames(
+                                    option.icon,
+                                    'text-xl transition-all duration-300',
+                                    selectedAnalysis === option.id 
+                                      ? 'text-violet-400 scale-110' 
+                                      : 'text-slate-400 group-hover:text-violet-400'
+                                  )}
+                                  whileHover={{ rotate: [0, -5, 5, -5, 0] }}
+                                  transition={{ duration: 0.4 }}
+                                />
+                                
+                                <div className="flex-1 space-y-1">
+                                  <h4 className={classNames(
+                                    'text-base font-semibold transition-colors duration-300',
+                                    selectedAnalysis === option.id
+                                      ? 'text-violet-400'
+                                      : 'text-white'
+                                  )}>
                                     {option.title}
                                   </h4>
-                                  <p className="text-slate-400 group-hover:text-slate-300 transition-colors leading-relaxed">
+                                  <p className={classNames(
+                                    'text-sm leading-relaxed transition-colors duration-300',
+                                    selectedAnalysis === option.id
+                                      ? 'text-slate-300'
+                                      : 'text-slate-400 group-hover:text-slate-300'
+                                  )}>
                                     {option.description}
                                   </p>
                                 </div>
-                                {selectedAnalysis === option.id && (
-                                  <motion.div
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    className="i-ph:check-circle-fill text-2xl text-green-400"
-                                  />
-                                )}
+
+                                <motion.div
+                                  initial={{ scale: 0, opacity: 0 }}
+                                  animate={{ 
+                                    scale: selectedAnalysis === option.id ? 1 : 0,
+                                    opacity: selectedAnalysis === option.id ? 1 : 0
+                                  }}
+                                  className="flex items-center justify-center w-5 h-5 rounded-full bg-violet-500"
+                                >
+                                  <div className="i-ph:check text-white text-sm" />
+                                </motion.div>
                               </div>
                             </motion.button>
                           ))}
@@ -516,7 +546,7 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
                 </div>
 
                 {/* Footer avec boutons */}
-                <div className="p-6 bg-slate-800/30 border-t border-slate-700/50">
+                <div className="p-6 bg-slate-800/50 border-t border-slate-700">
                   <div className="flex justify-between items-center">
                     <div className="text-sm text-slate-400">
                       {currentStep === 1 && "Étape 1 sur 2 - Sélectionnez votre image"}
@@ -526,9 +556,9 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
                     <div className="flex gap-3">
                       <motion.button
                         onClick={handleClose}
-                        className="px-6 bg-slate-700/50 py-2 text-slate-400 hover:text-white transition-colors rounded-lg hover:hover:bg-bolt-elements-background-depth-1"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                        className="px-6 bg-slate-800/50 py-2 text-slate-400 hover:text-white transition-colors rounded-lg border border-slate-600 hover:bg-slate-700"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                       >
                         Annuler
                       </motion.button>
@@ -537,14 +567,14 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
                         onClick={handleAnalyze}
                         disabled={!selectedFile || !selectedAnalysis || isAnalyzing}
                         className={classNames(
-                          'px-8 py-3 rounded-lg font-semibold transition-all flex items-center gap-2 shadow-lg',
+                          'px-8 py-3 rounded-lg font-semibold transition-all flex items-center gap-2',
                           {
-                            'bg-gradient-to-r from-violet-600 to-purple-600 text-white hover:from-violet-700 hover:to-purple-700 hover:shadow-xl hover:shadow-purple-500/25': Boolean(selectedFile && selectedAnalysis && !isAnalyzing),
-                            'bg-slate-700 text-slate-500 cursor-not-allowed': !selectedFile || !selectedAnalysis || isAnalyzing
+                            'bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white border border-violet-400': Boolean(selectedFile && selectedAnalysis && !isAnalyzing),
+                            'bg-slate-700 text-slate-400 cursor-not-allowed border border-slate-600': !selectedFile || !selectedAnalysis || isAnalyzing
                           }
                         )}
-                        whileHover={selectedFile && selectedAnalysis && !isAnalyzing ? { scale: 1.05 } : {}}
-                        whileTap={selectedFile && selectedAnalysis && !isAnalyzing ? { scale: 0.95 } : {}}
+                        whileHover={selectedFile && selectedAnalysis && !isAnalyzing ? { scale: 1.02 } : {}}
+                        whileTap={selectedFile && selectedAnalysis && !isAnalyzing ? { scale: 0.98 } : {}}
                       >
                         {isAnalyzing ? (
                           <>
