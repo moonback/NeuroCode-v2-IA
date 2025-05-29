@@ -36,17 +36,17 @@ export class PromptLibrary {
     }
   > = {
     default: {
-      label: 'Default Prompt',
+      label: 'Original',
       description: 'This is the battle tested default system Prompt',
       get: (options) => getSystemPrompt(options.cwd, options.supabase),
     },
     enhanced: {
-      label: 'Fine Tuned Prompt',
+      label: 'Fine Tuned ',
       description: 'An fine tuned prompt for better results',
       get: (options) => getFineTunedPrompt(options.cwd, options.supabase),
     },
     optimized: {
-      label: 'Optimized Prompt (experimental)',
+      label: 'Optimized (experimental)',
       description: 'an Experimental version of the prompt for lower token usage',
       get: (options) => optimized(options),
     },
