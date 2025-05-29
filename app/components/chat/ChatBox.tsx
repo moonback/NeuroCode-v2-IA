@@ -342,7 +342,7 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
               disabled={!props.providerList || props.providerList.length === 0}
             >
               <div className={`i-ph:caret-${props.isModelSettingsCollapsed ? 'right' : 'down'} text-lg`} />
-              {props.isModelSettingsCollapsed ? <span className="text-xs">{props.model}</span> : <span />}
+              {props.isModelSettingsCollapsed ? <span className="text-xs font-medium truncate max-w-[100px]">{props.model}</span> : <span />}
             </IconButton>
           </div>
           {props.input.length > 3 ? (
