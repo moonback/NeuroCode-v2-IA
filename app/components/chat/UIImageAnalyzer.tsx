@@ -32,11 +32,11 @@ const ANALYSIS_OPTIONS: AnalysisOption[] = [
   {
     id: 'reproduce',
     title: 'Reproduire le code',
-    description: 'Génère le code HTML/CSS/JavaScript pour reproduire cette interface avec précision',
+    description: 'Génère le code pour reproduire cette interface avec précision',
     icon: 'i-ph:code',
     gradient: 'from-violet-500/20 to-cyan-500/20',
     color: 'text-violet-400',
-    prompt: 'Analyse cette image d\'interface utilisateur et génère le code HTML, CSS et JavaScript nécessaire pour reproduire exactement cette interface. Inclus tous les détails visuels, les couleurs, les espacements, les polices et les interactions visibles.'
+    prompt: 'Analyze this UI and generate a complete React + Vite application that reproduces it. Include all necessary components, styling (CSS/SCSS), and functionality. Make sure to use React best practices, proper component structure, and include instructions for installing dependencies and running the app. Focus on creating a maintainable and well-organized codebase.'
   },
   {
     id: 'improve',
