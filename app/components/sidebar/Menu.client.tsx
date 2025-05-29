@@ -375,6 +375,16 @@ export const Menu = () => {
                 <span className="inline-block i-ph:plus-circle h-4 w-4 group-hover:scale-110 transition-transform duration-300" />
                 <span className="text-sm font-medium">Nouveau chat</span>
               </a>
+              {!isChatStarted && (
+                <button
+                  onClick={() => setShowTemplates(!showTemplates)}
+                  className="flex gap-2 items-center rounded-xl px-3 py-3 transition-all duration-300 hover:scale-105 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-500/10 dark:to-emerald-500/10 text-green-700 dark:text-green-300 hover:from-green-100 hover:to-emerald-100 dark:hover:from-green-500/20 dark:hover:to-emerald-500/20 border border-green-200/50 dark:border-green-700/50 hover:shadow-md group"
+                  aria-label="Démarrer un projet"
+                >
+                  <span className="i-ph:folder-plus h-4 w-4 group-hover:scale-110 transition-transform duration-300" />
+                  <span className="text-sm font-medium">Projet</span>
+                </button>
+              )}
               <button
                 onClick={() => setShowTemplates(!showTemplates)}
                 className={classNames(
