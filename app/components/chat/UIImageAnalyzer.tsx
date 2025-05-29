@@ -16,7 +16,7 @@ interface UIImageAnalyzerProps {
   onChatStart?: () => void;
 }
 
-type AnalysisType = 'reproduce' | 'improve' | 'explain';
+type AnalysisType = 'reproduce' | 'improve' | 'explain'| 'convert' | 'optimize' | 'accessibility';
 
 interface AnalysisOption {
   id: AnalysisType;
@@ -29,34 +29,309 @@ interface AnalysisOption {
 }
 
 const ANALYSIS_OPTIONS: AnalysisOption[] = [
-  {
-    id: 'reproduce',
-    title: 'Reproduire le code',
-    description: 'Génère le code pour reproduire cette interface avec précision',
-    icon: 'i-ph:code',
-    gradient: 'from-violet-500/20 to-cyan-500/20',
-    color: 'text-violet-400',
-    prompt: 'Analyze this UI and generate a complete React + Vite application that reproduces it. Include all necessary components, styling (CSS/SCSS), and functionality. Make sure to use React best practices, proper component structure, and include instructions for installing dependencies and running the app. Focus on creating a maintainable and well-organized codebase.'
-  },
-  {
-    id: 'improve',
-    title: 'Améliorer l\'UI',
-    description: 'Propose des améliorations concrètes de design et d\'expérience utilisateur',
-    icon: 'i-ph:magic-wand',
-    gradient: 'from-purple-500/20 to-pink-500/20',
-    color: 'text-purple-400',
-    prompt: 'Analyse cette interface utilisateur et propose des améliorations concrètes pour le design et l\'expérience utilisateur. Identifie les problèmes d\'accessibilité, d\'ergonomie et de design, puis suggère des solutions spécifiques avec des exemples de code si nécessaire.'
-  },
-  {
-    id: 'explain',
-    title: 'Expliquer le design',
-    description: 'Analyse détaillée des choix de design et des principes UX appliqués',
-    icon: 'i-ph:lightbulb',
-    gradient: 'from-amber-500/20 to-orange-500/20',
-    color: 'text-amber-400',
-    prompt: 'Analyse cette interface utilisateur et explique en détail les choix de design. Décris l\'architecture de l\'information, la hiérarchie visuelle, l\'utilisation des couleurs, la typographie, les espacements et les principes UX appliqués.'
-  }
-];
+    {
+      id: 'reproduce',
+      title: 'Reproduire le code',
+      description: 'Génère le code pour reproduire cette interface avec précision',
+      icon: 'i-ph:code',
+      gradient: 'from-violet-500/20 to-cyan-500/20',
+      color: 'text-violet-400',
+      prompt: `Analyse cette interface utilisateur et génère une application React + Vite complète qui la reproduit fidèlement.
+  
+  **Instructions spécifiques :**
+  - Reproduis exactement la mise en page, les couleurs, les espacements et les interactions
+  - Utilise TypeScript pour un code robuste
+  - Implémente tous les composants avec une architecture modulaire
+  - Inclus la gestion d'état (useState, useContext si nécessaire)
+  - Ajoute les animations et transitions visibles dans l'interface
+  - Utilise CSS Modules ou Styled Components pour le styling
+  - Assure-toi que l'interface est responsive (mobile, tablet, desktop)
+  - Inclus la gestion des erreurs et des états de chargement
+  - Fournis un fichier README avec les instructions d'installation et de lancement
+  - Respecte les bonnes pratiques React (hooks, performance, accessibilité)
+  
+  **Livrables attendus :**
+  1. Structure complète du projet avec tous les fichiers
+  2. Code source commenté et organisé
+  3. Configuration Vite optimisée
+  4. Instructions de déploiement
+  5. Liste des dépendances avec versions spécifiques`
+    },
+    {
+      id: 'improve',
+      title: 'Améliorer l\'UI',
+      description: 'Propose des améliorations concrètes de design et d\'expérience utilisateur',
+      icon: 'i-ph:magic-wand',
+      gradient: 'from-purple-500/20 to-pink-500/20',
+      color: 'text-purple-400',
+      prompt: `Effectue une analyse UX/UI approfondie de cette interface et propose des améliorations concrètes.
+  
+  **Axes d'analyse :**
+  
+  **1. Accessibilité (WCAG 2.1)**
+  - Contraste des couleurs (AA/AAA)
+  - Navigation clavier et lecteurs d'écran
+  - Taille des zones cliquables (minimum 44px)
+  - Alt text et ARIA labels
+  - Focus management
+  
+  **2. Ergonomie et Usabilité**
+  - Parcours utilisateur et friction points
+  - Charge cognitive et simplicité
+  - Consistance des patterns UI
+  - Affordances et feedback visuel
+  - Performance perçue
+  
+  **3. Design System et Cohérence**
+  - Hiérarchie typographique
+  - Système de couleurs et sémantique
+  - Espacements et grille
+  - Composants réutilisables
+  - States et interactions
+  
+  **4. Responsive et Multi-plateforme**
+  - Adaptation mobile/desktop
+  - Touch targets et gestures
+  - Performance sur différents devices
+  - Progressive Web App features
+  
+  **Pour chaque amélioration proposée :**
+  - Identifie le problème spécifique
+  - Explique l'impact sur l'utilisateur
+  - Propose une solution concrète avec mockup/code
+  - Justifie le choix par des principes UX établis
+  - Estime la priorité (Critical/High/Medium/Low)`
+    },
+    {
+      id: 'explain',
+      title: 'Expliquer le design',
+      description: 'Analyse détaillée des choix de design et des principes UX appliqués',
+      icon: 'i-ph:lightbulb',
+      gradient: 'from-amber-500/20 to-orange-500/20',
+      color: 'text-amber-400',
+      prompt: `Analyse cette interface utilisateur selon une approche design thinking structurée.
+  
+  **1. Architecture de l'Information**
+  - Organisation et structuration du contenu
+  - Hiérarchie de l'information (primary, secondary, tertiary)
+  - Navigation et wayfinding
+  - Mental models et conventions utilisateur
+  - Card sorting et tree testing principles
+  
+  **2. Système Visuel**
+  - **Typographie :** Hiérarchie, lisibilité, personnalité de marque
+  - **Couleurs :** Palette, psychologie, contraste, accessibilité
+  - **Espacement :** Système de grille, breathing room, densité
+  - **Iconographie :** Style, consistance, compréhension universelle
+  - **Imagery :** Traitement, cohérence, message véhiculé
+  
+  **3. Patterns d'Interaction**
+  - Affordances et signifiers
+  - Feedback loops (micro-interactions)
+  - Progressive disclosure
+  - Error prevention et recovery
+  - Call-to-actions et conversion
+  
+  **4. Principes UX Appliqués**
+  - **Lois de Fitts et Hick :** Optimisation des interactions
+  - **Gestalt principles :** Proximité, similarité, continuité
+  - **Jakob's Law :** Conformité aux standards
+  - **Aesthetic-Usability Effect :** Balance beauté/fonction
+  - **Cognitive Load Theory :** Simplification mentale
+  
+  **5. Context d'Usage**
+  - Personas et use cases
+  - Environment d'utilisation
+  - Device et platform considerations
+  - Accessibility requirements
+  - Business objectives alignment
+  
+  **Fournis pour chaque point :**
+  - Observation factuelle
+  - Principe design appliqué
+  - Impact sur l'expérience utilisateur
+  - Benchmarks et références sectorielles
+  - Recommandations d'optimisation`
+    },
+    {
+      id: 'convert',
+      title: 'Convertir technologie',
+      description: 'Adapte le code vers d\'autres frameworks ou technologies',
+      icon: 'i-ph:arrow-square-out',
+      gradient: 'from-emerald-500/20 to-teal-500/20',
+      color: 'text-emerald-400',
+      prompt: `Analyse cette interface et propose des adaptations vers différentes technologies.
+  
+  **Options de conversion disponibles :**
+  
+  **1. Frameworks Frontend**
+  - Vue.js 3 (Composition API + TypeScript)
+  - Angular 17+ (Standalone components)
+  - Svelte/SvelteKit
+  - Next.js (App Router + Server Components)
+  - Nuxt 3 (Vue ecosystem)
+  - Solid.js (Fine-grained reactivity)
+  
+  **2. Frameworks CSS**
+  - Tailwind CSS (Utility-first)
+  - Bootstrap 5 (Component-based)
+  - Bulma (Modern CSS framework)
+  - Chakra UI / Mantine (Component libraries)
+  
+  **3. Technologies Natives**
+  - React Native (iOS/Android)
+  - Flutter (Dart)
+  - Tauri (Rust + Web)
+  - Electron (Desktop)
+  
+  **4. Alternatives No-Code/Low-Code**
+  - Webflow (Visual development)
+  - Framer (Interactive prototyping)
+  - Bubble (Full-stack no-code)
+  
+  **Pour chaque conversion :**
+  - Identifie les équivalences de composants
+  - Adapte les patterns spécifiques au framework
+  - Optimise selon les bonnes pratiques de la technologie cible
+  - Conserve l'expérience utilisateur originale
+  - Fournis le code complet avec configuration
+  - Explique les avantages/inconvénients de chaque approche
+  - Inclus les instructions de migration et déploiement
+  
+  **Choisis la technologie cible ou demande-moi de toutes les couvrir.**`
+    },
+    {
+      id: 'optimize',
+      title: 'Optimiser performance',
+      description: 'Analyse et améliore les performances techniques et UX',
+      icon: 'i-ph:rocket-launch',
+      gradient: 'from-red-500/20 to-orange-500/20',
+      color: 'text-red-400',
+      prompt: `Effectue un audit de performance complet de cette interface et propose des optimisations.
+  
+  **1. Performance Technique**
+  
+  **Core Web Vitals :**
+  - **LCP (Largest Contentful Paint) :** < 2.5s
+  - **FID (First Input Delay) :** < 100ms  
+  - **CLS (Cumulative Layout Shift) :** < 0.1
+  - **INP (Interaction to Next Paint) :** < 200ms
+  
+  **Optimisations Frontend :**
+  - Bundle analysis et code splitting
+  - Lazy loading des composants/images
+  - Tree shaking et dead code elimination
+  - Critical CSS et resource hints
+  - Service Workers et caching strategies
+  - Image optimization (WebP, AVIF, responsive)
+  
+  **2. Performance UX**
+  
+  **Perceived Performance :**
+  - Loading states et skeleton screens
+  - Progressive enhancement
+  - Optimistic UI updates
+  - Micro-interactions et feedback immédiat
+  - Error boundaries et graceful degradation
+  
+  **3. Optimisations Spécifiques**
+  
+  **React Performance :**
+  - Memo, useMemo, useCallback optimization
+  - Virtual scrolling pour les listes
+  - Concurrent features (React 18+)
+  - Code splitting avec Suspense
+  - State management optimization
+  
+  **CSS Performance :**
+  - Critical CSS inlining
+  - CSS containment
+  - Efficient selectors
+  - Animation optimization (transform, opacity)
+  - CSS-in-JS optimization
+  
+  **4. Monitoring et Métriques**
+  - Real User Monitoring (RUM)
+  - Synthetic testing setup
+  - Performance budgets
+  - Lighthouse CI integration
+  - Error tracking et analytics
+  
+  **Livrables :**
+  - Audit détaillé avec métriques actuelles
+  - Recommandations priorisées par impact
+  - Code optimisé avec before/after
+  - Configuration d'outils de monitoring
+  - Roadmap d'implémentation`
+    },
+    {
+      id: 'accessibility',
+      title: 'Audit accessibilité',
+      description: 'Évaluation complète WCAG et recommandations d\'amélioration',
+      icon: 'i-ph:heart',
+      gradient: 'from-blue-500/20 to-indigo-500/20',
+      color: 'text-blue-400',
+      prompt: `Effectue un audit d'accessibilité exhaustif selon les standards WCAG 2.1 AA/AAA.
+  
+  **1. Évaluation WCAG 2.1**
+  
+  **Perceivable (Perceptible) :**
+  - Contraste des couleurs (4.5:1 AA, 7:1 AAA)
+  - Alternatives textuelles pour images/médias
+  - Sous-titres et transcriptions
+  - Adaptabilité aux technologies d'assistance
+  - Distinguabilité visuelle et auditive
+  
+  **Operable (Utilisable) :**
+  - Navigation clavier complète (Tab, Enter, Espace, flèches)
+  - Pas de contenu provoquant des crises (flashs)
+  - Temps suffisant pour les interactions
+  - Navigation cohérente et prévisible
+  - Zones de clic suffisantes (44x44px minimum)
+  
+  **Understandable (Compréhensible) :**
+  - Langue du contenu définie
+  - Texte lisible et compréhensible
+  - Fonctionnalité prévisible
+  - Assistance à la saisie et gestion d'erreurs
+  
+  **Robust (Robuste) :**
+  - Compatibilité avec technologies d'assistance
+  - HTML sémantique valide
+  - ARIA labels et roles appropriés
+  - Support multi-navigateurs et devices
+  
+  **2. Tests Pratiques**
+  
+  **Navigation clavier :**
+  - Tab order logique
+  - Focus visible et cohérent
+  - Skip links et landmarks
+  - Trap focus dans les modals
+  - Keyboard shortcuts
+  
+  **Lecteurs d'écran :**
+  - NVDA, JAWS, VoiceOver compatibility
+  - Headings structure (h1-h6)
+  - Lists et tables semantics
+  - Form labels et descriptions
+  - Live regions pour les updates
+  
+  **3. Outils et Testing**
+  - axe-core automated testing
+  - Manual testing checklist
+  - Screen reader testing guide
+  - Color blindness simulation
+  - Accessibility audit tools integration
+  
+  **Livrables :**
+  - Score WCAG détaillé par critère
+  - Liste des violations avec priorité
+  - Code corrigé avec ARIA patterns
+  - Guide de test manuel
+  - Recommandations d'outils et workflow`
+    }
+  ];
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
