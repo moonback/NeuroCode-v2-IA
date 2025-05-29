@@ -21,27 +21,39 @@ export default function ChatAlert({ alert, clearAlert, postMessage }: Props) {
     const suggestionMap: Record<string, string[]> = {
       syntax: [
         "Vérifiez les accolades, parenthèses ou points-virgules manquants",
-        "Assurez-vous que toutes les variables sont correctement déclarées"
+        "Assurez-vous que toutes les variables sont correctement déclarées",
+        "Vérifiez la coloration syntaxique pour détecter les problèmes potentiels",
+        "Contrôlez les déclarations de fonctions et de classes"
       ],
       runtime: [
         "Vérifiez les valeurs null ou undefined",
-        "Assurez-vous que les fonctions appelées existent"
+        "Assurez-vous que les fonctions appelées existent",
+        "Inspectez les propriétés d'objet avant l'accès",
+        "Examinez les limites de tableaux et les itérations"
       ],
       dependency: [
         "Vérifiez que toutes les dépendances sont installées",
-        "Exécutez npm install ou yarn pour mettre à jour les dépendances"
+        "Exécutez npm install ou yarn pour mettre à jour les dépendances",
+        "Vérifiez package.json pour les conflits de versions",
+        "Supprimez node_modules et réinstallez si nécessaire"
       ],
       configuration: [
-        "Vérifiez les fichiers de configuration du projet",
-        "Assurez-vous que les variables d'environnement sont correctement définies"
+        "Examinez les fichiers de configuration du projet",
+        "Assurez-vous que les variables d'environnement sont correctement définies",
+        "Validez les paramètres de build et de déploiement",
+        "Vérifiez les configurations de chemins"
       ],
       network: [
         "Vérifiez votre connexion internet",
-        "Assurez-vous que les API externes sont accessibles"
+        "Assurez-vous que les API externes sont accessibles",
+        "Testez les endpoints API avec Postman ou des outils similaires",
+        "Examinez les paramètres de sécurité réseau"
       ],
       unknown: [
         "Consultez la documentation du projet",
-        "Recherchez des erreurs similaires dans les issues GitHub"
+        "Recherchez des problèmes similaires sur GitHub",
+        "Examinez les changements de code récents",
+        "Vérifiez les logs système pour du contexte supplémentaire"
       ]
     };
     
@@ -49,10 +61,10 @@ export default function ChatAlert({ alert, clearAlert, postMessage }: Props) {
   };
   
   const isPreview = source === 'preview';
-  const title = isPreview ? 'Preview Error' : 'Terminal Error';
+  const title = isPreview ? 'Erreur de prévisualisation' : 'Erreur de terminal';
   const message = isPreview
-    ? 'We encountered an error while running the preview. Would you like Bolt to analyze and help resolve this issue?'
-    : 'We encountered an error while running terminal commands. Would you like Bolt to analyze and help resolve this issue?';
+    ? 'Nous avons rencontré une erreur lors de l\'exécution de la prévisualisation. Souhaitez-vous que Bolt analyse et aide à résoudre ce problème ?'
+    : 'Nous avons rencontré une erreur lors de l\'exécution des commandes du terminal. Souhaitez-vous que Bolt analyse et aide à résoudre ce problème ?';
 
   const handleSubmit = () => {
     const contextMessage = additionalContext.trim() 
@@ -84,29 +96,7 @@ export default function ChatAlert({ alert, clearAlert, postMessage }: Props) {
     ];
   };
   
-  // Fonction pour obtenir des liens de documentation pertinents
-  const getDocumentationLinks = () => {
-    // Analyse basique du contenu de l'erreur pour déterminer les liens pertinents
-    const content = alert.content.toLowerCase();
-    
-    const links = [];
-    
-    if (content.includes('npm') || content.includes('package')) {
-      links.push({ title: "Documentation npm", url: "https://docs.npmjs.com/" });
-    }
-    
-    if (content.includes('react')) {
-      links.push({ title: "Documentation React", url: "https://reactjs.org/docs/getting-started.html" });
-    }
-    
-    if (content.includes('typescript') || content.includes('.ts')) {
-      links.push({ title: "Documentation TypeScript", url: "https://www.typescriptlang.org/docs/" });
-    }
-    
-    // Ajouter d'autres liens en fonction du contenu
-    
-    return links;
-  };
+  
   
   return (
     <AnimatePresence>
@@ -146,7 +136,7 @@ export default function ChatAlert({ alert, clearAlert, postMessage }: Props) {
               <p>{message}</p>
               {description && (
                 <div className="text-xs text-bolt-elements-textSecondary p-2 bg-bolt-elements-background-depth-3 rounded mt-4 mb-4">
-                  Error: {description}
+                  Erreur : {description}
                 </div>
               )}
               
@@ -186,7 +176,7 @@ export default function ChatAlert({ alert, clearAlert, postMessage }: Props) {
                   )}
                 >
                   <div className="i-ph:chat-circle-duotone"></div>
-                  Ask Bolt
+                  Demander à IA
                 </button>
                 <button
                   onClick={clearAlert}
@@ -198,7 +188,7 @@ export default function ChatAlert({ alert, clearAlert, postMessage }: Props) {
                     'text-bolt-elements-button-secondary-text',
                   )}
                 >
-                  Dismiss
+                  Ignorer
                 </button>
               </div>
             </motion.div>
