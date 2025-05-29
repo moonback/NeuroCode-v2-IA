@@ -253,13 +253,15 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
               >
                 <div className="i-ph:paperclip text-xl"></div>
               </IconButton>
-              <UIImageAnalyzer
-                sendMessage={props.handleSendMessage}
-                append={props.append}
-                model={props.model}
-                provider={props.provider}
-                onChatStart={props.runAnimation}
-              />
+              {!props.chatStarted && (
+                <UIImageAnalyzer
+                  sendMessage={props.handleSendMessage}
+                  append={props.append}
+                  model={props.model}
+                  provider={props.provider}
+                  onChatStart={props.runAnimation}
+                />
+              )}
               <IconButton
                 title="Améliorer le prompt"
                 disabled={props.input.length === 0 || props.enhancingPrompt}
