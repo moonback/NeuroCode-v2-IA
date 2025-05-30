@@ -16,6 +16,9 @@ import { useStore } from '@nanostores/react';
 import { profileStore } from '~/lib/stores/profile';
 import { workbenchStore } from '~/lib/stores/workbench';
 import { chatStore } from '~/lib/stores/chat';
+import { supabaseConnection } from '~/lib/stores/supabase';
+import { netlifyConnection } from '~/lib/stores/netlify';
+import { vercelConnection } from '~/lib/stores/vercel';
 import SidebarTemplates from './SidebarTemplates';
 
 const menuVariants = {
@@ -44,6 +47,158 @@ type DialogContent =
   | { type: 'bulkDelete'; items: ChatHistoryItem[] }
   | null;
 
+function ConnectionStatus() {
+  const supabaseConn = useStore(supabaseConnection);
+  const netlifyConn = useStore(netlifyConnection);
+  const vercelConn = useStore(vercelConnection);
+  
+  // Check GitHub connection from localStorage
+  const [githubConnected, setGithubConnected] = useState(false);
+  const [githubUser, setGithubUser] = useState<string | null>(null);
+  
+  useEffect(() => {
+    const checkGithubConnection = () => {
+      const githubConnection = localStorage.getItem('github_connection');
+      if (githubConnection) {
+        try {
+          const parsed = JSON.parse(githubConnection);
+          setGithubConnected(true);
+          setGithubUser(parsed.user?.login || null);
+        } catch {
+          setGithubConnected(false);
+          setGithubUser(null);
+        }
+      } else {
+        setGithubConnected(false);
+        setGithubUser(null);
+      }
+    };
+    
+    checkGithubConnection();
+    // Check periodically for changes
+    const interval = setInterval(checkGithubConnection, 5000);
+    return () => clearInterval(interval);
+  }, []);
+  
+  const connections = [
+    { 
+      name: 'Supabase', 
+      connected: !!supabaseConn.user, 
+      icon: 'i-ph-database', 
+      color: 'from-green-400 to-green-600',
+      bgColor: 'bg-green-500',
+      user: supabaseConn.user?.email || null
+    },
+    { 
+      name: 'GitHub', 
+      connected: githubConnected, 
+      icon: 'i-ph-git-branch', 
+      color: 'from-purple-400 to-purple-600',
+      bgColor: 'bg-purple-500',
+      user: githubUser
+    },
+    { 
+      name: 'Netlify', 
+      connected: !!netlifyConn.user, 
+      icon: 'i-ph-globe', 
+      color: 'from-blue-400 to-blue-600',
+      bgColor: 'bg-blue-500',
+      user: netlifyConn.user?.full_name || netlifyConn.user?.email || null
+    },
+    { 
+      name: 'Vercel', 
+      connected: !!vercelConn.user, 
+      icon: 'i-ph-triangle', 
+      color: 'from-orange-400 to-orange-600',
+      bgColor: 'bg-orange-500',
+      user: vercelConn.user?.username || vercelConn.user?.user?.username || null
+    },
+  ];
+  
+  const connectedCount = connections.filter(conn => conn.connected).length;
+  const allConnected = connectedCount === 4;
+  
+  return (
+    <div className="px-4 py-3 border-b border-gray-200/50 dark:border-gray-700/50 bg-gray-50/30 dark:bg-gray-800/30">
+      <div className="flex items-center justify-between">
+        {/* Left section - Status overview */}
+        <div className="flex items-center gap-3">
+          {/* Status indicator */}
+          <div className="relative">
+            <div className={`w-4 h-4 rounded-full flex items-center justify-center transition-all duration-300 ${
+              allConnected 
+                ? 'bg-green-500 shadow-green-500/30 shadow-lg' 
+                : connectedCount > 0 
+                  ? 'bg-orange-500 shadow-orange-500/30 shadow-lg'
+                  : 'bg-gray-400 shadow-gray-400/30 shadow-lg'
+            }`}>
+              <div className={`w-2 h-2 rounded-full bg-white ${
+                allConnected ? 'animate-pulse' : ''
+              }`}></div>
+            </div>
+          </div>
+          
+          {/* Status text */}
+          <div className="flex flex-col">
+            <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+              Connexions
+            </span>
+            <span className={`text-xs transition-colors duration-300 ${
+              allConnected 
+                ? 'text-green-600 dark:text-green-400' 
+                : connectedCount > 0 
+                  ? 'text-orange-600 dark:text-orange-400'
+                  : 'text-gray-500 dark:text-gray-400'
+            }`}>
+              {connectedCount}/4 services connectés
+            </span>
+          </div>
+        </div>
+        
+        {/* Right section - Service indicators */}
+        <div className="flex items-center gap-2">
+          {connections.map((conn) => (
+            <div
+              key={conn.name}
+              className="group relative"
+              title={`${conn.name} - ${conn.connected ? 'Connecté' : 'Déconnecté'}${conn.user ? ` (${conn.user})` : ''}`}
+            >
+              {/* Service indicator */}
+              <div className={`w-5 h-5 rounded-lg flex items-center justify-center transition-all duration-300 ${
+                conn.connected 
+                  ? `bg-gradient-to-br ${conn.color} text-white shadow-lg hover:scale-110` 
+                  : 'bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-500'
+              }`}>
+                <div className={`${conn.icon} text-sm`}></div>
+              </div>
+              
+              {/* Connection status dot */}
+              <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-white dark:border-gray-800 transition-all duration-300 ${
+                conn.connected 
+                  ? `${conn.bgColor} animate-pulse` 
+                  : 'bg-gray-400'
+              }`}></div>
+              
+              {/* Tooltip */}
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                <div className="font-medium">{conn.name}</div>
+                {conn.user && (
+                  <div className="text-gray-300 dark:text-gray-600 text-xs">{conn.user}</div>
+                )}
+                <div className="text-xs">
+                  {conn.connected ? '✓ Connecté' : '✕ Déconnecté'}
+                </div>
+                {/* Tooltip arrow */}
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-100"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function CurrentDateTime() {
   const [dateTime, setDateTime] = useState(new Date());
 
@@ -56,11 +211,13 @@ function CurrentDateTime() {
   }, []);
 
   return (
-    <div className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 dark:text-gray-400 border-b border-gray-100 dark:border-gray-800/50">
-      <div className="h-4 w-4 i-ph:clock opacity-80" />
-      <div className="flex gap-2">
-        <span>{dateTime.toLocaleDateString()}</span>
-        <span>{dateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+    <div className="flex items-center justify-between px-4 py-2 text-xs bg-gray-50/60 dark:bg-gray-800/40 border-b border-gray-200/40 dark:border-gray-700/30">
+      <div className="flex items-center gap-2">
+        <div className="w-4 h-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded flex items-center justify-center">
+          <div className="i-ph:clock text-white text-xs" />
+        </div>
+        <span className="font-medium text-gray-800 dark:text-gray-200">{dateTime.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
+        <span className="text-gray-500 dark:text-gray-400">{dateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
       </div>
     </div>
   );
@@ -338,113 +495,144 @@ export const Menu = () => {
         style={{ width: '340px' }}
         className={classNames(
           'flex selection-accent flex-col side-menu fixed top-0 h-full',
-          'bg-white dark:bg-gray-950 border-r border-gray-100 dark:border-gray-800/50',
-          'shadow-sm text-sm',
+          'bg-white dark:bg-gray-950',
+          'border-r border-gray-200/60 dark:border-gray-700/50',
+          'shadow-lg text-sm',
           isSettingsOpen ? 'z-40' : 'z-sidebar',
         )}
       >
-        <div className="h-12 flex items-center justify-between px-4 border-b border-gray-100 dark:border-gray-800/50 bg-gradient-to-r from-purple-50/30 to-blue-50/30 dark:from-purple-900/20 dark:to-blue-900/20">
-          <div className="text-gray-900 dark:text-white font-medium"></div>
-          <div className="flex items-center gap-3">
-            <span className="font-medium text-sm text-gray-900 dark:text-white truncate">
-              {profile?.username || 'Guest User'}
+        <div className="h-12 flex items-center justify-between px-4 border-b border-gray-200/60 dark:border-gray-700/40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+          <div className="flex items-center gap-2">
+            </div>
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-xs text-gray-700 dark:text-gray-300 truncate max-w-20">
+              {profile?.username || 'Invité'}
             </span>
-            <div className="flex items-center justify-center w-[32px] h-[32px] overflow-hidden bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 text-gray-600 dark:text-gray-500 rounded-full shrink-0 border-2 border-purple-200/50 dark:border-purple-700/50 shadow-sm">
-              {profile?.avatar ? (
-                <img
-                  src={profile.avatar}
-                  alt={profile?.username || 'User'}
-                  className="w-full h-full object-cover rounded-full"
-                  loading="eager"
-                  decoding="sync"
-                />
-              ) : (
-                <div className="i-ph:user-fill text-lg" />
-              )}
+            <div className="relative">
+              <div className="flex items-center justify-center w-7 h-7 overflow-hidden bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-800/40 dark:to-blue-800/40 text-purple-600 dark:text-purple-300 rounded-lg shrink-0 border border-purple-200/40 dark:border-purple-600/30">
+                {profile?.avatar ? (
+                  <img
+                    src={profile.avatar}
+                    alt={profile?.username || 'User'}
+                    className="w-full h-full object-cover rounded-lg"
+                    loading="eager"
+                    decoding="sync"
+                  />
+                ) : (
+                  <div className="i-ph:user-fill text-sm" />
+                )}
+              </div>
+              <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-green-500 border border-white dark:border-gray-900 rounded-full"></div>
             </div>
           </div>
         </div>
-        <CurrentDateTime />
+        {/* <CurrentDateTime /> */}
+        
         <div className="flex-1 flex flex-col h-full w-full overflow-hidden">
           <div className="p-4 space-y-3">
+            <a
+              href="/"
+              className="flex gap-2 items-center bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg px-3 py-2.5 transition-all duration-200 group"
+            >
+              <div className="w-5 h-5 bg-white/20 rounded flex items-center justify-center group-hover:bg-white/30 transition-all duration-200">
+                <span className="i-ph:plus h-3 w-3" />
+              </div>
+              <span className="text-sm font-medium">Nouveau chat</span>
+            </a>
             <div className="flex gap-2">
-              <a
-                href="/"
-                className="flex-1 flex gap-2 items-center bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-500/10 dark:to-blue-500/10 text-purple-700 dark:text-purple-300 hover:from-purple-100 hover:to-blue-100 dark:hover:from-purple-500/20 dark:hover:to-blue-500/20 rounded-xl px-4 py-3 transition-all duration-300 border border-purple-200/50 dark:border-purple-700/50 hover:shadow-md hover:scale-[1.02] group"
-              >
-                <span className="inline-block i-ph:plus-circle h-4 w-4 group-hover:scale-110 transition-transform duration-300" />
-                <span className="text-sm font-medium">Nouveau chat</span>
-              </a>
               <button
                 onClick={() => setShowTemplates(!showTemplates)}
                 className={classNames(
-                  'flex gap-1 items-center rounded-xl px-3 py-3 transition-all duration-300 hover:scale-105',
+                  'flex-1 flex gap-1.5 items-center justify-center rounded-lg px-3 py-2 transition-all duration-200 text-xs font-medium',
                   showTemplates
-                    ? 'bg-gradient-to-r from-violet-600 to-violet-700 dark:from-violet-500 dark:to-violet-600 text-white border-2 border-violet-700 dark:border-violet-600 shadow-lg'
-                    : 'bg-gradient-to-r from-violet-100 to-violet-200 dark:from-violet-800 dark:to-violet-900 text-violet-700 dark:text-violet-300 hover:from-violet-200 hover:to-violet-300 dark:hover:from-violet-700 dark:hover:to-violet-800 border-2 border-violet-200 dark:border-violet-700',
+                    ? 'bg-violet-600 dark:bg-violet-500 text-white'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700',
                 )}
                 aria-label={showTemplates ? 'Masquer les projets' : 'Afficher les projets'}
                 title={showTemplates ? 'Masquer les projets' : 'Afficher les projets'}
               >
-                <span className="i-ph:folder h-4 w-4" />
+                <span className="i-ph:folder h-3.5 w-3.5" />
+                <span>Projets</span>
               </button>
               <button
                 onClick={toggleSelectionMode}
                 className={classNames(
-                  'flex gap-1 items-center rounded-xl px-3 py-3 transition-all duration-300 hover:scale-105',
+                  'flex-1 flex gap-1.5 items-center justify-center rounded-lg px-3 py-2 transition-all duration-200 text-xs font-medium',
                   selectionMode
-                    ? 'bg-gradient-to-r from-purple-600 to-purple-700 dark:from-purple-500 dark:to-purple-600 text-white border-2 border-purple-700 dark:border-purple-600 shadow-lg'
-                    : 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 text-gray-700 dark:text-gray-300 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-700 dark:hover:to-gray-800 border-2 border-gray-200 dark:border-gray-700',
+                    ? 'bg-red-600 dark:bg-red-500 text-white'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700',
                 )}
                 aria-label={selectionMode ? 'Quitter le mode sélection' : 'Entrer en mode sélection'}
               >
-                <span className={selectionMode ? 'i-ph:x h-4 w-4' : 'i-ph:check-square h-4 w-4'} />
+                <span className={selectionMode ? 'i-ph:x h-3.5 w-3.5' : 'i-ph:check-square h-3.5 w-3.5'} />
+                <span>{selectionMode ? 'Annuler' : 'Sélection'}</span>
               </button>
             </div>
-            <div className="relative w-full group">
+            <div className="relative w-full">
               <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10">
-                <span className="i-ph:magnifying-glass h-4 w-4 text-gray-400 dark:text-gray-500 group-focus-within:text-purple-500 transition-colors duration-300" />
+                <span className="i-ph:magnifying-glass h-3.5 w-3.5 text-gray-400 dark:text-gray-500" />
               </div>
               <input
-                className="w-full bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 relative pl-9 pr-3 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-300 dark:focus:border-purple-600 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-500 border-2 border-gray-200 dark:border-gray-800 hover:border-purple-300 dark:hover:border-purple-700 transition-all duration-300 shadow-sm focus:shadow-md"
+                className="w-full bg-white dark:bg-gray-800 pl-9 pr-3 py-2.5 rounded-lg focus:outline-none focus:ring-1 focus:ring-purple-500/50 focus:border-purple-400 dark:focus:border-purple-500 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 transition-all duration-200"
                 type="search"
-                placeholder="Rechercher dans les chats..."
+                placeholder="Rechercher..."
                 onChange={handleSearchChange}
                 aria-label="Rechercher dans les chats"
               />
             </div>
           </div>
-          <div className="flex items-center justify-between text-sm px-4 py-2 bg-gradient-to-r from-gray-50/50 to-transparent dark:from-gray-900/50">
-            <div className="font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
-              <div className="w-1.5 h-1.5 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full" />
-              Vos Conversations
+          <div className="flex items-center justify-between text-sm px-4 py-2.5 bg-gray-50/60 dark:bg-gray-800/40 border-b border-gray-200/40 dark:border-gray-700/30">
+            <div className="font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
+              <div className="w-4 h-4 bg-gradient-to-br from-purple-600 to-blue-600 rounded flex items-center justify-center">
+                <div className="i-ph:chat text-white text-xs" />
+              </div>
+              <span className="text-sm">Conversations</span>
+              <span className="px-1.5 py-0.5 bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 rounded text-xs font-medium">
+                {filteredList.length}
+              </span>
             </div>
             {selectionMode && (
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" onClick={selectAll}>
-                  {selectedItems.length === filteredList.length ? 'Tout désélectionner' : 'Tout sélectionner'}
+              <div className="flex items-center gap-1.5">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={selectAll}
+                  className="text-xs px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+                >
+                  {selectedItems.length === filteredList.length ? 'Désélectionner' : 'Tout'}
                 </Button>
                 <Button
                   variant="destructive"
                   size="sm"
                   onClick={handleBulkDeleteClick}
                   disabled={selectedItems.length === 0}
+                  className="text-xs px-2 py-1 rounded bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                 >
-                  Supprimer la sélection
+                  Supprimer ({selectedItems.length})
                 </Button>
               </div>
             )}
           </div>
           <div className="flex-1 overflow-auto px-3 pb-3">
             {filteredList.length === 0 && (
-              <div className="px-4 text-gray-500 dark:text-gray-400 text-sm">
-                {list.length === 0 ? 'Aucune conversation précédente' : 'Aucun résultat trouvé'}
+              <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 rounded-lg flex items-center justify-center mb-3">
+                  <div className="i-ph:chat-circle text-purple-600 dark:text-purple-400 text-xl" />
+                </div>
+                <h3 className="font-medium text-gray-800 dark:text-gray-200 mb-1 text-sm">
+                  {list.length === 0 ? 'Aucune conversation' : 'Aucun résultat'}
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 max-w-40">
+                  {list.length === 0 
+                    ? 'Commencez avec NeuroCode' 
+                    : 'Essayez d\'autres mots-clés'}
+                </p>
               </div>
             )}
             <DialogRoot open={dialogContent !== null}>
               {binDates(filteredList).map(({ category, items }) => (
-                <div key={category} className="mt-2 first:mt-0 space-y-1">
-                  <div className="text-xs font-medium text-gray-500 dark:text-gray-400 sticky top-0 z-1 bg-white dark:bg-gray-950 px-4 py-1">
+                <div key={category} className="mt-3 first:mt-0 space-y-1">
+                  <div className="text-xs font-medium text-gray-600 dark:text-gray-300 sticky top-0 z-1 bg-white dark:bg-gray-950 px-3 py-1.5 rounded border border-gray-200/40 dark:border-gray-700/40">
                     {category}
                   </div>
                   <div className="space-y-0.5 pr-1">
@@ -546,7 +734,8 @@ export const Menu = () => {
               </Dialog>
             </DialogRoot>
           </div>
-          
+          <ConnectionStatus />
+
           {/* Conditionally render SidebarTemplates based on showTemplates state */}
             {showTemplates && <SidebarTemplates />}
             <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-800 px-4 py-4 bg-gradient-to-r from-gray-50/30 to-blue-50/30 dark:from-gray-900/30 dark:to-blue-900/30">
@@ -563,6 +752,7 @@ export const Menu = () => {
       </motion.div>
 
       <ControlPanel open={isSettingsOpen} onClose={handleSettingsClose} />
+      
     </>
   );
 };
