@@ -163,7 +163,7 @@ export const Markdown = memo(
           return <a href={href} {...props}>{children}</a>;
         },
       } satisfies Components;
-    }, []);
+    }, [append, setChatMode, isStreaming]);
 
     return (
       <ReactMarkdown
