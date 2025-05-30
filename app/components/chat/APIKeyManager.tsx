@@ -11,7 +11,7 @@ interface APIKeyManagerProps {
   labelForGetApiKey?: string;
 }
 
-// cache which stores whether the provider's API key is set via environment variable
+// cache qui stocke si la clé API du fournisseur est définie via une variable d'environnement
 const providerEnvKeyStatusCache: Record<string, boolean> = {};
 
 const apiKeyMemoizeCache: { [k: string]: Record<string, string> } = {};
@@ -37,9 +37,9 @@ export const APIKeyManager: React.FC<APIKeyManagerProps> = ({ provider, apiKey, 
   const [tempKey, setTempKey] = useState(apiKey);
   const [isEnvKeySet, setIsEnvKeySet] = useState(false);
 
-  // Reset states and load saved key when provider changes
+  // Réinitialiser les états et charger la clé sauvegardée quand le fournisseur change
   useEffect(() => {
-    // Load saved API key from cookies for this provider
+    // Charger la clé API sauvegardée depuis les cookies pour ce fournisseur
     const savedKeys = getApiKeysFromCookies();
     const savedKey = savedKeys[provider.name] || '';
 
@@ -49,7 +49,7 @@ export const APIKeyManager: React.FC<APIKeyManagerProps> = ({ provider, apiKey, 
   }, [provider.name]);
 
   const checkEnvApiKey = useCallback(async () => {
-    // Check cache first
+    // Vérifier le cache en premier
     if (providerEnvKeyStatusCache[provider.name] !== undefined) {
       setIsEnvKeySet(providerEnvKeyStatusCache[provider.name]);
       return;
@@ -60,11 +60,11 @@ export const APIKeyManager: React.FC<APIKeyManagerProps> = ({ provider, apiKey, 
       const data = await response.json();
       const isSet = (data as { isSet: boolean }).isSet;
 
-      // Cache the result
+      // Mettre en cache le résultat
       providerEnvKeyStatusCache[provider.name] = isSet;
       setIsEnvKeySet(isSet);
     } catch (error) {
-      console.error('Failed to check environment API key:', error);
+      console.error('Échec de la vérification de la clé API d\'environnement:', error);
       setIsEnvKeySet(false);
     }
   }, [provider.name]);
@@ -74,10 +74,10 @@ export const APIKeyManager: React.FC<APIKeyManagerProps> = ({ provider, apiKey, 
   }, [checkEnvApiKey]);
 
   const handleSave = () => {
-    // Save to parent state
+    // Sauvegarder dans l'état parent
     setApiKey(tempKey);
 
-    // Save to cookies
+    // Sauvegarder dans les cookies
     const currentKeys = getApiKeysFromCookies();
     const newKeys = { ...currentKeys, [provider.name]: tempKey };
     Cookies.set('apiKeys', JSON.stringify(newKeys));
@@ -89,23 +89,23 @@ export const APIKeyManager: React.FC<APIKeyManagerProps> = ({ provider, apiKey, 
     <div className="flex items-center justify-between py-3 px-1">
       <div className="flex items-center gap-2 flex-1">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-bolt-elements-textSecondary">{provider?.name} API Key:</span>
+          <span className="text-sm font-medium text-bolt-elements-textSecondary">Clé API {provider?.name}:</span>
           {!isEditing && (
             <div className="flex items-center gap-2">
               {apiKey ? (
                 <>
                   <div className="i-ph:check-circle-fill text-green-500 w-4 h-4" />
-                  <span className="text-xs text-green-500">Set via UI</span>
+                  <span className="text-xs text-green-500">Définie via l'interface</span>
                 </>
               ) : isEnvKeySet ? (
                 <>
                   <div className="i-ph:check-circle-fill text-green-500 w-4 h-4" />
-                  <span className="text-xs text-green-500">Set via environment variable</span>
+                  <span className="text-xs text-green-500">Définie via variable d'environnement</span>
                 </>
               ) : (
                 <>
                   <div className="i-ph:x-circle-fill text-red-500 w-4 h-4" />
-                  <span className="text-xs text-red-500">Not Set (Please set via UI or ENV_VAR)</span>
+                  <span className="text-xs text-red-500">Non définie (Veuillez définir via l'interface ou ENV_VAR)</span>
                 </>
               )}
             </div>
@@ -119,7 +119,7 @@ export const APIKeyManager: React.FC<APIKeyManagerProps> = ({ provider, apiKey, 
             <input
               type="password"
               value={tempKey}
-              placeholder="Enter API Key"
+              placeholder="Entrez la clé API"
               onChange={(e) => setTempKey(e.target.value)}
               className="w-[300px] px-3 py-1.5 text-sm rounded border border-bolt-elements-borderColor 
                         bg-bolt-elements-prompt-background text-bolt-elements-textPrimary 
@@ -127,14 +127,14 @@ export const APIKeyManager: React.FC<APIKeyManagerProps> = ({ provider, apiKey, 
             />
             <IconButton
               onClick={handleSave}
-              title="Save API Key"
+              title="Sauvegarder la clé API"
               className="bg-green-500/10 hover:bg-green-500/20 text-green-500"
             >
               <div className="i-ph:check w-4 h-4" />
             </IconButton>
             <IconButton
               onClick={() => setIsEditing(false)}
-              title="Cancel"
+              title="Annuler"
               className="bg-red-500/10 hover:bg-red-500/20 text-red-500"
             >
               <div className="i-ph:x w-4 h-4" />
@@ -145,7 +145,7 @@ export const APIKeyManager: React.FC<APIKeyManagerProps> = ({ provider, apiKey, 
             {
               <IconButton
                 onClick={() => setIsEditing(true)}
-                title="Edit API Key"
+                title="Modifier la clé API"
                 className="bg-blue-500/10 hover:bg-blue-500/20 text-blue-500"
               >
                 <div className="i-ph:pencil-simple w-4 h-4" />
@@ -154,10 +154,10 @@ export const APIKeyManager: React.FC<APIKeyManagerProps> = ({ provider, apiKey, 
             {provider?.getApiKeyLink && !apiKey && (
               <IconButton
                 onClick={() => window.open(provider?.getApiKeyLink)}
-                title="Get API Key"
+                title="Obtenir la clé API"
                 className="bg-purple-500/10 hover:bg-purple-500/20 text-purple-500 flex items-center gap-2"
               >
-                <span className="text-xs whitespace-nowrap">{provider?.labelForGetApiKey || 'Get API Key'}</span>
+                <span className="text-xs whitespace-nowrap">{provider?.labelForGetApiKey || 'Obtenir la clé API'}</span>
                 <div className={`${provider?.icon || 'i-ph:key'} w-4 h-4`} />
               </IconButton>
             )}
