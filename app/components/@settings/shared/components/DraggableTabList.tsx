@@ -2,7 +2,7 @@ import { useDrag, useDrop } from 'react-dnd';
 import { motion } from 'framer-motion';
 import { classNames } from '~/utils/classNames';
 import type { TabVisibilityConfig } from '~/components/@settings/core/types';
-import { TAB_LABELS } from '~/components/@settings/core/constants';
+import { TAB_LABELS, TAB_ICONS } from '~/components/@settings/core/constants';
 import { Switch } from '~/components/ui/Switch';
 
 interface DraggableTabListProps {
@@ -79,14 +79,23 @@ const DraggableTabItem = ({
       }}
       className={classNames(
         'flex items-center justify-between p-4 rounded-lg',
-        'bg-[#F5F5F5] dark:bg-[#1A1A1A]',
-        'border border-[#E5E5E5] dark:border-[#333333]',
-        isDragging ? 'z-50' : '',
+        'bg-bolt-elements-background-depth-2',
+        'border border-bolt-elements-borderColor',
+        'hover:bg-bolt-elements-background-depth-3',
+        'transition-all duration-200',
+        isDragging ? 'z-50 shadow-lg' : '',
       )}
     >
       <div className="flex items-center gap-4">
-        <div className="cursor-grab">
+        <div className="cursor-grab hover:text-purple-500 transition-colors">
           <div className="i-ph:dots-six-vertical w-4 h-4 text-bolt-elements-textSecondary" />
+        </div>
+        <div className={classNames(
+          'w-8 h-8 flex items-center justify-center rounded-lg',
+          'bg-bolt-elements-background-depth-3',
+          tab.visible ? 'text-purple-500' : 'text-bolt-elements-textSecondary'
+        )}>
+          <div className={classNames(TAB_ICONS[tab.id], 'w-4 h-4')} />
         </div>
         <div>
           <div className="font-medium text-bolt-elements-textPrimary">{TAB_LABELS[tab.id]}</div>

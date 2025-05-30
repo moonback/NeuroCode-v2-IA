@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useStore } from '@nanostores/react';
 import { Switch } from '~/components/ui/Switch';
 import { classNames } from '~/utils/classNames';
-import { tabConfigurationStore } from '~/lib/stores/settings';
+import { tabConfigurationStore, resetTabConfiguration, developerModeStore } from '~/lib/stores/settings';
 import { 
   TAB_LABELS, 
   TAB_ICONS, 
@@ -12,10 +12,11 @@ import {
   ALL_USER_TABS, 
   BETA_TABS 
 } from '~/components/@settings/core/constants';
-import type { TabType } from '~/components/@settings/core/types';
+import type { TabType, TabVisibilityConfig, UserTabConfig, DevTabConfig } from '~/components/@settings/core/types';
 import { toast } from 'react-toastify';
-import { TbLayoutGrid } from 'react-icons/tb';
+import { TbLayoutGrid, TbRefresh, TbGripVertical } from 'react-icons/tb';
 import { useSettingsStore } from '~/lib/stores/settings';
+import { DraggableTabList } from './DraggableTabList';
 
 // Beta label component
 const BetaLabel = () => (
@@ -24,7 +25,9 @@ const BetaLabel = () => (
 
 export const TabManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const tabConfiguration = useStore(tabConfigurationStore);
+  const isDeveloperMode = useStore(developerModeStore);
   const { setSelectedTab } = useSettingsStore();
 
   const handleTabVisibilityChange = (tabId: TabType, checked: boolean) => {
@@ -79,6 +82,51 @@ export const TabManagement = () => {
     toast.success(`Tab ${checked ? 'enabled' : 'disabled'} successfully`);
   };
 
+  const handleTabReorder = (reorderedTabs: TabVisibilityConfig[]) => {
+    // Separate tabs by window type
+    const userTabs = reorderedTabs.filter((tab): tab is UserTabConfig => tab.window === 'user');
+    const developerTabs = reorderedTabs.filter((tab): tab is DevTabConfig => tab.window === 'developer');
+    
+    tabConfigurationStore.set({
+      ...tabConfiguration,
+      userTabs,
+      developerTabs,
+    });
+    toast.success('Tab order updated successfully');
+  };
+
+  const handleWindowChange = (tab: TabVisibilityConfig, window: 'user' | 'developer') => {
+    // Remove tab from current window
+    const updatedUserTabs = tabConfiguration.userTabs.filter(t => t.id !== tab.id);
+    const updatedDeveloperTabs = (tabConfiguration.developerTabs || []).filter(t => t.id !== tab.id);
+    
+    // Add tab to new window
+    const updatedTab = { ...tab, window } as TabVisibilityConfig;
+    
+    if (window === 'user') {
+      updatedUserTabs.push(updatedTab as UserTabConfig);
+    } else {
+      updatedDeveloperTabs.push(updatedTab as DevTabConfig);
+    }
+    
+    tabConfigurationStore.set({
+      ...tabConfiguration,
+      userTabs: updatedUserTabs,
+      developerTabs: updatedDeveloperTabs,
+    });
+    
+    toast.success(`Tab moved to ${window} mode`);
+  };
+
+  const handleVisibilityChange = (tab: TabVisibilityConfig, visible: boolean) => {
+    handleTabVisibilityChange(tab.id, visible);
+  };
+
+  const handleResetConfiguration = () => {
+    resetTabConfiguration();
+    toast.success('Tab configuration reset to defaults');
+  };
+
   // Create a map of existing tab configurations
   const tabConfigMap = new Map(tabConfiguration.userTabs.map((tab) => [tab.id, tab]));
 
@@ -126,35 +174,98 @@ export const TabManagement = () => {
             </div>
             <div>
               <h4 className="text-md font-medium text-bolt-elements-textPrimary">Tab Management</h4>
-              <p className="text-sm text-bolt-elements-textSecondary">Configure visible tabs and their order</p>
+              <p className="text-sm text-bolt-elements-textSecondary">
+                Configure visible tabs and their order {isDeveloperMode && '(Developer Mode)'}
+              </p>
             </div>
           </div>
 
-          {/* Search */}
-          <div className="relative w-64">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <div className="i-ph:magnifying-glass w-4 h-4 text-gray-400" />
+          <div className="flex items-center gap-4">
+            {/* View Mode Toggle */}
+            <div className="flex items-center gap-2 bg-bolt-elements-background-depth-2 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={classNames(
+                  'px-3 py-1.5 rounded-md text-sm font-medium transition-all',
+                  viewMode === 'grid'
+                    ? 'bg-purple-500 text-white'
+                    : 'text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary'
+                )}
+              >
+                <TbLayoutGrid className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={classNames(
+                  'px-3 py-1.5 rounded-md text-sm font-medium transition-all',
+                  viewMode === 'list'
+                    ? 'bg-purple-500 text-white'
+                    : 'text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary'
+                )}
+              >
+                <TbGripVertical className="w-4 h-4" />
+              </button>
             </div>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search tabs..."
+
+            {/* Reset Button */}
+            <button
+              onClick={handleResetConfiguration}
               className={classNames(
-                'w-full pl-10 pr-4 py-2 rounded-lg',
+                'flex items-center gap-2 px-3 py-2 rounded-lg',
                 'bg-bolt-elements-background-depth-2',
                 'border border-bolt-elements-borderColor',
-                'text-bolt-elements-textPrimary',
-                'placeholder-bolt-elements-textTertiary',
-                'focus:outline-none focus:ring-2 focus:ring-purple-500/30',
-                'transition-all duration-200',
+                'text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary',
+                'hover:bg-bolt-elements-background-depth-3',
+                'transition-all duration-200'
               )}
-            />
+            >
+              <TbRefresh className="w-4 h-4" />
+              <span className="text-sm">Reset</span>
+            </button>
+
+            {/* Search */}
+            <div className="relative w-64">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <div className="i-ph:magnifying-glass w-4 h-4 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search tabs..."
+                className={classNames(
+                  'w-full pl-10 pr-4 py-2 rounded-lg',
+                  'bg-bolt-elements-background-depth-2',
+                  'border border-bolt-elements-borderColor',
+                  'text-bolt-elements-textPrimary',
+                  'placeholder-bolt-elements-textTertiary',
+                  'focus:outline-none focus:ring-2 focus:ring-purple-500/30',
+                  'transition-all duration-200',
+                )}
+              />
+            </div>
           </div>
         </div>
 
-        {/* Tab Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Tab Content */}
+        {viewMode === 'list' ? (
+          <div className="space-y-6">
+            <div className="flex items-center gap-2 mb-4">
+              <TbGripVertical className="w-4 h-4 text-purple-500" />
+              <span className="text-sm font-medium text-bolt-elements-textPrimary">
+                Drag & Drop Mode - Reorder tabs by dragging
+              </span>
+            </div>
+            <DraggableTabList
+               tabs={filteredTabs.sort((a, b) => (a.order || 0) - (b.order || 0))}
+               onReorder={handleTabReorder}
+               onWindowChange={isDeveloperMode ? handleWindowChange : undefined}
+               onVisibilityChange={handleVisibilityChange}
+               showControls={true}
+             />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Default Section Header */}
           {filteredTabs.some((tab) => DEFAULT_USER_TABS.includes(tab.id)) && (
             <div className="col-span-full flex items-center gap-2 mt-4 mb-2">
@@ -342,7 +453,8 @@ export const TabManagement = () => {
                 />
               </motion.div>
             ))}
-        </div>
+          </div>
+        )}
       </motion.div>
     </div>
   );
