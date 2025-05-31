@@ -336,14 +336,14 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
             {!chatStarted && (
               <div id="intro" className="mt-[0vh] max-w-chat mx-auto text-center px-4 lg:px-0">
                 <div className="animate-fade-in">
-                  <h1 className="text-3xl lg:text-6xl font-bold text-bolt-elements-textPrimary mb-6 animate-slide-up">
-                    <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent animate-gradient">
-                      Transformez vos idées en réalité
-                    </span>
-                  </h1>
-                  <p className="text-lg lg:text-xl mb-8 text-bolt-elements-textSecondary animate-fade-in animation-delay-300 leading-relaxed">
-                    Développement intelligent assisté par IA • Prototypage rapide • Solutions sur mesure
-                  </p>
+                    <h1 className="text-3xl lg:text-6xl font-bold text-bolt-elements-textPrimary mb-6 animate-slide-up">
+                      <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent animate-gradient">
+                        L'IA au service de vos projets
+                      </span>
+                    </h1>
+                    <p className="text-lg lg:text-xl mb-8 text-bolt-elements-textSecondary animate-fade-in animation-delay-300 leading-relaxed">
+                      Développement IA • Prototypage • Solutions clés en main
+                    </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in animation-delay-500">
                     <div className="flex items-center gap-2 text-sm text-bolt-elements-textSecondary">
                       <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
