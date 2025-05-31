@@ -23,6 +23,10 @@ export const PromptEnhancer: React.FC<PromptEnhancerProps> = ({
   const [outputType, setOutputType] = useState('detailed');
   const [language, setLanguage] = useState('french');
   const [tone, setTone] = useState('professional');
+  const [databaseType, setDatabaseType] = useState('');
+  const [features, setFeatures] = useState('');
+  const [architecture, setArchitecture] = useState('');
+  const [deployment, setDeployment] = useState('');
   const [isEnhancing, setIsEnhancing] = useState(false);
 
   const enhancePrompt = async () => {
@@ -46,6 +50,10 @@ export const PromptEnhancer: React.FC<PromptEnhancerProps> = ({
           outputType,
           language,
           tone,
+          databaseType: databaseType.trim(),
+          features: features.trim(),
+          architecture: architecture.trim(),
+          deployment: deployment.trim(),
           provider: provider || { name: 'openai' },
           model: model || 'gpt-4',
           type: 'structured_prompt'
@@ -92,6 +100,10 @@ export const PromptEnhancer: React.FC<PromptEnhancerProps> = ({
     setOutputType('detailed');
     setLanguage('french');
     setTone('professional');
+    setDatabaseType('');
+    setFeatures('');
+    setArchitecture('');
+    setDeployment('');
     setIsOpen(false);
   };
 
@@ -220,6 +232,125 @@ export const PromptEnhancer: React.FC<PromptEnhancerProps> = ({
                       )}
                       disabled={isEnhancing}
                     />
+                  </div>
+                </div>
+                
+                {/* Technical Specifications */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <div className="i-ph:gear text-indigo-400 text-base"></div>
+                    <label className="text-sm font-medium text-bolt-elements-textPrimary">
+                      Spécifications techniques
+                      <span className="text-xs text-bolt-elements-textTertiary ml-1">(optionnel)</span>
+                    </label>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* Database Type */}
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-bolt-elements-textSecondary">
+                        Type de base de données
+                      </label>
+                      <select
+                        value={databaseType}
+                        onChange={(e) => setDatabaseType(e.target.value)}
+                        className={classNames(
+                          "w-full px-3 py-2 text-sm rounded-lg transition-all duration-200",
+                          "bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor/50",
+                          "focus:border-indigo-400/60 focus:ring-2 focus:ring-indigo-500/10",
+                          "hover:border-bolt-elements-borderColor/70",
+                          "text-bolt-elements-textPrimary focus:outline-none"
+                        )}
+                        disabled={isEnhancing}
+                      >
+                        <option value="">Sélectionner...</option>
+                        <option value="postgresql">🐘 PostgreSQL</option>
+                        <option value="mysql">🐬 MySQL</option>
+                        <option value="mongodb">🍃 MongoDB</option>
+                        <option value="sqlite">📦 SQLite</option>
+                        <option value="redis">🔴 Redis</option>
+                        <option value="firebase">🔥 Firebase</option>
+                        <option value="supabase">⚡ Supabase</option>
+                      </select>
+                    </div>
+                    
+                    {/* Architecture */}
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-bolt-elements-textSecondary">
+                        Architecture
+                      </label>
+                      <select
+                        value={architecture}
+                        onChange={(e) => setArchitecture(e.target.value)}
+                        className={classNames(
+                          "w-full px-3 py-2 text-sm rounded-lg transition-all duration-200",
+                          "bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor/50",
+                          "focus:border-indigo-400/60 focus:ring-2 focus:ring-indigo-500/10",
+                          "hover:border-bolt-elements-borderColor/70",
+                          "text-bolt-elements-textPrimary focus:outline-none"
+                        )}
+                        disabled={isEnhancing}
+                      >
+                        <option value="">Sélectionner...</option>
+                        <option value="monolithic">🏗️ Monolithique</option>
+                        <option value="microservices">🔧 Microservices</option>
+                        <option value="serverless">☁️ Serverless</option>
+                        <option value="jamstack">⚡ JAMstack</option>
+                        <option value="spa">📱 SPA</option>
+                        <option value="ssr">🖥️ SSR</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* Deployment */}
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-bolt-elements-textSecondary">
+                        Déploiement
+                      </label>
+                      <select
+                        value={deployment}
+                        onChange={(e) => setDeployment(e.target.value)}
+                        className={classNames(
+                          "w-full px-3 py-2 text-sm rounded-lg transition-all duration-200",
+                          "bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor/50",
+                          "focus:border-indigo-400/60 focus:ring-2 focus:ring-indigo-500/10",
+                          "hover:border-bolt-elements-borderColor/70",
+                          "text-bolt-elements-textPrimary focus:outline-none"
+                        )}
+                        disabled={isEnhancing}
+                      >
+                        <option value="">Sélectionner...</option>
+                        <option value="vercel">▲ Vercel</option>
+                        <option value="netlify">🌐 Netlify</option>
+                        <option value="aws">☁️ AWS</option>
+                        <option value="gcp">🌩️ Google Cloud</option>
+                        <option value="azure">🔷 Azure</option>
+                        <option value="docker">🐳 Docker</option>
+                        <option value="kubernetes">⚙️ Kubernetes</option>
+                      </select>
+                    </div>
+                    
+                    {/* Features */}
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-bolt-elements-textSecondary">
+                        Fonctionnalités clés
+                      </label>
+                      <textarea
+                        value={features}
+                        onChange={(e) => setFeatures(e.target.value)}
+                        placeholder="Ex: Auth, API REST, Real-time..."
+                        className={classNames(
+                          "w-full h-16 px-3 py-2 text-sm rounded-lg resize-none transition-all duration-200",
+                          "bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor/50",
+                          "focus:border-indigo-400/60 focus:ring-2 focus:ring-indigo-500/10",
+                          "text-bolt-elements-textPrimary placeholder-bolt-elements-textTertiary",
+                          "hover:border-bolt-elements-borderColor/70",
+                          "focus:outline-none"
+                        )}
+                        disabled={isEnhancing}
+                      />
+                    </div>
                   </div>
                 </div>
                 

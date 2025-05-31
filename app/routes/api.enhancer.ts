@@ -12,7 +12,7 @@ export async function action(args: ActionFunctionArgs) {
 const logger = createScopedLogger('api.enhancher');
 
 async function enhancerAction({ context, request }: ActionFunctionArgs) {
-  const { message, model, provider, description, type, context: userContext, complexity, outputType, language, tone } = await request.json<{
+  const { message, model, provider, description, type, context: userContext, complexity, outputType, language, tone, databaseType, features, architecture, deployment } = await request.json<{
     message?: string;
     description?: string;
     context?: string;
@@ -20,6 +20,10 @@ async function enhancerAction({ context, request }: ActionFunctionArgs) {
     outputType?: string;
     language?: string;
     tone?: string;
+    databaseType?: string;
+    features?: string;
+    architecture?: string;
+    deployment?: string;
     type?: 'enhance' | 'structured_prompt';
     model: string;
     provider: ProviderInfo;
@@ -55,6 +59,16 @@ async function enhancerAction({ context, request }: ActionFunctionArgs) {
     // Génération de prompt structuré à partir d'une description
     const contextSection = userContext ? `\n\n<additional_context>\n${userContext}\n</additional_context>` : '';
     
+    // Construction de la section spécifications techniques
+    const technicalSpecs = [];
+    if (databaseType) technicalSpecs.push(`Database: ${databaseType}`);
+    if (architecture) technicalSpecs.push(`Architecture: ${architecture}`);
+    if (deployment) technicalSpecs.push(`Deployment: ${deployment}`);
+    if (features) technicalSpecs.push(`Key Features: ${features}`);
+    
+    const technicalSection = technicalSpecs.length > 0 ? 
+      `\n\n<technical_specifications>\n${technicalSpecs.join('\n')}\n</technical_specifications>` : '';
+    
     userContent = `[Model: ${model}]\n\n[Provider: ${providerName}]\n\n` +
       stripIndents`
         You are a professional prompt engineer and software architect.
@@ -64,7 +78,7 @@ async function enhancerAction({ context, request }: ActionFunctionArgs) {
         
         <description>
         ${description}
-        </description>${contextSection}
+        </description>${contextSection}${technicalSection}
         
         <parameters>
         - Complexity Level: ${complexity || 'intermediate'}
@@ -87,6 +101,11 @@ async function enhancerAction({ context, request }: ActionFunctionArgs) {
         - Add relevant constraints and assumptions
         - Structure the prompt logically
         ${userContext ? '- Incorporate the additional context provided' : ''}
+        ${technicalSpecs.length > 0 ? '- Include technical specifications in your recommendations' : ''}
+        ${databaseType ? `- Consider ${databaseType} database specifics and best practices` : ''}
+        ${architecture ? `- Follow ${architecture} architectural patterns and principles` : ''}
+        ${deployment ? `- Include ${deployment} deployment considerations and optimizations` : ''}
+        ${features ? '- Address the specified key features and their implementation' : ''}
         
         IMPORTANT: Your response must ONLY contain the enhanced structured prompt text.
         Do not include any explanations, metadata, or wrapper tags.
