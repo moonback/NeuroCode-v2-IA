@@ -4,8 +4,48 @@ import { DEFAULT_MODEL, DEFAULT_PROVIDER, PROVIDER_LIST } from '~/utils/constant
 import { extractCurrentContext, extractPropertiesFromMessage, simplifyBoltActions } from './utils';
 import { createScopedLogger } from '~/utils/logger';
 import { LLMManager } from '~/lib/modules/llm/manager';
+import { createHash } from 'crypto';
 
 const logger = createScopedLogger('create-summary');
+
+// Cache pour stocker les résumés générés
+const summaryCache = new Map<string, {
+  summary: string;
+  timestamp: number;
+  messageHash: string;
+}>();
+
+// Durée de validité du cache en millisecondes (10 minutes)
+const CACHE_DURATION = 10 * 60 * 1000;
+
+// Nombre maximum de messages à traiter par lot pour la création du résumé
+const BATCH_SIZE = 50;
+
+// Fonction pour générer un hash des messages
+function generateMessagesHash(messages: Message[]): string {
+  const content = JSON.stringify(messages.map(m => ({ role: m.role, content: m.content })));
+  return createHash('md5').update(content).digest('hex');
+}
+
+// Fonction pour vérifier si le cache est valide
+function isCacheValid(cacheEntry: { timestamp: number; messageHash: string }, currentHash: string): boolean {
+  const now = Date.now();
+  return now - cacheEntry.timestamp < CACHE_DURATION && cacheEntry.messageHash === currentHash;
+}
+
+// Fonction pour extraire les informations clés d'un message
+function extractKeyInformation(message: Message): string {
+  const content = Array.isArray(message.content)
+    ? (message.content.find((item) => item.type === 'text')?.text as string) || ''
+    : message.content;
+
+  // Suppression des parties non essentielles
+  return content
+    .replace(/<div class=\\"__boltThought__\\">.*?<\/div>/s, '')
+    .replace(/<think>.*?<\/think>/s, '')
+    .replace(/```.*?```/gs, '[code]')
+    .trim();
+}
 
 export async function createSummary(props: {
   messages: Message[];
@@ -16,26 +56,31 @@ export async function createSummary(props: {
   contextOptimization?: boolean;
   onFinish?: (resp: GenerateTextResult<Record<string, CoreTool<any, any>>, never>) => void;
 }) {
-  const { messages, env: serverEnv, apiKeys, providerSettings, onFinish } = props;
+  const { messages, env: serverEnv, apiKeys, providerSettings, onFinish, promptId } = props;
+  
+  // Vérification du cache
+  const currentHash = generateMessagesHash(messages);
+  const cacheKey = promptId || 'default';
+  const cachedSummary = summaryCache.get(cacheKey);
+  
+  if (cachedSummary && isCacheValid(cachedSummary, currentHash)) {
+    logger.info('Using cached summary');
+    return cachedSummary.summary;
+  }
+
   let currentModel = DEFAULT_MODEL;
   let currentProvider = DEFAULT_PROVIDER.name;
+  
+  // Optimisation du traitement des messages
   const processedMessages = messages.map((message) => {
     if (message.role === 'user') {
       const { model, provider, content } = extractPropertiesFromMessage(message);
       currentModel = model;
       currentProvider = provider;
-
       return { ...message, content };
-    } else if (message.role == 'assistant') {
-      let content = message.content;
-
-      content = simplifyBoltActions(content);
-      content = content.replace(/<div class=\\"__boltThought__\\">.*?<\/div>/s, '');
-      content = content.replace(/<think>.*?<\/think>/s, '');
-
-      return { ...message, content };
+    } else if (message.role === 'assistant') {
+      return { ...message, content: extractKeyInformation(message) };
     }
-
     return message;
   });
 
@@ -80,28 +125,23 @@ you should also use this as historical message while providing the response to t
 ${summary.summary}`;
 
     if (chatId) {
-      let index = 0;
-
-      for (let i = 0; i < processedMessages.length; i++) {
-        if (processedMessages[i].id === chatId) {
-          index = i;
-          break;
-        }
+      const index = processedMessages.findIndex(m => m.id === chatId);
+      if (index !== -1) {
+        slicedMessages = processedMessages.slice(index + 1);
       }
-      slicedMessages = processedMessages.slice(index + 1);
     }
   }
 
-  logger.debug('Sliced Messages:', slicedMessages.length);
+  // Traitement par lots pour les conversations longues
+  const batches = [];
+  for (let i = 0; i < slicedMessages.length; i += BATCH_SIZE) {
+    batches.push(slicedMessages.slice(i, i + BATCH_SIZE));
+  }
 
-  const extractTextContent = (message: Message) =>
-    Array.isArray(message.content)
-      ? (message.content.find((item) => item.type === 'text')?.text as string) || ''
-      : message.content;
-
-  // select files from the list of code file from the project that might be useful for the current request from the user
-  const resp = await generateText({
-    system: `
+  let batchSummaries = [];
+  for (const batch of batches) {
+    const batchSummary = await generateText({
+      system: `
         You are a software engineer. You are working on a project. you need to summarize the work till now and provide a summary of the chat till now.
 
         Please only use the following format to generate the summary:
@@ -149,18 +189,9 @@ ${summary.summary}`;
 ---
 Note:
 4. Keep entries concise and focused on information needed for continuity
-
-
 ---
-        
-        RULES:
-        * Only provide the whole summary of the chat till now.
-        * Do not provide any new information.
-        * DO not need to think too much just start writing imidiately
-        * do not write any thing other that the summary with with the provided structure
         `,
-    prompt: `
-
+      prompt: `
 Here is the previous summary of the chat:
 <old_summary>
 ${summaryText} 
@@ -169,29 +200,49 @@ ${summaryText}
 Below is the chat after that:
 ---
 <new_chats>
-${slicedMessages
-  .map((x) => {
-    return `---\n[${x.role}] ${extractTextContent(x)}\n---`;
-  })
+${batch
+  .map((x) => `---\n[${x.role}] ${extractKeyInformation(x)}\n---`)
   .join('\n')}
 </new_chats>
 ---
 
-Please provide a summary of the chat till now including the hitorical summary of the chat.
+Please provide a summary of the chat till now including the historical summary of the chat.
 `,
-    model: provider.getModelInstance({
-      model: currentModel,
-      serverEnv,
-      apiKeys,
-      providerSettings,
-    }),
-  });
-
-  const response = resp.text;
-
-  if (onFinish) {
-    onFinish(resp);
+      model: provider.getModelInstance({
+        model: currentModel,
+        serverEnv,
+        apiKeys,
+        providerSettings,
+      }),
+    });
+    
+    batchSummaries.push(batchSummary.text);
   }
 
-  return response;
+  // Fusion des résumés de lots
+  const finalSummary = batchSummaries.length > 1 
+    ? await generateText({
+        system: "You are a software engineer tasked with merging multiple summaries into a single coherent summary.",
+        prompt: `Merge these summaries into a single summary:\n\n${batchSummaries.join('\n\n')}`,
+        model: provider.getModelInstance({
+          model: currentModel,
+          serverEnv,
+          apiKeys,
+          providerSettings,
+        }),
+      })
+    : { text: batchSummaries[0] };
+
+  // Mise en cache du résumé
+  summaryCache.set(cacheKey, {
+    summary: finalSummary.text,
+    timestamp: Date.now(),
+    messageHash: currentHash
+  });
+
+  if (onFinish) {
+    onFinish(finalSummary as GenerateTextResult<Record<string, CoreTool<any, any>>, never>);
+  }
+
+  return finalSummary.text;
 }

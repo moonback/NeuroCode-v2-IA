@@ -6,11 +6,56 @@ import { DEFAULT_MODEL, DEFAULT_PROVIDER, PROVIDER_LIST } from '~/utils/constant
 import { createFilesContext, extractCurrentContext, extractPropertiesFromMessage, simplifyBoltActions } from './utils';
 import { createScopedLogger } from '~/utils/logger';
 import { LLMManager } from '~/lib/modules/llm/manager';
+import { createHash } from 'crypto';
 
 // Common patterns to ignore, similar to .gitignore
 
 const ig = ignore().add(IGNORE_PATTERNS);
 const logger = createScopedLogger('select-context');
+
+// Cache pour stocker les contextes générés
+const contextCache = new Map<string, {
+  context: FileMap;
+  timestamp: number;
+  hash: string;
+}>();
+
+// Durée de validité du cache en millisecondes (5 minutes)
+const CACHE_DURATION = 5 * 60 * 1000;
+
+// Fonction pour générer un hash des fichiers
+function generateFilesHash(files: FileMap): string {
+  const content = JSON.stringify(files);
+  return createHash('md5').update(content).digest('hex');
+}
+
+// Fonction pour vérifier si le contexte en cache est toujours valide
+function isCacheValid(cacheEntry: { timestamp: number; hash: string }, currentHash: string): boolean {
+  const now = Date.now();
+  return now - cacheEntry.timestamp < CACHE_DURATION && cacheEntry.hash === currentHash;
+}
+
+// Fonction pour calculer la pertinence d'un fichier
+function calculateFileRelevance(filePath: string, userQuery: string, existingContext: string[]): number {
+  let score = 0;
+  
+  // Bonus pour les fichiers déjà dans le contexte
+  if (existingContext.includes(filePath)) {
+    score += 5;
+  }
+  
+  // Bonus pour les fichiers dont le nom correspond à des mots de la requête
+  const queryWords = userQuery.toLowerCase().split(/\W+/);
+  const fileWords = filePath.toLowerCase().split(/\W+/);
+  
+  queryWords.forEach(word => {
+    if (fileWords.some(fileWord => fileWord.includes(word))) {
+      score += 3;
+    }
+  });
+  
+  return score;
+}
 
 export async function selectContext(props: {
   messages: Message[];
@@ -117,6 +162,17 @@ export async function selectContext(props: {
   if (!lastUserMessage) {
     throw new Error('No user message found');
   }
+
+  // Optimisation de la sélection des fichiers
+  const userQuery = extractTextContent(lastUserMessage);
+  const sortedFiles = filePaths
+    .map(path => ({
+      path,
+      relevance: calculateFileRelevance(path, userQuery, currrentFiles)
+    }))
+    .sort((a, b) => b.relevance - a.relevance)
+    .slice(0, 5) // Limite à 5 fichiers les plus pertinents
+    .map(item => item.path);
 
   // select files from the list of code file from the project that might be useful for the current request from the user
   const resp = await generateText({
@@ -227,6 +283,14 @@ export async function selectContext(props: {
   if (totalFiles == 0) {
     throw new Error(`Bolt failed to select files`);
   }
+
+  // Mise en cache du nouveau contexte
+  const cacheKey = props.promptId || 'default';
+  contextCache.set(cacheKey, {
+    context: filteredFiles,
+    timestamp: Date.now(),
+    hash: generateFilesHash(files)
+  });
 
   return filteredFiles;
 
