@@ -10,7 +10,7 @@ import { Dropdown, DropdownItem } from '~/components/ui/Dropdown';
 import { useSettings } from '~/lib/hooks/useSettings';
 import { PromptLibrary } from '~/lib/common/prompt-library';
 import { toast } from 'react-toastify';
-
+import type { ProviderInfo } from '~/types/model';
 interface AssistantMessageProps {
   content: string;
   annotations?: JSONValue[];
@@ -20,7 +20,8 @@ interface AssistantMessageProps {
   append?: (message: Message) => void;
   chatMode?: 'discuss' | 'build';
   setChatMode?: (mode: 'discuss' | 'build') => void;
-  isStreaming?: boolean;
+  model?: string;
+  provider?: ProviderInfo;
 }
 
 function openArtifactInWorkbench(filePath: string) {
@@ -93,7 +94,8 @@ export const AssistantMessage = memo(
     append,
     chatMode,
     setChatMode,
-    isStreaming,
+    model,
+    provider,
   }: AssistantMessageProps) => {
     const filteredAnnotations = (annotations?.filter(
       (annotation: JSONValue) =>
@@ -192,7 +194,7 @@ export const AssistantMessage = memo(
             </div>
           </div>
         </>
-        <Markdown append={append} chatMode={chatMode} setChatMode={setChatMode} isStreaming={isStreaming} html>
+        <Markdown append={append} chatMode={chatMode} setChatMode={setChatMode} model={model} provider={provider} html>
           {content}
         </Markdown>
         <PromptSelector />

@@ -1,44 +1,31 @@
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState } from 'react';
 import { classNames } from '~/utils/classNames';
 import { motion } from 'framer-motion';
 import { FileIcon } from './FileIcon';
 import { Tooltip } from './Tooltip';
-import { bundledLanguages, codeToHtml, isSpecialLang, type BundledLanguage, type SpecialLanguage } from 'shiki';
-import { createScopedLogger } from '~/utils/logger';
-
-import styles from './CodeBlock.module.scss';
-
-const logger = createScopedLogger('CodeBlock');
 
 interface CodeBlockProps {
   code: string;
-  language?: string | BundledLanguage | SpecialLanguage;
+  language?: string;
   filename?: string;
   showLineNumbers?: boolean;
   highlightLines?: number[];
   maxHeight?: string;
   className?: string;
   onCopy?: () => void;
-  theme?: 'light-plus' | 'dark-plus';
-  useShiki?: boolean;
-  disableCopy?: boolean;
 }
 
-const UnmemoizedCodeBlock = ({
+export function CodeBlock({
   code,
-  language = 'plaintext',
+  language,
   filename,
   showLineNumbers = true,
   highlightLines = [],
   maxHeight = '400px',
   className,
   onCopy,
-  theme = 'dark-plus',
-  useShiki = false,
-  disableCopy = false,
-}: CodeBlockProps) => {
+}: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
-  const [html, setHTML] = useState<string | undefined>(undefined);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(code);
@@ -49,61 +36,6 @@ const UnmemoizedCodeBlock = ({
 
   const lines = code.split('\n');
 
-  // Shiki syntax highlighting
-  useEffect(() => {
-    if (!useShiki) return;
-
-    let effectiveLanguage = language as BundledLanguage | SpecialLanguage;
-
-    if (language && !isSpecialLang(effectiveLanguage) && !(effectiveLanguage in bundledLanguages)) {
-      logger.warn(`Unsupported language '${language}', falling back to plaintext`);
-      effectiveLanguage = 'plaintext';
-    }
-
-    logger.trace(`Language = ${effectiveLanguage}`);
-
-    const processCode = async () => {
-      setHTML(await codeToHtml(code, { lang: effectiveLanguage, theme }));
-    };
-
-    processCode();
-  }, [code, language, theme, useShiki]);
-
-  // Render based on whether we're using Shiki or not
-  if (useShiki && html) {
-    return (
-      <div className={classNames('relative group text-left', className)}>
-        <div
-          className={classNames(
-            styles.CopyButtonContainer,
-            'bg-transparant absolute top-[10px] right-[10px] rounded-md z-10 text-lg flex items-center justify-center opacity-0 group-hover:opacity-100',
-            {
-              'rounded-l-0 opacity-100': copied,
-            },
-          )}
-        >
-          {!disableCopy && (
-            <button
-              className={classNames(
-                'flex items-center bg-accent-500 p-[6px] justify-center before:bg-white before:rounded-l-md before:text-gray-500 before:border-r before:border-gray-300 rounded-md transition-theme',
-                {
-                  'before:opacity-0': !copied,
-                  'before:opacity-100': copied,
-                },
-              )}
-              title="Copy Code"
-              onClick={handleCopy}
-            >
-              <div className="i-ph:clipboard-text-duotone"></div>
-            </button>
-          )}
-        </div>
-        <div dangerouslySetInnerHTML={{ __html: html ?? '' }}></div>
-      </div>
-    );
-  }
-
-  // Standard rendering with line numbers
   return (
     <div
       className={classNames(
@@ -125,22 +57,20 @@ const UnmemoizedCodeBlock = ({
           )}
           {language && !filename && (
             <span className="text-xs font-medium text-bolt-elements-textSecondary dark:text-bolt-elements-textSecondary-dark uppercase">
-              {typeof language === 'string' ? language : String(language)}
+              {language}
             </span>
           )}
         </div>
-        {!disableCopy && (
-          <Tooltip content={copied ? 'Copied!' : 'Copy code'}>
-            <motion.button
-              onClick={handleCopy}
-              className="p-1.5 rounded-md text-bolt-elements-textTertiary hover:text-bolt-elements-textSecondary dark:text-bolt-elements-textTertiary-dark dark:hover:text-bolt-elements-textSecondary-dark hover:bg-bolt-elements-background-depth-2 dark:hover:bg-bolt-elements-background-depth-3 transition-colors"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              {copied ? <span className="i-ph:check w-4 h-4 text-green-500" /> : <span className="i-ph:copy w-4 h-4" />}
-            </motion.button>
-          </Tooltip>
-        )}
+        <Tooltip content={copied ? 'Copied!' : 'Copy code'}>
+          <motion.button
+            onClick={handleCopy}
+            className="p-1.5 rounded-md text-bolt-elements-textTertiary hover:text-bolt-elements-textSecondary dark:text-bolt-elements-textTertiary-dark dark:hover:text-bolt-elements-textSecondary-dark hover:bg-bolt-elements-background-depth-2 dark:hover:bg-bolt-elements-background-depth-3 transition-colors"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            {copied ? <span className="i-ph:check w-4 h-4 text-green-500" /> : <span className="i-ph:copy w-4 h-4" />}
+          </motion.button>
+        </Tooltip>
       </div>
 
       {/* Code content */}
@@ -170,7 +100,4 @@ const UnmemoizedCodeBlock = ({
       </div>
     </div>
   );
-};
-
-// Export both memoized and unmemoized versions
-export const CodeBlock = memo(UnmemoizedCodeBlock);
+}

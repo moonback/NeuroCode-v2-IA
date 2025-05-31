@@ -4,10 +4,11 @@ import type { BundledLanguage } from 'shiki';
 import { createScopedLogger } from '~/utils/logger';
 import { rehypePlugins, remarkPlugins, allowedHTMLElements } from '~/utils/markdown';
 import { Artifact, openArtifactInWorkbench } from './Artifact';
-import { CodeBlock } from '~/components/ui/CodeBlock';
+import { CodeBlock } from './CodeBlock';
 import type { Message } from 'ai';
 import styles from './Markdown.module.scss';
 import ThoughtBox from './ThoughtBox';
+import type { ProviderInfo } from '~/types/model';
 
 const logger = createScopedLogger('MarkdownComponent');
 
@@ -18,11 +19,12 @@ interface MarkdownProps {
   append?: (message: Message) => void;
   chatMode?: 'discuss' | 'build';
   setChatMode?: (mode: 'discuss' | 'build') => void;
-  isStreaming?: boolean;
+  model?: string;
+  provider?: ProviderInfo;
 }
 
 export const Markdown = memo(
-  ({ children, html = false, limitedMarkdown = false, append, setChatMode, isStreaming }: MarkdownProps) => {
+  ({ children, html = false, limitedMarkdown = false, append, setChatMode, model, provider }: MarkdownProps) => {
     logger.trace('Render');
 
     const components = useMemo(() => {
@@ -45,7 +47,7 @@ export const Markdown = memo(
           }
 
           if (className?.includes('__boltQuickAction__') || dataProps?.dataBoltQuickAction) {
-            return <div className="flex items-center gap-2 flex-wrap mt-3.5 cursor-pointer">{children}</div>;
+            return <div className="flex items-center gap-2 flex-wrap mt-3.5">{children}</div>;
           }
 
           return (
@@ -68,8 +70,7 @@ export const Markdown = memo(
             const { className, ...rest } = firstChild.properties;
             const [, language = 'plaintext'] = /language-(\w+)/.exec(String(className) || '') ?? [];
 
-            return <CodeBlock code={firstChild.children[0].value} language={language as BundledLanguage} useShiki={true} {...rest} />;
-
+            return <CodeBlock code={firstChild.children[0].value} language={language as BundledLanguage} {...rest} />;
           }
 
           return <pre {...rest}>{children}</pre>;
@@ -103,23 +104,32 @@ export const Markdown = memo(
                 data-message={message}
                 data-path={path}
                 data-href={href}
-                disabled={isStreaming}
                 onClick={() => {
                   if (type === 'file') {
                     openArtifactInWorkbench(path);
                   } else if (type === 'message' && append) {
                     append({
-                      id: 'random-message', // Replace with your ID generation logic
-                      content: message as string, // The message content from the action
-                      role: 'user', // Or another role as appropriate
+                      id: `quick-action-message-${Date.now()}`,
+                      content: [
+                        {
+                          type: 'text',
+                          text: `[Model: ${model}]\n\n[Provider: ${provider?.name}]\n\n${message}`,
+                        },
+                      ] as any,
+                      role: 'user',
                     });
-                    console.log('Message appended:', message); // Log the appended message
+                    console.log('Message appended:', message);
                   } else if (type === 'implement' && append && setChatMode) {
                     setChatMode('build');
                     append({
-                      id: 'implement-message', // Replace with your ID generation logic
-                      content: message as string, // The message content from the action
-                      role: 'user', // Or another role as appropriate
+                      id: `quick-action-implement-${Date.now()}`,
+                      content: [
+                        {
+                          type: 'text',
+                          text: `[Model: ${model}]\n\n[Provider: ${provider?.name}]\n\n${message}`,
+                        },
+                      ] as any,
+                      role: 'user',
                     });
                   } else if (type === 'link' && typeof href === 'string') {
                     try {
@@ -139,31 +149,8 @@ export const Markdown = memo(
 
           return <button {...props}>{children}</button>;
         },
-        a: ({ node, href, children, ...props }) => {
-          // Gestion spéciale pour les liens de fichiers
-          if (href?.startsWith('/') || href?.match(/^[a-zA-Z]:\\/) || href?.startsWith('file://')) {
-            return (
-              <a
-                {...props}
-                href="#"
-                className="text-bolt-elements-item-contentAccent hover:underline cursor-pointer"
-                onClick={(e) => {
-                  e.preventDefault();
-                  const filePath = href.startsWith('file://') 
-                    ? decodeURIComponent(href.slice(7)) 
-                    : href;
-                  openArtifactInWorkbench(filePath);
-                }}
-              >
-                {children}
-              </a>
-            );
-          }
-          
-          return <a href={href} {...props}>{children}</a>;
-        },
       } satisfies Components;
-    }, [append, setChatMode, isStreaming]);
+    }, []);
 
     return (
       <ReactMarkdown
