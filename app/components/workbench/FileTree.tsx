@@ -482,6 +482,34 @@ function FileContextMenu({
     }
   };
 
+  // Handler for targeting a file for AI modification
+  const handleTargetForAI = () => {
+    try {
+      if (isFolder) {
+        return;
+      }
+
+      const isAlreadyTargeted = workbenchStore.isAITargetFile(fullPath);
+      
+      if (isAlreadyTargeted) {
+        // Remove from targets if already targeted
+        workbenchStore.removeAITargetFile(fullPath);
+        toast.success(`File "${fileName}" removed from AI targets`, {
+          icon: <div className="i-ph:target text-red-500" />,
+        });
+      } else {
+        // Add to targets
+        workbenchStore.addAITargetFile(fullPath);
+        toast.success(`File "${fileName}" added to AI targets`, {
+          icon: <div className="i-ph:target text-blue-500" />,
+        });
+      }
+    } catch (error) {
+      toast.error(`Error targeting file for AI`);
+      logger.error(error);
+    }
+  };
+
   return (
     <>
       <ContextMenu.Root>
@@ -521,6 +549,20 @@ function FileContextMenu({
               <ContextMenuItem onSelect={onCopyPath}>Copy path</ContextMenuItem>
               <ContextMenuItem onSelect={onCopyRelativePath}>Copy relative path</ContextMenuItem>
             </ContextMenu.Group>
+            {/* Add AI targeting option for files */}
+            {!isFolder && (
+              <ContextMenu.Group className="p-1 border-t-px border-solid border-bolt-elements-borderColor">
+                <ContextMenuItem onSelect={handleTargetForAI}>
+                  <div className="flex items-center gap-2">
+                    <div className={classNames('i-ph:target', {
+                      'text-blue-500': workbenchStore.isAITargetFile(fullPath),
+                      'text-gray-500': !workbenchStore.isAITargetFile(fullPath)
+                    })} />
+                    {workbenchStore.isAITargetFile(fullPath) ? 'Retirer fichier cibler' : 'Cibler le fichier'}
+                  </div>
+                </ContextMenuItem>
+              </ContextMenu.Group>
+            )}
             {/* Add lock/unlock options for files and folders */}
             <ContextMenu.Group className="p-1 border-t-px border-solid border-bolt-elements-borderColor">
               {!isFolder ? (
@@ -643,6 +685,9 @@ function File({
 
   // Check if the file is locked
   const { locked } = workbenchStore.isFileLocked(fullPath);
+  
+  // Check if this file is targeted for AI
+  const isAITarget = workbenchStore.isAITargetFile(fullPath);
 
   const fileModifications = fileHistory[fullPath];
 
@@ -709,6 +754,12 @@ function File({
                 {additions > 0 && <span className="text-green-500">+{additions}</span>}
                 {deletions > 0 && <span className="text-red-500">-{deletions}</span>}
               </div>
+            )}
+            {isAITarget && (
+              <span
+                className={classNames('shrink-0', 'i-ph:target scale-80 text-blue-500')}
+                title={'AI Target File'}
+              />
             )}
             {locked && (
               <span

@@ -17,9 +17,12 @@ import GitCloneButton from './GitCloneButton';
 import { SupabaseConnection } from './SupabaseConnection';
 import { ExpoQrModal } from '~/components/workbench/ExpoQrModal';
 import { UIImageAnalyzer } from './UIImageAnalyzer';
+import { motion } from 'framer-motion';
 import styles from './BaseChat.module.scss';
 import type { ProviderInfo } from '~/types/model';
 import type { Message } from 'ai';
+import { workbenchStore } from '~/lib/stores/workbench';
+import { useStore } from '@nanostores/react';
 
 interface ChatBoxProps {
   isModelSettingsCollapsed: boolean;
@@ -64,6 +67,10 @@ interface ChatBoxProps {
 }
 
 export const ChatBox: React.FC<ChatBoxProps> = (props) => {
+  const aiTargetFiles = useStore(workbenchStore.aiTargetFiles);
+  const aiContext = useStore(workbenchStore.aiContext);
+  const files = useStore(workbenchStore.files);
+
   return (
     <div
       className={classNames(
@@ -224,23 +231,85 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
           translate="no"
         />
         <ClientOnly>
-          {() => (
-            <SendButton
-              show={props.input.length > 0 || props.isStreaming || props.uploadedFiles.length > 0}
-              isStreaming={props.isStreaming}
-              disabled={!props.providerList || props.providerList.length === 0}
-              onClick={(event) => {
-                if (props.isStreaming) {
-                  props.handleStop?.();
-                  return;
-                }
+          {() => {
+            // Si des fichiers sont ciblés, afficher le bouton "Send to AI"
+            if (aiTargetFiles.size > 0) {
+              return (
+                <motion.button
+                  title={`Envoyer ${aiTargetFiles.size} fichier(s) ciblé(s) à l'IA`}
+                  className="absolute flex justify-center items-center top-[18px] right-[22px] bg-blue-500 hover:bg-blue-600 color-white rounded-md w-[34px] h-[34px] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ ease: [0.4, 0, 0.2, 1], duration: 0.17 }}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    const targetedFiles = Array.from(aiTargetFiles);
+                    let message = '';
+                    
+                    // Ajouter le contenu du textarea s'il y en a un
+                    if (props.input.trim()) {
+                      message += `${props.input.trim()}\n\n`;
+                    }
+                    
+                    if (aiContext.trim()) {
+                      message += `Context: ${aiContext}\n\n`;
+                    }
+                    
+                    message += `Please help me with the following ${targetedFiles.length} file(s):\n\n`;
+                    
+                    targetedFiles.forEach((filePath, index) => {
+                      const fileName = filePath.split('/').pop() || 'file';
+                      const fileContent = typeof files[filePath] === 'object' && 'content' in files[filePath] ? files[filePath].content : '';
+                      message += `**File ${index + 1}: ${fileName}**\n\`\`\`\n${fileContent}\n\`\`\`\n\n`;
+                    });
+                    
+                    props.handleSendMessage?.({} as React.UIEvent, message);
+                    toast.success(`${targetedFiles.length} fichier(s) envoyé(s) au chat pour assistance IA`);
+                    
+                    // Vider le textarea après l'envoi
+                    if (props.textareaRef?.current) {
+                      props.textareaRef.current.value = '';
+                      props.textareaRef.current.style.height = `${props.TEXTAREA_MIN_HEIGHT}px`;
+                    }
+                    
+                    // Nettoyer automatiquement les targets et le contexte après l'envoi
+                    setTimeout(() => {
+                      workbenchStore.clearAITargetFiles();
+                      workbenchStore.setAIContext('');
+                      toast.info('Fichiers ciblés et contexte effacés automatiquement');
+                    }, 500);
+                  }}
+                >
+                  <div className="flex items-center justify-center">
+                    <div className="i-ph:robot-duotone text-lg"></div>
+                    <span className="absolute -top-1 -right-1 bg-white text-blue-500 text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                      {String(aiTargetFiles.size)}
+                    </span>
+                  </div>
+                </motion.button>
+              );
+            }
+            
+            // Sinon, afficher le bouton d'envoi normal
+            return (
+              <SendButton
+                show={props.input.length > 0 || props.isStreaming || props.uploadedFiles.length > 0}
+                isStreaming={props.isStreaming}
+                disabled={!props.providerList || props.providerList.length === 0}
+                onClick={(event) => {
+                  if (props.isStreaming) {
+                    props.handleStop?.();
+                    return;
+                  }
 
-                if (props.input.length > 0 || props.uploadedFiles.length > 0) {
-                  props.handleSendMessage?.(event);
-                }
-              }}
-            />
-          )}
+                  if (props.input.length > 0 || props.uploadedFiles.length > 0) {
+                    props.handleSendMessage?.(event);
+                  }
+                }}
+              />
+            );
+          }}
         </ClientOnly>
         <div className="flex justify-between items-center text-sm p-4 pt-2">
           <div className="flex gap-3 items-center">
@@ -277,6 +346,7 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
                   <div className="i-bolt:stars text-xl"></div>
                 )}
               </IconButton>
+
             </div>
 
             {/* Séparateur visuel */}
