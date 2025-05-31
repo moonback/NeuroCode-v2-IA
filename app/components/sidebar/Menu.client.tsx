@@ -101,8 +101,8 @@ function ConnectionStatus() {
       name: 'Netlify', 
       connected: !!netlifyConn.user, 
       icon: 'i-ph-globe', 
-      color: 'from-blue-400 to-blue-600',
-      bgColor: 'bg-blue-500',
+      color: 'from-violet-400 to-violet-600',
+      bgColor: 'bg-violet-500',
       user: netlifyConn.user?.full_name || netlifyConn.user?.email || null
     },
     { 
@@ -213,7 +213,7 @@ function CurrentDateTime() {
   return (
     <div className="flex items-center justify-between px-4 py-2 text-xs bg-gray-50/60 dark:bg-gray-800/40 border-b border-gray-200/40 dark:border-gray-700/30">
       <div className="flex items-center gap-2">
-        <div className="w-4 h-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded flex items-center justify-center">
+        <div className="w-4 h-4 bg-gradient-to-br from-violet-500 to-purple-600 rounded flex items-center justify-center">
           <div className="i-ph:clock text-white text-xs" />
         </div>
         <span className="font-medium text-gray-800 dark:text-gray-200">{dateTime.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
@@ -509,7 +509,7 @@ export const Menu = () => {
               {profile?.username || 'Invité'}
             </span>
             <div className="relative">
-              <div className="flex items-center justify-center w-7 h-7 overflow-hidden bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-800/40 dark:to-blue-800/40 text-purple-600 dark:text-purple-300 rounded-lg shrink-0 border border-purple-200/40 dark:border-purple-600/30">
+              <div className="flex items-center justify-center w-7 h-7 overflow-hidden bg-gradient-to-br from-purple-100 to-violet-100 dark:from-purple-800/40 dark:to-violet-800/40 text-purple-600 dark:text-purple-300 rounded-lg shrink-0 border border-purple-200/40 dark:border-purple-600/30">
                 {profile?.avatar ? (
                   <img
                     src={profile.avatar}
@@ -532,7 +532,7 @@ export const Menu = () => {
           <div className="p-4 space-y-3">
             <a
               href="/"
-              className="flex gap-2 items-center bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg px-3 py-2.5 transition-all duration-200 group"
+              className="flex gap-2 items-center bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white rounded-lg px-3 py-2.5 transition-all duration-200 group"
             >
               <div className="w-5 h-5 bg-white/20 rounded flex items-center justify-center group-hover:bg-white/30 transition-all duration-200">
                 <span className="i-ph:plus h-3 w-3" />
@@ -583,7 +583,7 @@ export const Menu = () => {
           </div>
           <div className="flex items-center justify-between text-sm px-4 py-2.5 bg-gray-50/60 dark:bg-gray-800/40 border-b border-gray-200/40 dark:border-gray-700/30">
             <div className="font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
-              <div className="w-4 h-4 bg-gradient-to-br from-purple-600 to-blue-600 rounded flex items-center justify-center">
+              <div className="w-4 h-4 bg-gradient-to-br from-purple-600 to-violet-600 rounded flex items-center justify-center">
                 <div className="i-ph:chat text-white text-xs" />
               </div>
               <span className="text-sm">Conversations</span>
@@ -616,7 +616,7 @@ export const Menu = () => {
           <div className="flex-1 overflow-auto px-3 pb-3">
             {filteredList.length === 0 && (
               <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 rounded-lg flex items-center justify-center mb-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-violet-100 dark:from-purple-900/30 dark:to-violet-900/30 rounded-lg flex items-center justify-center mb-3">
                   <div className="i-ph:chat-circle text-purple-600 dark:text-purple-400 text-xl" />
                 </div>
                 <h3 className="font-medium text-gray-800 dark:text-gray-200 mb-1 text-sm">
@@ -738,15 +738,15 @@ export const Menu = () => {
 
           {/* Conditionally render SidebarTemplates based on showTemplates state */}
             {showTemplates && <SidebarTemplates />}
-            <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-800 px-4 py-4 bg-gradient-to-r from-gray-50/30 to-blue-50/30 dark:from-gray-900/30 dark:to-blue-900/30">
+            <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-800 px-4 py-4 bg-gradient-to-r from-gray-50/30 to-violet-50/30 dark:from-gray-900/30 dark:to-violet-900/30">
             <button
               onClick={handleSettingsClick}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 hover:from-purple-100 hover:to-blue-100 dark:hover:from-purple-900/50 dark:hover:to-blue-900/50 text-gray-700 dark:text-gray-300 hover:text-purple-700 dark:hover:text-purple-300 transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 hover:shadow-md hover:scale-105 group"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 hover:from-purple-100 hover:to-violet-100 dark:hover:from-purple-900/50 dark:hover:to-violet-900/50 text-gray-700 dark:text-gray-300 hover:text-purple-700 dark:hover:text-purple-300 transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 hover:shadow-md hover:scale-105 group"
             >
               <span className="i-ph:gear h-4 w-4 group-hover:rotate-90 transition-transform duration-300" />
               <span className="text-sm font-medium">Paramètres</span>
             </button>
-            <ThemeSwitch className="p-2 rounded-xl bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 hover:from-purple-100 hover:to-blue-100 dark:hover:from-purple-900/50 dark:hover:to-blue-900/50 border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 transition-all duration-300 hover:shadow-md hover:scale-105" />
+            <ThemeSwitch className="p-2 rounded-xl bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 hover:from-purple-100 hover:to-violet-100 dark:hover:from-purple-900/50 dark:hover:to-violet-900/50 border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 transition-all duration-300 hover:shadow-md hover:scale-105" />
           </div>
         </div>
       </motion.div>
