@@ -14,7 +14,7 @@ export const TAB_ICONS: Record<TabType, string> = {
   'event-logs': 'i-ph:list-bullets',
   update: 'i-ph:arrow-clockwise',
   'task-manager': 'i-ph:chart-line',
-  'tab-management': 'i-ph:squares-four',
+  'tab-management': 'i-ph:sliders-horizontal',
   'custom-prompts': 'i-ph:chat-text',
 };
 
