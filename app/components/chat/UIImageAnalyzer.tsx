@@ -6,8 +6,6 @@ import { Dialog, DialogRoot, DialogTitle, DialogClose } from '~/components/ui/Di
 import { IconButton } from '~/components/ui/IconButton';
 import type { Message } from 'ai';
 import styles from './UIImageAnalyzer.module.scss';
-import { PROMPT_TEMPLATES } from './prompts/templates';
-import { generateFormattedPrompt, enrichPromptWithContext, validatePrompt } from './prompts/utils';
 
 interface UIImageAnalyzerProps {
   onAnalysisComplete?: (analysisType: string, imageData: string, prompt: string) => void;
@@ -31,25 +29,132 @@ interface AnalysisOption {
 }
 
 const ANALYSIS_OPTIONS: AnalysisOption[] = [
-  {
-    id: 'reproduce',
-    title: 'Reproduire le code',
-    description: 'Génère le code pour reproduire cette interface avec précision',
-    icon: 'i-ph:code',
-    gradient: 'from-bolt-elements-item-backgroundAccent to-bolt-elements-background-depth-3',
-    color: 'text-bolt-elements-item-contentAccent',
-    prompt: generateFormattedPrompt(PROMPT_TEMPLATES.reproduce)
-  },
-  {
-    id: 'explain',
-    title: 'Expliquer le design',
-    description: 'Analyse détaillée des choix de design et des principes UX appliqués',
-    icon: 'i-ph:lightbulb',
-    gradient: 'from-bolt-elements-item-backgroundAccent to-bolt-elements-background-depth-2',
-    color: 'text-bolt-elements-item-contentAccent',
-    prompt: generateFormattedPrompt(PROMPT_TEMPLATES.explain)
-  }
-];
+    {
+      id: 'reproduce',
+      title: 'Reproduire le code',
+      description: 'Génère le code pour reproduire cette interface avec précision',
+      icon: 'i-ph:code',
+      gradient: 'from-bolt-elements-item-backgroundAccent to-bolt-elements-background-depth-3',
+      color: 'text-bolt-elements-item-contentAccent',
+      prompt: `Analyse cette interface utilisateur et génère une application React + Vite complète qui la reproduit fidèlement.
+  
+  **Instructions spécifiques :**
+  - Reproduis exactement la mise en page, les couleurs, les espacements et les interactions
+  - Utilise TypeScript pour un code robuste
+  - Implémente tous les composants avec une architecture modulaire
+  - Inclus la gestion d'état (useState, useContext si nécessaire)
+  - Ajoute les animations et transitions visibles dans l'interface
+  - Utilise CSS Modules ou Styled Components pour le styling
+  - Assure-toi que l'interface est responsive (mobile, tablet, desktop)
+  - Inclus la gestion des erreurs et des états de chargement
+  - Fournis un fichier README avec les instructions d'installation et de lancement
+  - Respecte les bonnes pratiques React (hooks, performance, accessibilité)
+  
+  **Livrables attendus :**
+  1. Structure complète du projet avec tous les fichiers
+  2. Code source commenté et organisé
+  3. Configuration Vite optimisée
+  4. Instructions de déploiement
+  5. Liste des dépendances avec versions spécifiques`
+    },
+  //   {
+  //     id: 'improve',
+  //     title: 'Améliorer l\'UI',
+  //     description: 'Propose des améliorations concrètes de design et d\'expérience utilisateur',
+  //     icon: 'i-ph:magic-wand',
+  //     gradient: 'from-bolt-elements-item-backgroundAccent to-bolt-elements-background-depth-2',
+  //     color: 'text-bolt-elements-item-contentAccent',
+  //     prompt: `Effectue une analyse UX/UI approfondie de cette interface et propose des améliorations concrètes.
+  
+  // **Axes d'analyse :**
+  
+  // **1. Accessibilité (WCAG 2.1)**
+  // - Contraste des couleurs (AA/AAA)
+  // - Navigation clavier et lecteurs d'écran
+  // - Taille des zones cliquables (minimum 44px)
+  // - Alt text et ARIA labels
+  // - Focus management
+  
+  // **2. Ergonomie et Usabilité**
+  // - Parcours utilisateur et friction points
+  // - Charge cognitive et simplicité
+  // - Consistance des patterns UI
+  // - Affordances et feedback visuel
+  // - Performance perçue
+  
+  // **3. Design System et Cohérence**
+  // - Hiérarchie typographique
+  // - Système de couleurs et sémantique
+  // - Espacements et grille
+  // - Composants réutilisables
+  // - States et interactions
+  
+  // **4. Responsive et Multi-plateforme**
+  // - Adaptation mobile/desktop
+  // - Touch targets et gestures
+  // - Performance sur différents devices
+  // - Progressive Web App features
+  
+  // **Pour chaque amélioration proposée :**
+  // - Identifie le problème spécifique
+  // - Explique l'impact sur l'utilisateur
+  // - Propose une solution concrète avec mockup/code
+  // - Justifie le choix par des principes UX établis
+  // - Estime la priorité (Critical/High/Medium/Low)`
+  //   },
+    {
+      id: 'explain',
+      title: 'Expliquer le design',
+      description: 'Analyse détaillée des choix de design et des principes UX appliqués',
+      icon: 'i-ph:lightbulb',
+      gradient: 'from-bolt-elements-item-backgroundAccent to-bolt-elements-background-depth-2',
+      color: 'text-bolt-elements-item-contentAccent',
+      prompt: `Analyse cette interface utilisateur selon une approche design thinking structurée.
+  
+  **1. Architecture de l'Information**
+  - Organisation et structuration du contenu
+  - Hiérarchie de l'information (primary, secondary, tertiary)
+  - Navigation et wayfinding
+  - Mental models et conventions utilisateur
+  - Card sorting et tree testing principles
+  
+  **2. Système Visuel**
+  - **Typographie :** Hiérarchie, lisibilité, personnalité de marque
+  - **Couleurs :** Palette, psychologie, contraste, accessibilité
+  - **Espacement :** Système de grille, breathing room, densité
+  - **Iconographie :** Style, consistance, compréhension universelle
+  - **Imagery :** Traitement, cohérence, message véhiculé
+  
+  **3. Patterns d'Interaction**
+  - Affordances et signifiers
+  - Feedback loops (micro-interactions)
+  - Progressive disclosure
+  - Error prevention et recovery
+  - Call-to-actions et conversion
+  
+  **4. Principes UX Appliqués**
+  - **Lois de Fitts et Hick :** Optimisation des interactions
+  - **Gestalt principles :** Proximité, similarité, continuité
+  - **Jakob's Law :** Conformité aux standards
+  - **Aesthetic-Usability Effect :** Balance beauté/fonction
+  - **Cognitive Load Theory :** Simplification mentale
+  
+  **5. Context d'Usage**
+  - Personas et use cases
+  - Environment d'utilisation
+  - Device et platform considerations
+  - Accessibility requirements
+  - Business objectives alignment
+  
+  **Fournis pour chaque point :**
+  - Observation factuelle
+  - Principe design appliqué
+  - Impact sur l'expérience utilisateur
+  - Benchmarks et références sectorielles
+  - Recommandations d'optimisation`
+    },
+   
+  ];
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
@@ -313,20 +418,6 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
       const analysisOption = ANALYSIS_OPTIONS.find(option => option.id === selectedAnalysis);
       if (!analysisOption) return;
 
-      const enrichedPrompt = enrichPromptWithContext(
-        analysisOption.prompt,
-        {
-          model: model || 'Unknown',
-          provider: provider?.name || 'Unknown',
-          imageContext: `${selectedFile.name} (${(selectedFile.size / 1024 / 1024).toFixed(2)} MB)`
-        }
-      );
-
-      if (!validatePrompt(enrichedPrompt)) {
-        toast.error('Le prompt généré n\'est pas valide. Veuillez réessayer.');
-        return;
-      }
-
       if (append) {
         console.log('UIImageAnalyzer: Envoi du message avec append');
         
@@ -336,7 +427,7 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
           content: [
             {
               type: 'text',
-              text: enrichedPrompt
+              text: `[Model: ${model || 'Unknown'}]\n\n[Provider: ${provider?.name || 'Unknown'}]\n\n${analysisOption.prompt}`
             },
             {
               type: 'image',
@@ -362,10 +453,10 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
         }
         
         const event = new Event('click') as any;
-        sendMessage(event, enrichedPrompt);
+        sendMessage(event, `[Model: ${model || 'Unknown'}]\n\n[Provider: ${provider?.name || 'Unknown'}]\n\n${analysisOption.prompt}`);
       }
 
-      onAnalysisComplete?.(selectedAnalysis, imagePreview, enrichedPrompt);
+      onAnalysisComplete?.(selectedAnalysis, imagePreview, analysisOption.prompt);
 
       toast.success(`Analyse "${analysisOption.title}" lancée avec succès!`);
       

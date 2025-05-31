@@ -63,4 +63,54 @@ export const validatePrompt = (prompt: string): boolean => {
   }
   
   return true;
+};
+
+export const validateReactImports = (code: string): { isValid: boolean; issues: string[] } => {
+  const issues: string[] = [];
+  
+  // Vérification de l'import de React
+  if (!code.includes('import React')) {
+    issues.push('Import React manquant : ajouter "import React from \'react\'"');
+  }
+
+  // Vérification des imports de hooks courants
+  const commonHooks = ['useState', 'useEffect', 'useCallback', 'useMemo', 'useRef'];
+  const usedHooks = commonHooks.filter(hook => code.includes(hook));
+  const importedHooks = code.match(/import\s+{([^}]+)}\s+from\s+['"]react['"]/);
+  
+  if (usedHooks.length > 0 && !importedHooks) {
+    issues.push(`Hooks utilisés mais non importés : ${usedHooks.join(', ')}`);
+  }
+
+  // Vérification des types React
+  if (code.includes('FC') || code.includes('ReactNode')) {
+    if (!code.includes('import type')) {
+      issues.push('Types React utilisés mais non importés : ajouter "import type { FC, ReactNode } from \'react\'"');
+    }
+  }
+
+  // Vérification des composants
+  const componentDefinitions = code.match(/function\s+([A-Z][a-zA-Z]*)|const\s+([A-Z][a-zA-Z]*)\s*=/g);
+  if (componentDefinitions) {
+    if (!code.includes('React.FC') && !code.includes('FunctionComponent')) {
+      issues.push('Composants définis sans typage React.FC ou FunctionComponent');
+    }
+  }
+
+  return {
+    isValid: issues.length === 0,
+    issues
+  };
+};
+
+export const validateGeneratedCode = (code: string): boolean => {
+  const reactValidation = validateReactImports(code);
+  
+  if (!reactValidation.isValid) {
+    console.warn('Problèmes détectés dans le code généré :');
+    reactValidation.issues.forEach(issue => console.warn(`- ${issue}`));
+    return false;
+  }
+
+  return true;
 }; 
