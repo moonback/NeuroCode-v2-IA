@@ -237,7 +237,7 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
               return (
                 <motion.button
                   title={`Envoyer ${aiTargetFiles.size} fichier(s) ciblé(s) à l'IA`}
-                  className="absolute flex justify-center items-center top-[18px] right-[22px] bg-blue-500 hover:bg-blue-600 color-white rounded-md w-[34px] h-[34px] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                  className="absolute flex justify-center items-center top-[18px] right-[22px] bg-violet-500 hover:bg-violet-600 color-white rounded-md w-[34px] h-[34px] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
@@ -283,7 +283,7 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
                 >
                   <div className="flex items-center justify-center">
                     <div className="i-ph:robot-duotone text-lg"></div>
-                    <span className="absolute -top-1 -right-1 bg-white text-blue-500 text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 bg-white text-violet-500 text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center">
                       {String(aiTargetFiles.size)}
                     </span>
                   </div>
