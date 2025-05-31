@@ -505,7 +505,7 @@ function ScrollToBottom() {
         className="absolute z-50 top-[0%] translate-y-[-100%] text-4xl rounded-lg left-[50%] translate-x-[-50%] px-1.5 py-0.5 flex items-center gap-2 bg-bolt-elements-background-depth-3 border border-bolt-elements-borderColor text-bolt-elements-textPrimary text-sm"
         onClick={() => scrollToBottom()}
       >
-        Go to last message
+        Aller au dernier message
         <span className="i-ph:arrow-down animate-bounce" />
       </button>
     )

@@ -57,51 +57,51 @@ const ANALYSIS_OPTIONS: AnalysisOption[] = [
   4. Instructions de déploiement
   5. Liste des dépendances avec versions spécifiques`
     },
-    {
-      id: 'improve',
-      title: 'Améliorer l\'UI',
-      description: 'Propose des améliorations concrètes de design et d\'expérience utilisateur',
-      icon: 'i-ph:magic-wand',
-      gradient: 'from-bolt-elements-item-backgroundAccent to-bolt-elements-background-depth-2',
-      color: 'text-bolt-elements-item-contentAccent',
-      prompt: `Effectue une analyse UX/UI approfondie de cette interface et propose des améliorations concrètes.
+  //   {
+  //     id: 'improve',
+  //     title: 'Améliorer l\'UI',
+  //     description: 'Propose des améliorations concrètes de design et d\'expérience utilisateur',
+  //     icon: 'i-ph:magic-wand',
+  //     gradient: 'from-bolt-elements-item-backgroundAccent to-bolt-elements-background-depth-2',
+  //     color: 'text-bolt-elements-item-contentAccent',
+  //     prompt: `Effectue une analyse UX/UI approfondie de cette interface et propose des améliorations concrètes.
   
-  **Axes d'analyse :**
+  // **Axes d'analyse :**
   
-  **1. Accessibilité (WCAG 2.1)**
-  - Contraste des couleurs (AA/AAA)
-  - Navigation clavier et lecteurs d'écran
-  - Taille des zones cliquables (minimum 44px)
-  - Alt text et ARIA labels
-  - Focus management
+  // **1. Accessibilité (WCAG 2.1)**
+  // - Contraste des couleurs (AA/AAA)
+  // - Navigation clavier et lecteurs d'écran
+  // - Taille des zones cliquables (minimum 44px)
+  // - Alt text et ARIA labels
+  // - Focus management
   
-  **2. Ergonomie et Usabilité**
-  - Parcours utilisateur et friction points
-  - Charge cognitive et simplicité
-  - Consistance des patterns UI
-  - Affordances et feedback visuel
-  - Performance perçue
+  // **2. Ergonomie et Usabilité**
+  // - Parcours utilisateur et friction points
+  // - Charge cognitive et simplicité
+  // - Consistance des patterns UI
+  // - Affordances et feedback visuel
+  // - Performance perçue
   
-  **3. Design System et Cohérence**
-  - Hiérarchie typographique
-  - Système de couleurs et sémantique
-  - Espacements et grille
-  - Composants réutilisables
-  - States et interactions
+  // **3. Design System et Cohérence**
+  // - Hiérarchie typographique
+  // - Système de couleurs et sémantique
+  // - Espacements et grille
+  // - Composants réutilisables
+  // - States et interactions
   
-  **4. Responsive et Multi-plateforme**
-  - Adaptation mobile/desktop
-  - Touch targets et gestures
-  - Performance sur différents devices
-  - Progressive Web App features
+  // **4. Responsive et Multi-plateforme**
+  // - Adaptation mobile/desktop
+  // - Touch targets et gestures
+  // - Performance sur différents devices
+  // - Progressive Web App features
   
-  **Pour chaque amélioration proposée :**
-  - Identifie le problème spécifique
-  - Explique l'impact sur l'utilisateur
-  - Propose une solution concrète avec mockup/code
-  - Justifie le choix par des principes UX établis
-  - Estime la priorité (Critical/High/Medium/Low)`
-    },
+  // **Pour chaque amélioration proposée :**
+  // - Identifie le problème spécifique
+  // - Explique l'impact sur l'utilisateur
+  // - Propose une solution concrète avec mockup/code
+  // - Justifie le choix par des principes UX établis
+  // - Estime la priorité (Critical/High/Medium/Low)`
+  //   },
     {
       id: 'explain',
       title: 'Expliquer le design',
