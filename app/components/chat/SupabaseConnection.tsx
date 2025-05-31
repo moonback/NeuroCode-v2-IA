@@ -86,36 +86,43 @@ export function SupabaseConnection() {
         >
           <img
             className="w-4 h-4"
-            height="20"
+            height="20" 
             width="20"
             crossOrigin="anonymous"
             src="https://cdn.simpleicons.org/supabase"
+            alt="Supabase Logo"
           />
           {isConnected && supabaseConn.project && (
-            <span className="ml-1 text-xs max-w-[100px] truncate">{supabaseConn.project.name}</span>
+            <span className="ml-1 text-xs max-w-[100px] truncate" title={supabaseConn.project.name}>
+              {supabaseConn.project.name}
+            </span>
           )}
         </Button>
       </div>
 
       <DialogRoot open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         {isDialogOpen && (
-          <Dialog className="max-w-[520px] p-6">
+          <Dialog className="max-w-[520px] p-6 space-y-6">
             {!isConnected ? (
               <div className="space-y-4">
-                <DialogTitle>
+                <DialogTitle className="flex items-center gap-2">
                   <img
                     className="w-5 h-5"
                     height="24"
                     width="24"
                     crossOrigin="anonymous"
                     src="https://cdn.simpleicons.org/supabase"
+                    alt="Supabase Logo"
                   />
-                  Connect to Supabase
+                  <span>Connect to Supabase</span>
                 </DialogTitle>
 
                 <div>
-                  <label className="block text-sm text-bolt-elements-textSecondary mb-2">Access Token</label>
+                  <label htmlFor="supabase-token" className="block text-sm text-bolt-elements-textSecondary mb-2">
+                    Access Token
+                  </label>
                   <input
+                    id="supabase-token"
                     type="password"
                     value={supabaseConn.token}
                     onChange={(e) => updateToken(e.target.value)}
@@ -126,8 +133,9 @@ export function SupabaseConnection() {
                       'bg-[#F8F8F8] dark:bg-[#1A1A1A]',
                       'border border-[#E5E5E5] dark:border-[#333333]',
                       'text-bolt-elements-textPrimary placeholder-bolt-elements-textTertiary',
-                      'focus:outline-none focus:ring-1 focus:ring-[#3ECF8E]',
-                      'disabled:opacity-50',
+                      'focus:outline-none focus:ring-2 focus:ring-[#3ECF8E] focus:ring-opacity-50',
+                      'disabled:opacity-50 disabled:cursor-not-allowed',
+                      'transition-all duration-200'
                     )}
                   />
                   <div className="mt-2 text-sm text-bolt-elements-textSecondary">
@@ -135,7 +143,7 @@ export function SupabaseConnection() {
                       href="https://app.supabase.com/account/tokens"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-[#3ECF8E] hover:underline inline-flex items-center gap-1"
+                      className="text-[#3ECF8E] hover:underline inline-flex items-center gap-1 transition-colors duration-200"
                     >
                       Get your token
                       <div className="i-ph:arrow-square-out w-4 h-4" />
@@ -153,8 +161,9 @@ export function SupabaseConnection() {
                     className={classNames(
                       'px-4 py-2 rounded-lg text-sm flex items-center gap-2',
                       'bg-[#3ECF8E] text-white',
-                      'hover:bg-[#3BBF84]',
+                      'hover:bg-[#3BBF84] active:bg-[#35AB77]',
                       'disabled:opacity-50 disabled:cursor-not-allowed',
+                      'transition-colors duration-200'
                     )}
                   >
                     {connecting ? (
@@ -174,15 +183,16 @@ export function SupabaseConnection() {
             ) : (
               <div className="space-y-4">
                 <div className="flex items-center justify-between mb-2">
-                  <DialogTitle>
+                  <DialogTitle className="flex items-center gap-2">
                     <img
                       className="w-5 h-5"
                       height="24"
                       width="24"
                       crossOrigin="anonymous"
                       src="https://cdn.simpleicons.org/supabase"
+                      alt="Supabase Logo"
                     />
-                    Supabase Connection
+                    <span>Supabase Connection</span>
                   </DialogTitle>
                 </div>
 
@@ -203,21 +213,21 @@ export function SupabaseConnection() {
                     <div className="flex items-center justify-between mb-2">
                       <button
                         onClick={() => setIsProjectsExpanded(!isProjectsExpanded)}
-                        className="bg-transparent text-left text-sm font-medium text-bolt-elements-textPrimary flex items-center gap-2"
+                        className="bg-transparent text-left text-sm font-medium text-bolt-elements-textPrimary flex items-center gap-2 hover:text-[#3ECF8E] transition-colors duration-200"
                       >
                         <div className="i-ph:database w-4 h-4" />
                         Your Projects ({supabaseConn.stats?.totalProjects || 0})
                         <div
                           className={classNames(
-                            'i-ph:caret-down w-4 h-4 transition-transform',
-                            isProjectsExpanded ? 'rotate-180' : '',
+                            'i-ph:caret-down w-4 h-4 transition-transform duration-200',
+                            isProjectsExpanded ? 'rotate-180' : ''
                           )}
                         />
                       </button>
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => fetchSupabaseStats(supabaseConn.token)}
-                          className="px-2 py-1 rounded-md text-xs bg-[#F0F0F0] dark:bg-[#252525] text-bolt-elements-textSecondary hover:bg-[#E5E5E5] dark:hover:bg-[#333333] flex items-center gap-1"
+                          className="px-2 py-1 rounded-md text-xs bg-[#F0F0F0] dark:bg-[#252525] text-bolt-elements-textSecondary hover:bg-[#E5E5E5] dark:hover:bg-[#333333] flex items-center gap-1 transition-colors duration-200"
                           title="Refresh projects list"
                         >
                           <div className="i-ph:arrows-clockwise w-3 h-3" />
@@ -225,7 +235,7 @@ export function SupabaseConnection() {
                         </button>
                         <button
                           onClick={() => handleCreateProject()}
-                          className="px-2 py-1 rounded-md text-xs bg-[#3ECF8E] text-white hover:bg-[#3BBF84] flex items-center gap-1"
+                          className="px-2 py-1 rounded-md text-xs bg-[#3ECF8E] text-white hover:bg-[#3BBF84] active:bg-[#35AB77] flex items-center gap-1 transition-colors duration-200"
                         >
                           <div className="i-ph:plus w-3 h-3" />
                           New Project
@@ -236,17 +246,17 @@ export function SupabaseConnection() {
                     {isProjectsExpanded && (
                       <>
                         {!supabaseConn.selectedProjectId && (
-                          <div className="mb-2 p-3 bg-[#F8F8F8] dark:bg-[#1A1A1A] rounded-lg text-sm text-bolt-elements-textSecondary">
+                          <div className="mb-2 p-3 bg-[#F8F8F8] dark:bg-[#1A1A1A] rounded-lg text-sm text-bolt-elements-textSecondary border border-[#E5E5E5] dark:border-[#333333]">
                             Select a project or create a new one for this chat
                           </div>
                         )}
 
                         {supabaseConn.stats?.projects?.length ? (
-                          <div className="grid gap-2 max-h-60 overflow-y-auto">
+                          <div className="grid gap-2 max-h-60 overflow-y-auto custom-scrollbar">
                             {supabaseConn.stats.projects.map((project) => (
                               <div
                                 key={project.id}
-                                className="block p-3 rounded-lg border border-[#E5E5E5] dark:border-[#1A1A1A] hover:border-[#3ECF8E] dark:hover:border-[#3ECF8E] transition-colors"
+                                className="block p-3 rounded-lg border border-[#E5E5E5] dark:border-[#1A1A1A] hover:border-[#3ECF8E] dark:hover:border-[#3ECF8E] transition-colors duration-200"
                               >
                                 <div className="flex items-center justify-between">
                                   <div>
@@ -261,10 +271,10 @@ export function SupabaseConnection() {
                                   <button
                                     onClick={() => selectProject(project.id)}
                                     className={classNames(
-                                      'px-3 py-1 rounded-md text-xs',
+                                      'px-3 py-1 rounded-md text-xs transition-colors duration-200',
                                       supabaseConn.selectedProjectId === project.id
                                         ? 'bg-[#3ECF8E] text-white'
-                                        : 'bg-[#F0F0F0] dark:bg-[#252525] text-bolt-elements-textSecondary hover:bg-[#3ECF8E] hover:text-white',
+                                        : 'bg-[#F0F0F0] dark:bg-[#252525] text-bolt-elements-textSecondary hover:bg-[#3ECF8E] hover:text-white'
                                     )}
                                   >
                                     {supabaseConn.selectedProjectId === project.id ? (
@@ -281,7 +291,7 @@ export function SupabaseConnection() {
                             ))}
                           </div>
                         ) : (
-                          <div className="text-sm text-bolt-elements-textSecondary flex items-center gap-2">
+                          <div className="text-sm text-bolt-elements-textSecondary flex items-center gap-2 p-3 bg-[#F8F8F8] dark:bg-[#1A1A1A] rounded-lg">
                             <div className="i-ph:info w-4 h-4" />
                             No projects found
                           </div>
@@ -296,8 +306,10 @@ export function SupabaseConnection() {
                     <DialogButton type="secondary">Close</DialogButton>
                   </DialogClose>
                   <DialogButton type="danger" onClick={handleDisconnect}>
-                    <div className="i-ph:plugs w-4 h-4" />
-                    Disconnect
+                    <div className="flex items-center gap-2">
+                      <div className="i-ph:plugs w-4 h-4" />
+                      Disconnect
+                    </div>
                   </DialogButton>
                 </div>
               </div>
