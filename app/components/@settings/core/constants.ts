@@ -1,21 +1,21 @@
 import type { TabType } from './types';
 
 export const TAB_ICONS: Record<TabType, string> = {
-  profile: 'i-ph:user-circle-fill',
-  settings: 'i-ph:gear-six-fill',
-  notifications: 'i-ph:bell-fill',
-  features: 'i-ph:star-fill',
-  data: 'i-ph:database-fill',
-  'cloud-providers': 'i-ph:cloud-fill',
-  'local-providers': 'i-ph:desktop-fill',
-  'service-status': 'i-ph:activity-bold',
-  connection: 'i-ph:wifi-high-fill',
-  debug: 'i-ph:bug-fill',
-  'event-logs': 'i-ph:list-bullets-fill',
-  update: 'i-ph:arrow-clockwise-fill',
-  'task-manager': 'i-ph:chart-line-fill',
-  'tab-management': 'i-ph:squares-four-fill',
-  'custom-prompts': 'i-ph:chat-text-fill',
+  profile: 'i-ph:user-circle',
+  settings: 'i-ph:gear-six',
+  notifications: 'i-ph:bell',
+  features: 'i-ph:star',
+  data: 'i-ph:database',
+  'cloud-providers': 'i-ph:cloud',
+  'local-providers': 'i-ph:desktop',
+  'service-status': 'i-ph:activity',
+  connection: 'i-ph:wifi-high',
+  debug: 'i-ph:bug',
+  'event-logs': 'i-ph:list-bullets',
+  update: 'i-ph:arrow-clockwise',
+  'task-manager': 'i-ph:chart-line',
+  'tab-management': 'i-ph:squares-four',
+  'custom-prompts': 'i-ph:chat-text',
 };
 
 // Define which tabs are beta
