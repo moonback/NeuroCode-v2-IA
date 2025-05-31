@@ -17,6 +17,7 @@ import GitCloneButton from './GitCloneButton';
 import { SupabaseConnection } from './SupabaseConnection';
 import { ExpoQrModal } from '~/components/workbench/ExpoQrModal';
 import { UIImageAnalyzer } from './UIImageAnalyzer';
+import { PromptEnhancer } from './PromptEnhancer';
 import { motion } from 'framer-motion';
 import styles from './BaseChat.module.scss';
 import type { ProviderInfo } from '~/types/model';
@@ -70,6 +71,21 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
   const aiTargetFiles = useStore(workbenchStore.aiTargetFiles);
   const aiContext = useStore(workbenchStore.aiContext);
   const files = useStore(workbenchStore.files);
+
+  const handleEnhancedPrompt = (enhancedPrompt: string) => {
+    if (props.textareaRef?.current) {
+      props.textareaRef.current.value = enhancedPrompt;
+      props.textareaRef.current.style.height = 'auto';
+      props.textareaRef.current.style.height = `${Math.min(props.textareaRef.current.scrollHeight, props.TEXTAREA_MAX_HEIGHT)}px`;
+      
+      // Déclencher l'événement onChange pour mettre à jour l'état
+      const event = new Event('input', { bubbles: true });
+      props.textareaRef.current.dispatchEvent(event);
+      
+      // Focus sur le textarea
+      props.textareaRef.current.focus();
+    }
+  };
 
   return (
     <div
@@ -346,6 +362,13 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
                   <div className="i-bolt:stars text-xl"></div>
                 )}
               </IconButton>
+              
+              <PromptEnhancer
+                onEnhancedPrompt={handleEnhancedPrompt}
+                disabled={props.isStreaming}
+                provider={props.provider}
+                model={props.model}
+              />
 
             </div>
 
