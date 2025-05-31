@@ -342,15 +342,15 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
               disabled={!props.providerList || props.providerList.length === 0}
             >
               <div className={`i-ph:caret-${props.isModelSettingsCollapsed ? 'right' : 'down'} text-lg`} />
-              {props.isModelSettingsCollapsed ? <span className="text-xs font-medium truncate max-w-[100px]">{props.model}</span> : <span />}
+              {props.isModelSettingsCollapsed ? <span className="text-xs font-medium truncate max-w-[100px]">{props.provider.name}</span> : <span />}
             </IconButton>
           </div>
-          {props.input.length > 3 ? (
+          {/* {props.input.length > 3 ? (
             <div className="text-xs text-bolt-elements-textTertiary">
               Utilisez <kbd className="kdb px-1.5 py-0.5 rounded bg-bolt-elements-background-depth-2">Shift</kbd> +{' '}
               <kbd className="kdb px-1.5 py-0.5 rounded bg-bolt-elements-background-depth-2">Entrée</kbd> pour une nouvelle ligne
             </div>
-          ) : null}
+          ) : null} */}
           <SupabaseConnection />
           <ExpoQrModal open={props.qrModalOpen} onClose={() => props.setQrModalOpen(false)} />
         </div>
