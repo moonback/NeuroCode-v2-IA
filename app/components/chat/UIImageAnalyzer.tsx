@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, memo, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { classNames } from '~/utils/classNames';
@@ -159,7 +159,130 @@ const ANALYSIS_OPTIONS: AnalysisOption[] = [
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
 
-export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
+const ProgressIndicator = memo(({ currentStep, selectedFile }: { currentStep: number, selectedFile: File | null }) => (
+  <div className="flex items-center gap-3 mt-6">
+    <div className="flex items-center gap-2">
+      <motion.div
+        className={classNames(
+          'w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all',
+          currentStep >= 1 ? 'bg-bolt-elements-item-contentAccent text-white' : 'bg-bolt-elements-background-depth-3 text-bolt-elements-textTertiary'
+        )}
+        animate={{ scale: currentStep === 1 ? 1.1 : 1 }}
+      >
+        1
+      </motion.div>
+      <span className={classNames('text-sm font-medium', currentStep >= 1 ? 'text-bolt-elements-item-contentAccent' : 'text-bolt-elements-textTertiary')}>
+        Image
+      </span>
+    </div>
+    
+    <div className={classNames('flex-1 h-0.5 rounded-full transition-all', selectedFile ? 'bg-bolt-elements-item-contentAccent' : 'bg-bolt-elements-background-depth-3')} />
+    
+    <div className="flex items-center gap-2">
+      <motion.div
+        className={classNames(
+          'w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all',
+          currentStep >= 2 ? 'bg-bolt-elements-item-contentAccent text-white' : 'bg-bolt-elements-background-depth-3 text-bolt-elements-textTertiary'
+        )}
+        animate={{ scale: currentStep === 2 ? 1.1 : 1 }}
+      >
+        2
+      </motion.div>
+      <span className={classNames('text-sm font-medium', currentStep >= 2 ? 'text-bolt-elements-item-contentAccent' : 'text-bolt-elements-textTertiary')}>
+        Analyse
+      </span>
+    </div>
+  </div>
+));
+
+const AnalysisOptionItem = memo(({ 
+  option, 
+  isSelected, 
+  onClick 
+}: { 
+  option: AnalysisOption, 
+  isSelected: boolean,
+  onClick: () => void 
+}) => (
+  <motion.button
+    onClick={onClick}
+    className={classNames(
+      'relative p-4 rounded-lg border text-left transition-all overflow-hidden group',
+      isSelected
+        ? 'border-bolt-elements-item-contentAccent bg-bolt-elements-item-backgroundAccent shadow-lg'
+        : 'bg-bolt-elements-background-depth-2 border-bolt-elements-borderColor hover:border-bolt-elements-item-contentAccent hover:bg-bolt-elements-background-depth-3'
+    )}
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    whileHover={{ scale: 1.02, y: -2 }}
+    whileTap={{ scale: 0.98 }}
+  >
+    <div className="relative z-10 flex items-start gap-3">
+      <motion.div 
+        className={classNames(
+          option.icon,
+          'text-xl transition-all duration-300',
+          isSelected 
+            ? 'text-bolt-elements-item-contentAccent scale-110' 
+            : 'text-bolt-elements-textSecondary group-hover:text-bolt-elements-item-contentAccent'
+        )}
+        whileHover={{ rotate: [0, -5, 5, -5, 0] }}
+        transition={{ duration: 0.4 }}
+      />
+      
+      <div className="flex-1 space-y-1">
+        <h4 className={classNames(
+          'text-base font-semibold transition-colors duration-300',
+          isSelected
+            ? 'text-bolt-elements-item-contentAccent'
+            : 'text-bolt-elements-textPrimary'
+        )}>
+          {option.title}
+        </h4>
+        <p className={classNames(
+          'text-sm leading-relaxed transition-colors duration-300',
+          isSelected
+            ? 'text-bolt-elements-textSecondary'
+            : 'text-bolt-elements-textTertiary group-hover:text-bolt-elements-textSecondary'
+        )}>
+          {option.description}
+        </p>
+      </div>
+
+      <motion.div
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ 
+          scale: isSelected ? 1 : 0,
+          opacity: isSelected ? 1 : 0
+        }}
+        className="flex items-center justify-center w-5 h-5 rounded-full bg-bolt-elements-item-contentAccent"
+      >
+        <div className="i-ph:check text-white text-sm" />
+      </motion.div>
+    </div>
+  </motion.button>
+));
+
+// Constantes memoizées pour éviter les recréations à chaque rendu
+const DIALOG_ANIMATION_VARIANTS = {
+  initial: { opacity: 0, scale: 0.95 },
+  animate: { opacity: 1, scale: 1 },
+  exit: { opacity: 0, scale: 0.95 }
+};
+
+const STEP1_ANIMATION_VARIANTS = {
+  initial: { opacity: 0, x: -20 },
+  animate: { opacity: 1, x: 0 },
+  exit: { opacity: 0, x: -20 }
+};
+
+const STEP2_ANIMATION_VARIANTS = {
+  initial: { opacity: 0, x: 20 },
+  animate: { opacity: 1, x: 0 },
+  exit: { opacity: 0, x: 20 }
+};
+
+export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
   onAnalysisComplete,
   sendMessage,
   append,
@@ -176,6 +299,16 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Optimisation du FileReader avec useMemo
+  const fileReader = useMemo(() => {
+    const reader = new FileReader();
+    reader.onerror = () => {
+      toast.error('Erreur lors de la lecture du fichier.');
+      setSelectedFile(null);
+    };
+    return reader;
+  }, []);
+
   const validateFile = useCallback((file: File): boolean => {
     if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
       toast.error('Type de fichier non supporté. Veuillez sélectionner une image (JPEG, PNG, GIF, WebP).');
@@ -190,13 +323,13 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
     return true;
   }, []);
 
+  // Optimisation des callbacks avec useCallback et dépendances minimales
   const handleFileSelect = useCallback((file: File) => {
     if (!validateFile(file)) return;
 
     setSelectedFile(file);
     
-    const reader = new FileReader();
-    reader.onload = (e) => {
+    fileReader.onload = (e) => {
       const result = e.target?.result as string;
       if (result && result.startsWith('data:image/')) {
         setImagePreview(result);
@@ -206,12 +339,8 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
         setSelectedFile(null);
       }
     };
-    reader.onerror = () => {
-      toast.error('Erreur lors de la lecture du fichier.');
-      setSelectedFile(null);
-    };
-    reader.readAsDataURL(file);
-  }, [validateFile]);
+    fileReader.readAsDataURL(file);
+  }, [fileReader, validateFile]);
 
   const handleFileInputChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -243,6 +372,39 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
       toast.error('Aucune image valide trouvée dans les fichiers déposés.');
     }
   }, [handleFileSelect]);
+
+  // Optimisation des classes conditionnelles avec useMemo
+  const analyzeButtonClasses = useMemo(() => 
+    classNames(
+      'px-8 py-3 rounded-lg font-semibold transition-all flex items-center gap-2',
+      {
+        'bg-bolt-elements-button-primary-background hover:bg-bolt-elements-button-primary-backgroundHover text-bolt-elements-button-primary-text border border-bolt-elements-item-contentAccent': Boolean(selectedFile && selectedAnalysis && !isAnalyzing),
+        'bg-bolt-elements-background-depth-3 text-bolt-elements-textTertiary cursor-not-allowed border border-bolt-elements-borderColor': !selectedFile || !selectedAnalysis || isAnalyzing
+      }
+    ), [selectedFile, selectedAnalysis, isAnalyzing]);
+
+  // Optimisation du message avec useMemo
+  const analysisMessage = useMemo(() => {
+    if (!selectedFile || !selectedAnalysis) return null;
+    
+    const analysisOption = ANALYSIS_OPTIONS.find(option => option.id === selectedAnalysis);
+    if (!analysisOption) return null;
+
+    return {
+      id: `ui-analyzer-${Date.now()}`,
+      role: 'user',
+      content: [
+        {
+          type: 'text',
+          text: `[Model: ${model || 'Unknown'}]\n\n[Provider: ${provider?.name || 'Unknown'}]\n\n${analysisOption.prompt}`
+        },
+        {
+          type: 'image',
+          image: imagePreview
+        }
+      ] as any
+    } as Message;
+  }, [selectedFile, selectedAnalysis, imagePreview, model, provider?.name]);
 
   const handleAnalyze = useCallback(async () => {
     if (!selectedFile || !selectedAnalysis || !imagePreview) {
@@ -362,9 +524,10 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
         <AnimatePresence>
           {isOpen && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+              variants={DIALOG_ANIMATION_VARIANTS}
+              initial="initial"
+              animate="animate"
+              exit="exit"
               transition={{ duration: 0.2 }}
             >
               <Dialog className="max-w-7xl p-0 overflow-hidden bg-bolt-elements-background-depth-1 backdrop-blur-xl border border-bolt-elements-borderColor shadow-2xl">
@@ -385,39 +548,7 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
                   </div>
 
                   {/* Progress indicator */}
-                  <div className="flex items-center gap-3 mt-6">
-                    <div className="flex items-center gap-2">
-                      <motion.div
-                        className={classNames(
-                          'w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all',
-                          currentStep >= 1 ? 'bg-bolt-elements-item-contentAccent text-white' : 'bg-bolt-elements-background-depth-3 text-bolt-elements-textTertiary'
-                        )}
-                        animate={{ scale: currentStep === 1 ? 1.1 : 1 }}
-                      >
-                        1
-                      </motion.div>
-                      <span className={classNames('text-sm font-medium', currentStep >= 1 ? 'text-bolt-elements-item-contentAccent' : 'text-bolt-elements-textTertiary')}>
-                        Image
-                      </span>
-                    </div>
-                    
-                    <div className={classNames('flex-1 h-0.5 rounded-full transition-all', selectedFile ? 'bg-bolt-elements-item-contentAccent' : 'bg-bolt-elements-background-depth-3')} />
-                    
-                    <div className="flex items-center gap-2">
-                      <motion.div
-                        className={classNames(
-                          'w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all',
-                          currentStep >= 2 ? 'bg-bolt-elements-item-contentAccent text-white' : 'bg-bolt-elements-background-depth-3 text-bolt-elements-textTertiary'
-                        )}
-                        animate={{ scale: currentStep === 2 ? 1.1 : 1 }}
-                      >
-                        2
-                      </motion.div>
-                      <span className={classNames('text-sm font-medium', currentStep >= 2 ? 'text-bolt-elements-item-contentAccent' : 'text-bolt-elements-textTertiary')}>
-                        Analyse
-                      </span>
-                    </div>
-                  </div>
+                  <ProgressIndicator currentStep={currentStep} selectedFile={selectedFile} />
                 </div>
 
                 <div className="p-6 space-y-8">
@@ -584,65 +715,12 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
                         
                         <div className="grid gap-4">
                           {ANALYSIS_OPTIONS.map((option, index) => (
-                            <motion.button
+                            <AnalysisOptionItem
                               key={option.id}
+                              option={option}
+                              isSelected={selectedAnalysis === option.id}
                               onClick={() => setSelectedAnalysis(option.id)}
-                              className={classNames(
-                                'relative p-4 rounded-lg border text-left transition-all overflow-hidden group',
-                                selectedAnalysis === option.id
-                                  ? 'border-bolt-elements-item-contentAccent bg-bolt-elements-item-backgroundAccent shadow-lg'
-                                  : 'bg-bolt-elements-background-depth-2 border-bolt-elements-borderColor hover:border-bolt-elements-item-contentAccent hover:bg-bolt-elements-background-depth-3'
-                              )}
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ duration: 0.3, delay: index * 0.1 }}
-                              whileHover={{ scale: 1.02, y: -2 }}
-                              whileTap={{ scale: 0.98 }}
-                            >
-                              <div className="relative z-10 flex items-start gap-3">
-                                <motion.div 
-                                  className={classNames(
-                                    option.icon,
-                                    'text-xl transition-all duration-300',
-                                    selectedAnalysis === option.id 
-                                      ? 'text-bolt-elements-item-contentAccent scale-110' 
-                                      : 'text-bolt-elements-textSecondary group-hover:text-bolt-elements-item-contentAccent'
-                                  )}
-                                  whileHover={{ rotate: [0, -5, 5, -5, 0] }}
-                                  transition={{ duration: 0.4 }}
-                                />
-                                
-                                <div className="flex-1 space-y-1">
-                                  <h4 className={classNames(
-                                    'text-base font-semibold transition-colors duration-300',
-                                    selectedAnalysis === option.id
-                                      ? 'text-bolt-elements-item-contentAccent'
-                                      : 'text-bolt-elements-textPrimary'
-                                  )}>
-                                    {option.title}
-                                  </h4>
-                                  <p className={classNames(
-                                    'text-sm leading-relaxed transition-colors duration-300',
-                                    selectedAnalysis === option.id
-                                      ? 'text-bolt-elements-textSecondary'
-                                      : 'text-bolt-elements-textTertiary group-hover:text-bolt-elements-textSecondary'
-                                  )}>
-                                    {option.description}
-                                  </p>
-                                </div>
-
-                                <motion.div
-                                  initial={{ scale: 0, opacity: 0 }}
-                                  animate={{ 
-                                    scale: selectedAnalysis === option.id ? 1 : 0,
-                                    opacity: selectedAnalysis === option.id ? 1 : 0
-                                  }}
-                                  className="flex items-center justify-center w-5 h-5 rounded-full bg-bolt-elements-item-contentAccent"
-                                >
-                                  <div className="i-ph:check text-white text-sm" />
-                                </motion.div>
-                              </div>
-                            </motion.button>
+                            />
                           ))}
                         </div>
                       </motion.div>
@@ -671,13 +749,7 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
                       <motion.button
                         onClick={handleAnalyze}
                         disabled={!selectedFile || !selectedAnalysis || isAnalyzing}
-                        className={classNames(
-                          'px-8 py-3 rounded-lg font-semibold transition-all flex items-center gap-2',
-                          {
-                            'bg-bolt-elements-button-primary-background hover:bg-bolt-elements-button-primary-backgroundHover text-bolt-elements-button-primary-text border border-bolt-elements-item-contentAccent': Boolean(selectedFile && selectedAnalysis && !isAnalyzing),
-                            'bg-bolt-elements-background-depth-3 text-bolt-elements-textTertiary cursor-not-allowed border border-bolt-elements-borderColor': !selectedFile || !selectedAnalysis || isAnalyzing
-                          }
-                        )}
+                        className={analyzeButtonClasses}
                         whileHover={selectedFile && selectedAnalysis && !isAnalyzing ? { scale: 1.02 } : {}}
                         whileTap={selectedFile && selectedAnalysis && !isAnalyzing ? { scale: 0.98 } : {}}
                       >
@@ -707,4 +779,7 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = ({
       </DialogRoot>
     </>
   );
-};
+});
+
+// Optimisation du nom d'affichage pour le debugging
+UIImageAnalyzer.displayName = 'UIImageAnalyzer';
