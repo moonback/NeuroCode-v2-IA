@@ -159,6 +159,16 @@ const ANALYSIS_OPTIONS: AnalysisOption[] = [
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
 
+// Ajout de la validation d'URL
+const isValidImageUrl = (url: string) => {
+  try {
+    const parsedUrl = new URL(url);
+    return /\.(jpg|jpeg|png|webp|gif)$/i.test(parsedUrl.pathname);
+  } catch {
+    return false;
+  }
+};
+
 const ProgressIndicator = memo(({ currentStep, selectedFile }: { currentStep: number, selectedFile: File | null }) => (
   <div className="flex items-center gap-3 mt-6">
     <div className="flex items-center gap-2">
@@ -281,6 +291,93 @@ const STEP2_ANIMATION_VARIANTS = {
   animate: { opacity: 1, x: 0 },
   exit: { opacity: 0, x: 20 }
 };
+
+// Nouveau composant pour l'entrée d'URL
+const URLInput = memo(({ onUrlSubmit }: { onUrlSubmit: (url: string) => Promise<void> }) => {
+  const [url, setUrl] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!url) return;
+
+    if (!isValidImageUrl(url)) {
+      setError('L\'URL doit pointer vers une image valide (jpg, png, gif, webp)');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      await onUrlSubmit(url);
+      setUrl('');
+    } catch (err) {
+      setError('Impossible de charger l\'image depuis cette URL');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="w-full space-y-2">
+      <div className="relative">
+        <input
+          type="url"
+          value={url}
+          onChange={(e) => {
+            setUrl(e.target.value);
+            setError(null);
+          }}
+          placeholder="https://exemple.com/image.jpg"
+          className={classNames(
+            "w-full px-4 py-3 bg-bolt-elements-background-depth-2 rounded-lg",
+            "border transition-colors duration-200",
+            "text-bolt-elements-textPrimary placeholder:text-bolt-elements-textTertiary",
+            error 
+              ? "border-red-500 focus:border-red-600"
+              : "border-bolt-elements-borderColor focus:border-bolt-elements-borderColorActive"
+          )}
+        />
+        <motion.button
+          type="submit"
+          disabled={!url || isLoading}
+          className={classNames(
+            "absolute right-2 top-1/2 -translate-y-1/2",
+            "px-4 py-1.5 rounded-md",
+            "text-sm font-medium",
+            "transition-all duration-200",
+            !url || isLoading
+              ? "bg-bolt-elements-background-depth-3 text-bolt-elements-textTertiary"
+              : "bg-bolt-elements-item-backgroundAccent text-bolt-elements-item-contentAccent"
+          )}
+          whileHover={url && !isLoading ? { scale: 1.05 } : {}}
+          whileTap={url && !isLoading ? { scale: 0.95 } : {}}
+        >
+          {isLoading ? (
+            <motion.div
+              className="i-ph:spinner-gap"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            />
+          ) : (
+            "Analyser"
+          )}
+        </motion.button>
+      </div>
+      {error && (
+        <motion.p
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-sm text-red-500"
+        >
+          {error}
+        </motion.p>
+      )}
+    </form>
+  );
+});
 
 export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
   onAnalysisComplete,
@@ -493,6 +590,60 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
     setCurrentStep(1);
   }, []);
 
+  const handleUrlSubmit = useCallback(async (url: string) => {
+    try {
+      // Utilisation d'un service proxy pour contourner les restrictions CORS
+      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+      
+      const response = await fetch(proxyUrl);
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP: ${response.status}`);
+      }
+
+      // Vérification du type de contenu
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !ACCEPTED_IMAGE_TYPES.some(type => contentType.includes(type.split('/')[1]))) {
+        throw new Error('Le contenu n\'est pas une image valide');
+      }
+      
+      const blob = await response.blob();
+      
+      // Extraction du nom de fichier depuis l'URL
+      const fileName = url.split('/').pop() || 'image-from-url.jpg';
+      const file = new File([blob], fileName, { type: blob.type });
+      
+      if (!validateFile(file)) {
+        throw new Error('Le fichier ne respecte pas les critères (taille ou format)');
+      }
+      
+      handleFileSelect(file);
+    } catch (error) {
+      console.error('Erreur lors du chargement de l\'URL:', error);
+      
+      // Messages d'erreur plus spécifiques
+      let errorMessage = 'Impossible de charger l\'image depuis cette URL';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('Le contenu n\'est pas une image')) {
+          errorMessage = 'L\'URL ne pointe pas vers une image valide';
+        } else if (error.message.includes('critères')) {
+          errorMessage = 'L\'image ne respecte pas les critères (taille ou format)';
+        } else if (error.message.includes('HTTP')) {
+          errorMessage = 'L\'image n\'est pas accessible (erreur serveur)';
+        }
+      }
+      
+      toast.error(errorMessage, {
+        position: 'bottom-center',
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    }
+  }, [validateFile, handleFileSelect]);
+
   return (
     <>
       <motion.div
@@ -539,7 +690,7 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
                         Analyser une interface utilisateur
                       </DialogTitle>
                       <p className="text-sm text-bolt-elements-textSecondary mt-1">
-                        Uploadez une image et choisissez votre type d'analyse
+                        Uploadez une image ou analysez depuis une URL
                       </p>
                     </div>
                     <DialogClose asChild>
@@ -568,53 +719,66 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
                         </h3>
                         
                         {!selectedFile ? (
-                          <motion.div
-                            className={classNames(
-                              'relative border-2 border-dashed rounded-xl p-12 text-center transition-all cursor-pointer group overflow-hidden',
-                              {
-                                'border-bolt-elements-borderColor hover:border-bolt-elements-borderColorActive': !isDragOver,
-                                'border-bolt-elements-borderColorActive bg-bolt-elements-item-backgroundAccent': isDragOver
-                              }
-                            )}
-                            onDragOver={handleDragOver}
-                            onDragLeave={handleDragLeave}
-                            onDrop={handleDrop}
-                            onClick={() => fileInputRef.current?.click()}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                          >
-                            {/* Background effect */}
-                            <div className="absolute inset-0 bg-bolt-elements-item-backgroundAccent opacity-0 group-hover:opacity-50 transition-opacity" />
-                            
+                          <div className="space-y-8">
                             <motion.div
-                              className="relative z-10"
-                              animate={{ y: isDragOver ? -5 : 0 }}
+                              className={classNames(
+                                'relative border-2 border-dashed rounded-xl p-12 text-center transition-all cursor-pointer group overflow-hidden',
+                                {
+                                  'border-bolt-elements-borderColor hover:border-bolt-elements-borderColorActive': !isDragOver,
+                                  'border-bolt-elements-borderColorActive bg-bolt-elements-item-backgroundAccent': isDragOver
+                                }
+                              )}
+                              onDragOver={handleDragOver}
+                              onDragLeave={handleDragLeave}
+                              onDrop={handleDrop}
+                              onClick={() => fileInputRef.current?.click()}
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
                             >
-                              <div className="i-ph:cloud-arrow-up text-6xl text-bolt-elements-item-contentAccent mb-6 mx-auto" />
-                              <p className="text-bolt-elements-textPrimary font-semibold text-lg mb-3">
-                                Glissez-déposez une image ou cliquez pour sélectionner
-                              </p>
-                              <p className="text-bolt-elements-textSecondary text-sm mb-6">
-                                Formats supportés: JPEG, PNG, GIF, WebP (max 10MB)
-                              </p>
+                              {/* Background effect */}
+                              <div className="absolute inset-0 bg-bolt-elements-item-backgroundAccent opacity-0 group-hover:opacity-50 transition-opacity" />
                               
                               <motion.div
-                                className="inline-flex items-center gap-2 px-6 py-3 bg-bolt-elements-button-primary-background hover:bg-bolt-elements-button-primary-backgroundHover text-bolt-elements-button-primary-text rounded-lg font-medium shadow-lg transition-colors"
-                                whileHover={{ scale: 1.05 }}
+                                className="relative z-10"
+                                animate={{ y: isDragOver ? -5 : 0 }}
                               >
-                                <div className="i-ph:folder-open" />
-                                Parcourir les fichiers
+                                <div className="i-ph:cloud-arrow-up text-6xl text-bolt-elements-item-contentAccent mb-6 mx-auto" />
+                                <p className="text-bolt-elements-textPrimary font-semibold text-lg mb-3">
+                                  Glissez-déposez une image ou cliquez pour sélectionner
+                                </p>
+                                <p className="text-bolt-elements-textSecondary text-sm mb-6">
+                                  Formats supportés: JPEG, PNG, GIF, WebP (max 10MB)
+                                </p>
+                                
+                                <motion.div
+                                  className="inline-flex items-center gap-2 px-6 py-3 bg-bolt-elements-button-primary-background hover:bg-bolt-elements-button-primary-backgroundHover text-bolt-elements-button-primary-text rounded-lg font-medium shadow-lg transition-colors"
+                                  whileHover={{ scale: 1.05 }}
+                                >
+                                  <div className="i-ph:folder-open" />
+                                  Parcourir les fichiers
+                                </motion.div>
                               </motion.div>
+                              
+                              <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept={ACCEPTED_IMAGE_TYPES.join(',')}
+                                onChange={handleFileInputChange}
+                                className="hidden"
+                              />
                             </motion.div>
-                            
-                            <input
-                              ref={fileInputRef}
-                              type="file"
-                              accept={ACCEPTED_IMAGE_TYPES.join(',')}
-                              onChange={handleFileInputChange}
-                              className="hidden"
-                            />
-                          </motion.div>
+
+                            <div className="relative">
+                              <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-px bg-bolt-elements-borderColor" />
+                              <div className="relative flex justify-center">
+                                <span className="px-4 bg-bolt-elements-background-depth-1 text-bolt-elements-textSecondary text-sm">
+                                  ou analysez depuis une URL
+                                </span>
+                              </div>
+                            </div>
+
+                            <URLInput onUrlSubmit={handleUrlSubmit} />
+                          </div>
                         ) : (
                           <motion.div
                             initial={{ opacity: 0, y: 20 }}
