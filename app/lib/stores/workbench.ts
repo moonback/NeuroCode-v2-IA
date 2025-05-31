@@ -54,6 +54,10 @@ export class WorkbenchStore {
     import.meta.hot?.data.supabaseAlert ?? atom<SupabaseAlert | undefined>(undefined);
   deployAlert: WritableAtom<DeployAlert | undefined> =
     import.meta.hot?.data.deployAlert ?? atom<DeployAlert | undefined>(undefined);
+  aiTargetFiles: WritableAtom<Set<string>> =
+    import.meta.hot?.data.aiTargetFiles ?? atom<Set<string>>(new Set());
+  aiContext: WritableAtom<string> =
+    import.meta.hot?.data.aiContext ?? atom<string>('');
   modifiedFiles = new Set<string>();
   artifactIdList: string[] = [];
   #globalExecutionQueue = Promise.resolve();
@@ -66,6 +70,8 @@ export class WorkbenchStore {
       import.meta.hot.data.actionAlert = this.actionAlert;
       import.meta.hot.data.supabaseAlert = this.supabaseAlert;
       import.meta.hot.data.deployAlert = this.deployAlert;
+      import.meta.hot.data.aiTargetFiles = this.aiTargetFiles;
+      import.meta.hot.data.aiContext = this.aiContext;
 
       // Ensure binary files are properly preserved across hot reloads
       const filesMap = this.files.get();
@@ -167,6 +173,32 @@ export class WorkbenchStore {
 
   setShowWorkbench(show: boolean) {
     this.showWorkbench.set(show);
+  }
+
+  addAITargetFile(filePath: string) {
+    const currentTargets = this.aiTargetFiles.get();
+    const newTargets = new Set(currentTargets);
+    newTargets.add(filePath);
+    this.aiTargetFiles.set(newTargets);
+  }
+
+  removeAITargetFile(filePath: string) {
+    const currentTargets = this.aiTargetFiles.get();
+    const newTargets = new Set(currentTargets);
+    newTargets.delete(filePath);
+    this.aiTargetFiles.set(newTargets);
+  }
+
+  clearAITargetFiles() {
+    this.aiTargetFiles.set(new Set());
+  }
+
+  isAITargetFile(filePath: string): boolean {
+    return this.aiTargetFiles.get().has(filePath);
+  }
+
+  setAIContext(context: string) {
+    this.aiContext.set(context);
   }
 
   setCurrentDocumentContent(newContent: string) {

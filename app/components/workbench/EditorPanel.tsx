@@ -27,6 +27,7 @@ import { workbenchStore } from '~/lib/stores/workbench';
 import { Search } from './Search'; // <-- Ensure Search is imported
 import { classNames } from '~/utils/classNames'; // <-- Import classNames if not already present
 import { LockManager } from './LockManager'; // <-- Import LockManager
+import { AITargetManager } from './AITargetManager';
 
 interface EditorPanelProps {
   files?: FileMap;
@@ -66,6 +67,7 @@ export const EditorPanel = memo(
 
     const theme = useStore(themeStore);
     const showTerminal = useStore(workbenchStore.showTerminal);
+    const aiTargetFiles = useStore(workbenchStore.aiTargetFiles);
 
     const activeFileSegments = useMemo(() => {
       if (!editorDocument) {
@@ -118,6 +120,14 @@ export const EditorPanel = memo(
                         >
                           Locks
                         </Tabs.Trigger>
+                        <Tabs.Trigger
+                          value="ai-targets"
+                          className={classNames(
+                            'h-full bg-transparent hover:bg-bolt-elements-background-depth-3 py-0.5 px-2 rounded-lg text-sm font-medium text-bolt-elements-textTertiary hover:text-bolt-elements-textPrimary data-[state=active]:text-bolt-elements-textPrimary',
+                          )}
+                        >
+                          Targets
+                        </Tabs.Trigger>
                       </Tabs.List>
                     </div>
                   </PanelHeader>
@@ -142,6 +152,10 @@ export const EditorPanel = memo(
                   <Tabs.Content value="locks" className="flex-grow overflow-auto focus-visible:outline-none">
                     <LockManager />
                   </Tabs.Content>
+
+                  <Tabs.Content value="ai-targets" className="flex-grow overflow-auto focus-visible:outline-none p-2">
+                    <AITargetManager />
+                  </Tabs.Content>
                 </Tabs.Root>
               </div>
             </Panel>
@@ -152,6 +166,12 @@ export const EditorPanel = memo(
                 {activeFileSegments?.length && (
                   <div className="flex items-center flex-1 text-sm">
                     <FileBreadcrumb pathSegments={activeFileSegments} files={files} onFileSelect={onFileSelect} />
+                    {editorDocument?.filePath && aiTargetFiles.has(editorDocument.filePath) && (
+                      <div className="flex items-center gap-1 ml-2 px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs">
+                        <div className="i-ph:robot-duotone" />
+                        AI Target
+                      </div>
+                    )}
                     {activeFileUnsaved && (
                       <div className="flex gap-1 ml-auto -mr-1.5">
                         <PanelHeaderButton onClick={onFileSave}>
