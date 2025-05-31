@@ -58,7 +58,7 @@ const PromptSelector = () => {
   return (
     <Dropdown
       trigger={
-        <button className="flex bg-bolt-elements-background-depth-3 items-center gap-1 text-sm text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary transition-colors">
+        <button className="flex bg-transparent items-center gap-1 text-sm text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary transition-colors">
           <span className="i-ph:book text-lg" />
           <span className="hidden md:inline">{currentPrompt.label}</span>
           <span className="i-ph:caret-down text-xs" />

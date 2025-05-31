@@ -37,17 +37,17 @@ export class PromptLibrary {
   > = {
     default: {
       label: 'Original',
-      description: 'This is the battle tested default system Prompt',
+      description: 'Il s\'agit du système par défaut testé au combat.',
       get: (options) => getSystemPrompt(options.cwd, options.supabase),
     },
     enhanced: {
       label: 'Fine Tuned ',
-      description: 'An fine tuned prompt for better results',
+      description: 'Un prompt fine-tuned pour des résultats encore meilleurs',
       get: (options) => getFineTunedPrompt(options.cwd, options.supabase),
     },
     optimized: {
-      label: 'Optimized (experimental)',
-      description: 'an Experimental version of the prompt for lower token usage',
+      label: 'Optimized (expérimental)',
+      description: 'Une version expérimentale du prompt pour une utilisation moins intensive des jetons',
       get: (options) => optimized(options),
     },
   };
