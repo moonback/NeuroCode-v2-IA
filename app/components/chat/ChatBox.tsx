@@ -231,6 +231,36 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
                 return;
               }
 
+              // If there are targeted files, include them in the message
+              if (aiTargetFiles.size > 0) {
+                const targetedFiles = Array.from(aiTargetFiles);
+                let message = '';
+                
+                if (props.input.trim()) {
+                  message += `${props.input.trim()}\n\n`;
+                }
+                
+                if (aiContext.trim()) {
+                  message += `Context: ${aiContext}\n\n`;
+                }
+                
+                message += `Please help me with the following ${targetedFiles.length} file(s):\n\n`;
+                
+                targetedFiles.forEach((filePath, index) => {
+                  const fileName = filePath.split('/').pop() || 'file';
+                  message += `**File ${index + 1}: ${fileName}**\n\n`;
+                });
+                
+                props.handleSendMessage?.(event, message);
+                
+                // Clean up targets and context after sending
+                setTimeout(() => {
+                  workbenchStore.clearAITargetFiles();
+                  workbenchStore.setAIContext('');
+                }, 500);
+                return;
+              }
+
               props.handleSendMessage?.(event);
             }
           }}
@@ -274,10 +304,10 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
                     
                     message += `Please help me with the following ${targetedFiles.length} file(s):\n\n`;
                     
+                    // Skip file content and only include file names
                     targetedFiles.forEach((filePath, index) => {
                       const fileName = filePath.split('/').pop() || 'file';
-                      const fileContent = typeof files[filePath] === 'object' && 'content' in files[filePath] ? files[filePath].content : '';
-                      message += `**File ${index + 1}: ${fileName}**\n\`\`\`\n${fileContent}\n\`\`\`\n\n`;
+                      message += `**File ${index + 1}: ${fileName}**\n\n`;
                     });
                     
                     props.handleSendMessage?.({} as React.UIEvent, message);
