@@ -90,27 +90,114 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
         if (messages.length > 3) {
           messageSliceId = messages.length - 3;
         }
-// Project planning instruction injection
+// Enhanced Project planning instruction injection
 const isBuildMode = chatMode === 'build';
-// Consider it a planning phase if it's build mode and it's early in the conversation.
-// messages.length < 3 is a heuristic for "early conversation".
-// The `messages` array typically includes system prompts, user prompts, and previous assistant responses.
-// A fresh build request might have 1 user message + 1 system prompt initially.
-const requiresPlanning = isBuildMode && messages.length < 3;
+const isDiscussMode = chatMode === 'discuss';
 
-if (requiresPlanning) {
-    const planningInstructionContent = `Before generating any code for the main task, please first create a comprehensive project plan in Markdown format.
+// Analyze conversation context for better planning decisions
+const userMessages = messages.filter(msg => msg.role === 'user');
+const assistantMessages = messages.filter(msg => msg.role === 'assistant');
+const lastUserMessage = userMessages[userMessages.length - 1]?.content || '';
+
+// Enhanced planning detection logic
+const hasProjectKeywords = /\b(create|build|develop|make|generate|implement|design|setup|start)\b/i.test(lastUserMessage);
+const hasComplexityIndicators = /\b(app|application|website|system|platform|dashboard|api|backend|frontend|full.?stack)\b/i.test(lastUserMessage);
+const isEarlyConversation = messages.length < 5;
+const hasNoPreviousPlan = !assistantMessages.some(msg => msg.content.includes('PROJECT_PLAN.md') || msg.content.includes('## Project Goals'));
+
+// Determine if planning is required
+const requiresPlanning = isBuildMode && isEarlyConversation && hasProjectKeywords && hasComplexityIndicators && hasNoPreviousPlan;
+
+// Enhanced planning for discussion mode when appropriate
+const requiresDiscussionPlanning = isDiscussMode && hasProjectKeywords && hasComplexityIndicators && isEarlyConversation && hasNoPreviousPlan;
+
+if (requiresPlanning || requiresDiscussionPlanning) {
+    // Analyze project complexity and type
+    const projectType = detectProjectType(lastUserMessage);
+    const complexityLevel = assessComplexity(lastUserMessage);
+    
+    const planningInstructionContent = `Before ${requiresPlanning ? 'generating any code' : 'providing detailed guidance'} for the main task, please first create a comprehensive project plan in Markdown format.
 This plan should be saved to a file named \`PROJECT_PLAN.md\` using a file artifact.
+
+Based on the request analysis:
+- **Project Type:** ${projectType}
+- **Complexity Level:** ${complexityLevel}
+- **Mode:** ${chatMode}
+
 The plan should clearly outline:
-- **Project Goals:** What the project aims to achieve.
-- **Key Features:** Main functionalities to be implemented.
-- **Proposed File Structure:** A brief outline of important files and folders (e.g., \`src/components/\`, \`src/utils/\`).
-- **Implementation Steps:** A sequence of actions to build the project.
-- **Technologies/Libraries (if applicable):** Key technologies or libraries you plan to use.
-After outputting the \`PROJECT_PLAN.md\` artifact, you can then proceed with the first one or two implementation steps from your plan in subsequent artifacts, or await further user input.
-Your subsequent code generation should align with this plan.
+
+## 📋 Project Overview
+- **Project Goals:** What the project aims to achieve
+- **Target Audience:** Who will use this project
+- **Success Criteria:** How to measure project success
+
+## 🚀 Key Features
+- **Core Features:** Essential functionalities (MVP)
+- **Advanced Features:** Nice-to-have functionalities
+- **Future Enhancements:** Potential future additions
+
+## 🏗️ Technical Architecture
+- **Technology Stack:** Recommended technologies and frameworks
+- **Database Design:** Data structure and relationships (if applicable)
+- **API Design:** Endpoints and data flow (if applicable)
+- **Security Considerations:** Authentication, authorization, data protection
+
+## 📁 Project Structure
+\`\`\`
+project-root/
+├── src/
+│   ├── components/
+│   ├── pages/
+│   ├── utils/
+│   ├── services/
+│   └── types/
+├── public/
+├── tests/
+└── docs/
+\`\`\`
+
+## 🔄 Implementation Roadmap
+### Phase 1: Foundation (Week 1)
+- [ ] Project setup and configuration
+- [ ] Basic structure and core components
+- [ ] Development environment setup
+
+### Phase 2: Core Features (Week 2-3)
+- [ ] Implement main functionalities
+- [ ] User interface development
+- [ ] Basic testing
+
+### Phase 3: Enhancement (Week 4)
+- [ ] Advanced features
+- [ ] Performance optimization
+- [ ] Comprehensive testing
+
+### Phase 4: Deployment (Week 5)
+- [ ] Production setup
+- [ ] Documentation
+- [ ] Launch preparation
+
+## 🛠️ Development Guidelines
+- **Code Standards:** Coding conventions and best practices
+- **Testing Strategy:** Unit, integration, and e2e testing approach
+- **Documentation:** Code documentation and user guides
+- **Version Control:** Git workflow and branching strategy
+
+## 📊 Risk Assessment
+- **Technical Risks:** Potential technical challenges
+- **Timeline Risks:** Factors that might affect delivery
+- **Mitigation Strategies:** How to address identified risks
+
+## 📚 Resources & Dependencies
+- **External APIs:** Third-party services required
+- **Libraries & Frameworks:** Key dependencies
+- **Learning Resources:** Documentation and tutorials
+
+After outputting the \`PROJECT_PLAN.md\` artifact, ${requiresPlanning ? 'you can then proceed with the first implementation steps from your plan' : 'provide detailed guidance based on this structured approach'}, or await further user input.
+Your subsequent ${requiresPlanning ? 'code generation' : 'recommendations'} should align with this plan.
 `;
-    // Find the index of the last user message, or default to inserting before the very last message.
+
+    // Find the index of the last user message
     let userMessageIndex = messages.length - 1;
     for (let i = messages.length - 1; i >= 0; i--) {
         if (messages[i].role === 'user') {
@@ -124,7 +211,48 @@ Your subsequent code generation should align with this plan.
         content: planningInstructionContent, 
         id: generateId() 
     });
-    logger.info('Project planning instruction injected for build mode.');
+    
+    logger.info(`Enhanced project planning instruction injected for ${chatMode} mode. Project type: ${projectType}, Complexity: ${complexityLevel}`);
+}
+
+// Helper functions for project analysis
+function detectProjectType(message: string): string {
+    const types = {
+        'web application': /\b(web.?app|website|web.?application|spa|single.?page)\b/i,
+        'mobile application': /\b(mobile.?app|android|ios|react.?native|flutter)\b/i,
+        'desktop application': /\b(desktop.?app|electron|tauri|native.?app)\b/i,
+        'api/backend': /\b(api|backend|server|microservice|rest|graphql)\b/i,
+        'dashboard/admin': /\b(dashboard|admin.?panel|cms|management.?system)\b/i,
+        'e-commerce': /\b(e.?commerce|shop|store|marketplace|cart)\b/i,
+        'data analysis': /\b(data.?analysis|analytics|visualization|dashboard|reporting)\b/i,
+        'game': /\b(game|gaming|interactive|simulation)\b/i,
+        'ai/ml application': /\b(ai|machine.?learning|ml|neural.?network|chatbot)\b/i
+    };
+    
+    for (const [type, regex] of Object.entries(types)) {
+        if (regex.test(message)) return type;
+    }
+    return 'general application';
+}
+
+function assessComplexity(message: string): string {
+    let score = 0;
+    
+    // Complexity indicators with proper typing
+    const indicators: Record<string, [RegExp, number]> = {
+        high: [/\b(full.?stack|microservice|distributed|scalable|enterprise|complex|advanced)\b/i, 3],
+        medium: [/\b(database|authentication|api|integration|responsive|real.?time)\b/i, 2],
+        basic: [/\b(simple|basic|minimal|prototype|mvp|quick)\b/i, -1]
+    };
+    
+    for (const [level, [regex, points]] of Object.entries(indicators)) {
+        if (regex.test(message)) score += points;
+    }
+    
+    if (score >= 4) return 'High (Enterprise-level)';
+    if (score >= 2) return 'Medium (Production-ready)';
+    if (score >= 0) return 'Low-Medium (Standard)';
+    return 'Low (Simple/Prototype)';
 }
         if (filePaths.length > 0 && contextOptimization) {
           logger.debug('Génération du résumé de conversation');
