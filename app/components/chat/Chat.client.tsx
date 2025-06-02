@@ -29,6 +29,8 @@ import { streamingState } from '~/lib/stores/streaming';
 import { filesToArtifacts } from '~/utils/fileUtils';
 import { supabaseConnection } from '~/lib/stores/supabase';
 import type { DataStreamError } from '~/types/context';
+import { defaultDesignScheme, type DesignScheme } from '~/types/design-scheme';
+import type { ElementInfo } from '~/components/workbench/Inspector';
 const toastAnimation = cssTransition({
   enter: 'animated fadeInRight',
   exit: 'animated fadeOutRight',
@@ -125,6 +127,7 @@ export const ChatImpl = memo(
     const [searchParams, setSearchParams] = useSearchParams();
     const [fakeLoading, setFakeLoading] = useState(false);
     const files = useStore(workbenchStore.files);
+    const [designScheme, setDesignScheme] = useState<DesignScheme>(defaultDesignScheme);
     const actionAlert = useStore(workbenchStore.alert);
     const deployAlert = useStore(workbenchStore.deployAlert);
     const supabaseConn = useStore(supabaseConnection); // Add this line to get Supabase connection
@@ -151,6 +154,7 @@ export const ChatImpl = memo(
 
     const [chatMode, setChatMode] = useState<'discuss' | 'build'>('build');
      // Keep track of the errors we alerted on. useChat gets the same data twice even if they're removed with setData
+     const [selectedElement, setSelectedElement] = useState<ElementInfo | null>(null);
      const alertedErrorIds = useRef(new Set());
     const {
       messages,
@@ -173,6 +177,7 @@ export const ChatImpl = memo(
         promptId,
         contextOptimization: contextOptimizationEnabled,
         chatMode,
+        designScheme,
         supabase: {
           isConnected: supabaseConn.isConnected,
           hasSelectedProject: !!selectedProject,
@@ -343,9 +348,14 @@ export const ChatImpl = memo(
         });
         contextSection += '\n--- FIN CONTEXTE ---\n\n';
       }
+      let finalMessageContent = messageContent;
 
-      // If no locked items, proceed normally with the original message
-      const finalMessageContent = contextSection + messageContent;
+      if (selectedElement) {
+        console.log('Selected Element:', selectedElement);
+
+        const elementInfo = `<div class=\"__boltSelectedElement__\" data-element='${JSON.stringify(selectedElement)}'>${JSON.stringify(`${selectedElement.displayText}`)}</div>`;
+        finalMessageContent = messageContent + elementInfo;
+      }
 
       runAnimation();
 
@@ -603,6 +613,10 @@ export const ChatImpl = memo(
         chatMode={chatMode}
         setChatMode={setChatMode}
         append={append}
+        designScheme={designScheme}
+        setDesignScheme={setDesignScheme}
+        selectedElement={selectedElement}
+        setSelectedElement={setSelectedElement}
         runAnimation={runAnimation}
       />
     );

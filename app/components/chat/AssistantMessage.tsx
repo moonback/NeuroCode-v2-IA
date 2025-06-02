@@ -6,6 +6,7 @@ import { workbenchStore } from '~/lib/stores/workbench';
 import { WORK_DIR } from '~/utils/constants';
 import WithTooltip from '~/components/ui/Tooltip';
 import type { Message } from 'ai';
+
 import { Dropdown, DropdownItem } from '~/components/ui/Dropdown';
 import { useSettings } from '~/lib/hooks/useSettings';
 import { PromptLibrary } from '~/lib/common/prompt-library';

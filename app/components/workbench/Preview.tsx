@@ -6,8 +6,14 @@ import { PortDropdown } from './PortDropdown';
 import { ScreenshotSelector } from './ScreenshotSelector';
 import { expoUrlAtom } from '~/lib/stores/qrCodeStore';
 import { ExpoQrModal } from '~/components/workbench/ExpoQrModal';
+import { InspectorPanel } from './InspectorPanel';
+import type { ElementInfo } from './Inspector';
 
 type ResizeSide = 'left' | 'right' | null;
+
+interface PreviewProps {
+  setSelectedElement?: (element: ElementInfo | null) => void;
+}
 
 interface WindowSize {
   name: string;
@@ -47,11 +53,10 @@ const WINDOW_SIZES: WindowSize[] = [
   { name: '4K Display', width: 3840, height: 2160, icon: 'i-ph:monitor', hasFrame: true, frameType: 'desktop' },
 ];
 
-export const Preview = memo(() => {
+export const Preview = memo(({ setSelectedElement }: PreviewProps) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
   const [activePreviewIndex, setActivePreviewIndex] = useState(0);
   const [isPortDropdownOpen, setIsPortDropdownOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -61,11 +66,10 @@ export const Preview = memo(() => {
   const [displayPath, setDisplayPath] = useState('/');
   const [iframeUrl, setIframeUrl] = useState<string | undefined>();
   const [isSelectionMode, setIsSelectionMode] = useState(false);
-
-  // Toggle between responsive mode and device mode
+  const [isInspectorMode, setIsInspectorMode] = useState(false);
+  const [selectedInspectorElement, setSelectedInspectorElement] = useState<ElementInfo | null>(null);
+  const [isInspectorPanelVisible, setIsInspectorPanelVisible] = useState(false);
   const [isDeviceModeOn, setIsDeviceModeOn] = useState(false);
-
-  // Use percentage for width
   const [widthPercent, setWidthPercent] = useState<number>(37.5);
   const [currentWidth, setCurrentWidth] = useState<number>(0);
 
@@ -618,6 +622,49 @@ export const Preview = memo(() => {
     };
   }, [showDeviceFrameInPreview]);
 
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data.type === 'INSPECTOR_READY') {
+        if (iframeRef.current?.contentWindow) {
+          iframeRef.current.contentWindow.postMessage(
+            {
+              type: 'INSPECTOR_ACTIVATE',
+              active: isInspectorMode,
+            },
+            '*',
+          );
+        }
+      } else if (event.data.type === 'INSPECTOR_CLICK') {
+        const element = event.data.elementInfo;
+
+        navigator.clipboard.writeText(element.displayText).then(() => {
+          setSelectedInspectorElement(element);
+          setIsInspectorPanelVisible(true);
+          setSelectedElement?.(element);
+        });
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+
+    return () => window.removeEventListener('message', handleMessage);
+  }, [isInspectorMode]);
+
+  const toggleInspectorMode = () => {
+    const newInspectorMode = !isInspectorMode;
+    setIsInspectorMode(newInspectorMode);
+
+    if (iframeRef.current?.contentWindow) {
+      iframeRef.current.contentWindow.postMessage(
+        {
+          type: 'INSPECTOR_ACTIVATE',
+          active: newInspectorMode,
+        },
+        '*',
+      );
+    }
+  };
+
   return (
     <div ref={containerRef} className={`w-full h-full flex flex-col relative`}>
       {isPortDropdownOpen && (
@@ -697,7 +744,14 @@ export const Preview = memo(() => {
               />
             </>
           )}
-
+          <IconButton
+            icon="i-ph:cursor-click"
+            onClick={toggleInspectorMode}
+            className={
+              isInspectorMode ? 'bg-bolt-elements-background-depth-3 !text-bolt-elements-item-contentAccent' : ''
+            }
+            title={isInspectorMode ? 'Disable Element Inspector' : 'Enable Element Inspector'}
+          />
           <IconButton
             icon={isFullscreen ? 'i-ph:arrows-in' : 'i-ph:arrows-out'}
             onClick={toggleFullscreen}
@@ -995,6 +1049,16 @@ export const Preview = memo(() => {
           )}
         </div>
       </div>
+      
+      {/* Inspector Panel */}
+       <InspectorPanel
+         selectedElement={selectedInspectorElement}
+         isVisible={isInspectorPanelVisible}
+         onClose={() => {
+           setIsInspectorPanelVisible(false);
+           setSelectedInspectorElement(null);
+         }}
+       />
     </div>
   );
 });
