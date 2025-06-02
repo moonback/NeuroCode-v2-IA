@@ -112,9 +112,27 @@ const requiresPlanning = isBuildMode && isEarlyConversation && hasProjectKeyword
 const requiresDiscussionPlanning = isDiscussMode && hasProjectKeywords && hasComplexityIndicators && isEarlyConversation && hasNoPreviousPlan;
 
 if (requiresPlanning || requiresDiscussionPlanning) {
+    // Add progress message for project planning start
+    dataStream.writeData({
+      type: 'progress',
+      label: 'project-planning',
+      status: 'in-progress',
+      order: progressCounter++,
+      message: 'Analyse du projet et génération du plan',
+    } satisfies ProgressAnnotation);
+
     // Analyze project complexity and type
     const projectType = detectProjectType(lastUserMessage);
     const complexityLevel = assessComplexity(lastUserMessage);
+    
+    // Update progress with analysis results
+    dataStream.writeData({
+      type: 'progress',
+      label: 'project-analysis',
+      status: 'in-progress',
+      order: progressCounter++,
+      message: `Type: ${projectType} | Complexité: ${complexityLevel}`,
+    } satisfies ProgressAnnotation);
     
     const planningInstructionContent = `Before ${requiresPlanning ? 'generating any code' : 'providing detailed guidance'} for the main task, please first create a comprehensive project plan in Markdown format.
 This plan should be saved to a file named \`PROJECT_PLAN.md\` using a file artifact.
@@ -197,22 +215,32 @@ After outputting the \`PROJECT_PLAN.md\` artifact, ${requiresPlanning ? 'you can
 Your subsequent ${requiresPlanning ? 'code generation' : 'recommendations'} should align with this plan.
 `;
 
-    // Find the index of the last user message
-    let userMessageIndex = messages.length - 1;
-    for (let i = messages.length - 1; i >= 0; i--) {
-        if (messages[i].role === 'user') {
-            userMessageIndex = i;
-            break;
-        }
-    }
-
-    messages.splice(userMessageIndex, 0, { 
+    // Add system message at the beginning of the conversation
+    messages.unshift({ 
         role: 'system', 
         content: planningInstructionContent, 
         id: generateId() 
     });
     
+    // Complete project planning progress
+    dataStream.writeData({
+      type: 'progress',
+      label: 'project-planning',
+      status: 'complete',
+      order: progressCounter++,
+      message: 'Plan de projet préparé',
+    } satisfies ProgressAnnotation);
+    
     logger.info(`Enhanced project planning instruction injected for ${chatMode} mode. Project type: ${projectType}, Complexity: ${complexityLevel}`);
+    
+    // Add progress for PROJECT_PLAN.md generation
+    dataStream.writeData({
+      type: 'progress',
+      label: 'plan-generation',
+      status: 'in-progress',
+      order: progressCounter++,
+      message: 'Génération du fichier PROJECT_PLAN.md',
+    } satisfies ProgressAnnotation);
 }
 
 // Helper functions for project analysis
@@ -369,6 +397,17 @@ function assessComplexity(message: string): string {
             }
 
             if (finishReason !== 'length') {
+              // Check if PROJECT_PLAN.md was generated in the response
+              if ((requiresPlanning || requiresDiscussionPlanning) && content.includes('PROJECT_PLAN.md')) {
+                dataStream.writeData({
+                  type: 'progress',
+                  label: 'plan-generation',
+                  status: 'complete',
+                  order: progressCounter++,
+                  message: 'PROJECT_PLAN.md généré avec succès',
+                } satisfies ProgressAnnotation);
+              }
+              
               dataStream.writeMessageAnnotation({
                 type: 'usage',
                 value: {
