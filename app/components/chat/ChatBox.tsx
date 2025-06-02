@@ -14,6 +14,9 @@ import { SpeechRecognitionButton } from '~/components/chat/SpeechRecognition';
 import { ExportChatButton } from '~/components/chat/chatExportAndImport/ExportChatButton';
 import { ImportButtons } from '~/components/chat/chatExportAndImport/ImportButtons';
 import GitCloneButton from './GitCloneButton';
+import { ColorSchemeDialog } from '~/components/ui/ColorSchemeDialog';
+import type { DesignScheme } from '~/types/design-scheme';
+import type { ElementInfo } from '~/components/workbench/Inspector';
 import { SupabaseConnection } from './SupabaseConnection';
 import { ExpoQrModal } from '~/components/workbench/ExpoQrModal';
 import { UIImageAnalyzer } from './UIImageAnalyzer';
@@ -64,6 +67,10 @@ interface ChatBoxProps {
   setChatMode?: (mode: 'discuss' | 'build') => void;
   importChat?: (description: string, messages: Message[]) => Promise<void>;
   append?: (message: Message) => void;
+  designScheme?: DesignScheme;
+  setDesignScheme?: (scheme: DesignScheme) => void;
+  selectedElement?: ElementInfo | null;
+  setSelectedElement?: ((element: ElementInfo | null) => void) | undefined;
   runAnimation?: () => void;
 }
 
@@ -90,8 +97,7 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
   return (
     <div
       className={classNames(
-        'relative bg-bolt-elements-background-depth-2 p-3 rounded-lg border border-bolt-elements-borderColor relative w-full max-w-chat mx-auto z-prompt',
-
+'relative bg-bolt-elements-background-depth-2 backdrop-blur p-3 rounded-lg border border-bolt-elements-borderColor relative w-full max-w-chat mx-auto z-prompt',
         /*
          * {
          *   'sticky bottom-2': chatStarted,
@@ -127,6 +133,22 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
       </svg>
       <div>
         <ClientOnly>
+        {props.selectedElement && (
+        <div className="flex mx-1.5 gap-2 items-center justify-between rounded-lg rounded-b-none border border-b-none border-bolt-elements-borderColor text-bolt-elements-textPrimary flex py-1 px-2.5 font-medium text-xs">
+          <div className="flex gap-2 items-center lowercase">
+            <code className="bg-accent-500 rounded-4px px-1.5 py-1 mr-0.5 text-white">
+              {props?.selectedElement?.tagName}
+            </code>
+            selected for inspection
+          </div>
+          <button
+            className="bg-transparent text-accent-500 pointer-auto"
+            onClick={() => props.setSelectedElement?.(null)}
+          >
+            Clear
+          </button>
+        </div>
+      )}
           {() => (
             <div className={props.isModelSettingsCollapsed ? 'hidden' : ''}>
               <ModelSelector
@@ -361,6 +383,7 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
           <div className="flex gap-3 items-center">
             {/* Groupe 1: Actions de fichiers */}
             <div className="flex gap-1 items-center">
+            <ColorSchemeDialog designScheme={props.designScheme} setDesignScheme={props.setDesignScheme} />
               <IconButton 
                 title="Télécharger un fichier" 
                 className="transition-all hover:bg-bolt-elements-item-backgroundAccent/50" 

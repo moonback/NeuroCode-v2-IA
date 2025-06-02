@@ -2,6 +2,7 @@ import { getSystemPrompt } from './prompts/prompts';
 import optimized from './prompts/optimized';
 import { getFineTunedPrompt } from './prompts/new-prompt';
 import smallLlmOptimized from './prompts/small-llm-optimized';
+import type { DesignScheme } from '~/types/design-scheme';
 // Type pour les prompts personnalisés stockés dans le localStorage
 interface StoredCustomPrompt {
   id: string;
@@ -16,6 +17,8 @@ export interface PromptOptions {
   cwd: string;
   allowedHtmlElements: string[];
   modificationTagName: string;
+  designScheme?: DesignScheme;
+
   supabase?: {
     isConnected: boolean;
     hasSelectedProject: boolean;
@@ -38,12 +41,12 @@ export class PromptLibrary {
     default: {
       label: 'Original',
       description: 'Il s\'agit du système par défaut testé au combat.',
-      get: (options) => getSystemPrompt(options.cwd, options.supabase),
+      get: (options) => getSystemPrompt(options.cwd, options.supabase, options.designScheme),
     },
     enhanced: {
       label: 'Fine Tuned ',
       description: 'Un prompt fine-tuned pour des résultats encore meilleurs',
-      get: (options) => getFineTunedPrompt(options.cwd, options.supabase),
+      get: (options) => getFineTunedPrompt(options.cwd, options.supabase, options.designScheme),
     },
     optimized: {
       label: 'Optimized (expérimental)',
