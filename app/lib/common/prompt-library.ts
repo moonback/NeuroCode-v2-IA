@@ -1,7 +1,7 @@
 import { getSystemPrompt } from './prompts/prompts';
 import optimized from './prompts/optimized';
 import { getFineTunedPrompt } from './prompts/new-prompt';
-
+import smallLlmOptimized from './prompts/small-llm-optimized';
 // Type pour les prompts personnalisés stockés dans le localStorage
 interface StoredCustomPrompt {
   id: string;
@@ -49,6 +49,11 @@ export class PromptLibrary {
       label: 'Optimized (expérimental)',
       description: 'Une version expérimentale du prompt pour une utilisation moins intensive des jetons',
       get: (options) => optimized(options),
+    },
+    'small-llm-optimized': {
+      label: 'Small LLM Optimized',
+      description: 'A simplified prompt optimized for smaller Language Models, focusing on reliable artifact generation.',
+      get: (options) => smallLlmOptimized(options),
     },
   };
   
