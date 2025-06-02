@@ -468,7 +468,7 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
                   <div className={`i-ph:chats text-xl`} />
                   {props.chatMode === 'discuss' ? <span>Discussion</span> : <span />}
                 </IconButton>
-                <ClientOnly>{() => <ExportChatButton exportChat={props.exportChat} />}</ClientOnly>
+                {/* <ClientOnly>{() => <ExportChatButton exportChat={props.exportChat} />}</ClientOnly> */}
               </div>
             )}
 
