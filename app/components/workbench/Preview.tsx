@@ -6,6 +6,7 @@ import { PortDropdown } from './PortDropdown';
 import { ScreenshotSelector } from './ScreenshotSelector';
 import { expoUrlAtom } from '~/lib/stores/qrCodeStore';
 import { ExpoQrModal } from '~/components/workbench/ExpoQrModal';
+import { InspectorPanel } from './InspectorPanel';
 import type { ElementInfo } from './Inspector';
 
 type ResizeSide = 'left' | 'right' | null;
@@ -66,6 +67,8 @@ export const Preview = memo(({ setSelectedElement }: PreviewProps) => {
   const [iframeUrl, setIframeUrl] = useState<string | undefined>();
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [isInspectorMode, setIsInspectorMode] = useState(false);
+  const [selectedInspectorElement, setSelectedInspectorElement] = useState<ElementInfo | null>(null);
+  const [isInspectorPanelVisible, setIsInspectorPanelVisible] = useState(false);
   const [isDeviceModeOn, setIsDeviceModeOn] = useState(false);
   const [widthPercent, setWidthPercent] = useState<number>(37.5);
   const [currentWidth, setCurrentWidth] = useState<number>(0);
@@ -635,6 +638,8 @@ export const Preview = memo(({ setSelectedElement }: PreviewProps) => {
         const element = event.data.elementInfo;
 
         navigator.clipboard.writeText(element.displayText).then(() => {
+          setSelectedInspectorElement(element);
+          setIsInspectorPanelVisible(true);
           setSelectedElement?.(element);
         });
       }
@@ -1044,6 +1049,16 @@ export const Preview = memo(({ setSelectedElement }: PreviewProps) => {
           )}
         </div>
       </div>
+      
+      {/* Inspector Panel */}
+       <InspectorPanel
+         selectedElement={selectedInspectorElement}
+         isVisible={isInspectorPanelVisible}
+         onClose={() => {
+           setIsInspectorPanelVisible(false);
+           setSelectedInspectorElement(null);
+         }}
+       />
     </div>
   );
 });
