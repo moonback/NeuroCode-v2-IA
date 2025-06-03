@@ -166,6 +166,7 @@ export function useAgentChatHistory() {
     activeThread,
     agentThreads,
     saveMessages,
+    storeMessageHistory: saveMessages, // Alias for compatibility
     createNewThread,
     switchToThread,
     deleteThread,

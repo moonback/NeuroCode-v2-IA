@@ -98,12 +98,19 @@ const processSampledMessages = createSampler(
     isLoading: boolean;
     parseMessages: (messages: Message[], isLoading: boolean) => void;
     storeMessageHistory: (messages: Message[]) => Promise<void>;
+    storeAgentMessageHistory?: (messages: Message[]) => Promise<void>;
   }) => {
-    const { messages, initialMessages, isLoading, parseMessages, storeMessageHistory } = options;
+    const { messages, initialMessages, isLoading, parseMessages, storeMessageHistory, storeAgentMessageHistory } = options;
     parseMessages(messages, isLoading);
 
     if (messages.length > initialMessages.length) {
+      // Store regular chat history
       storeMessageHistory(messages).catch((error) => toast.error(error.message));
+      
+      // Store agent chat history if available
+      if (storeAgentMessageHistory) {
+        storeAgentMessageHistory(messages).catch((error) => toast.error(`Agent history error: ${error.message}`));
+      }
     }
   },
   50,
@@ -180,6 +187,7 @@ export const ChatImpl = memo(
         contextOptimization: contextOptimizationEnabled,
         chatMode,
         designScheme,
+        selectedAgent: agentChatHistory.selectedAgent,
         supabase: {
           isConnected: supabaseConn.isConnected,
           hasSelectedProject: !!selectedProject,
@@ -273,8 +281,9 @@ export const ChatImpl = memo(
         isLoading,
         parseMessages,
         storeMessageHistory,
+        storeAgentMessageHistory: agentChatHistory.storeMessageHistory,
       });
-    }, [messages, isLoading, parseMessages]);
+    }, [messages, isLoading, parseMessages, agentChatHistory.storeMessageHistory]);
 
     const scrollTextArea = () => {
       const textarea = textareaRef.current;

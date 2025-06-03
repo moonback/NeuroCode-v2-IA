@@ -39,6 +39,17 @@ export async function streamText(props: {
   messageSliceId?: number;
   chatMode?: 'discuss' | 'build';
   designScheme?: DesignScheme;
+  selectedAgent?: {
+    id: string;
+    name: string;
+    description: string;
+    initialPrompt: string;
+    model: string;
+    provider: string;
+    tools?: string[];
+    avatar?: string;
+    color?: string;
+  };
 }) {
   const {
     messages,
@@ -53,6 +64,7 @@ export async function streamText(props: {
     summary,
     chatMode,
     designScheme,
+    selectedAgent,
   } = props;
   let currentModel = DEFAULT_MODEL;
   let currentProvider = DEFAULT_PROVIDER.name;
@@ -129,6 +141,20 @@ export async function streamText(props: {
         credentials: options?.supabaseConnection?.credentials || undefined,
       },
     }) ?? getSystemPrompt();
+
+  // Integrate agent's initial prompt if agent is selected
+  if (selectedAgent && selectedAgent.initialPrompt) {
+    systemPrompt = `${systemPrompt}
+
+## Agent Context
+You are acting as: ${selectedAgent.name}
+Description: ${selectedAgent.description}
+
+Agent Instructions:
+${selectedAgent.initialPrompt}
+
+Please follow these agent-specific instructions while maintaining your core capabilities.`;
+  }
 
   if (chatMode === 'build' && contextFiles && contextOptimization) {
     const codeContext = createFilesContext(contextFiles, true);

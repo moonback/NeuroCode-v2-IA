@@ -39,13 +39,24 @@ function parseCookies(cookieHeader: string): Record<string, string> {
 }
 
 async function chatAction({ context, request }: ActionFunctionArgs) {
-  const { messages, files, promptId, contextOptimization, supabase, chatMode, designScheme } = await request.json<{
+  const { messages, files, promptId, contextOptimization, supabase, chatMode, designScheme, selectedAgent } = await request.json<{
     messages: Messages;
     files: any;
     promptId?: string;
     contextOptimization: boolean;
     chatMode: 'discuss' | 'build';
     designScheme?: DesignScheme;
+    selectedAgent?: {
+      id: string;
+      name: string;
+      description: string;
+      initialPrompt: string;
+      model: string;
+      provider: string;
+      tools?: string[];
+      avatar?: string;
+      color?: string;
+    };
     supabase?: {
       isConnected: boolean;
       hasSelectedProject: boolean;
@@ -91,6 +102,24 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
         if (messages.length > 3) {
           messageSliceId = messages.length - 3;
         }
+
+        // Add agent context annotation if agent is selected
+        if (selectedAgent) {
+          dataStream.writeData({
+            type: 'progress',
+            label: 'agent-context',
+            status: 'complete',
+            order: progressCounter++,
+            message: `🤖 Agent actif: ${selectedAgent.name} • ${selectedAgent.description}`,
+            metadata: {
+              agentId: selectedAgent.id,
+              agentName: selectedAgent.name,
+              agentModel: selectedAgent.model,
+              agentProvider: selectedAgent.provider
+            }
+          } satisfies ProgressAnnotation);
+        }
+
 // Enhanced Project planning instruction injection
 const isBuildMode = chatMode === 'build';
 const isDiscussMode = chatMode === 'discuss';
@@ -120,6 +149,12 @@ if (requiresPlanning || requiresDiscussionPlanning) {
       status: 'in-progress',
       order: progressCounter++,
       message: '🔍 Analyse du projet et génération du plan stratégique...',
+      metadata: {
+        agentId: '',
+        agentName: '',
+        agentModel: '',
+        agentProvider: ''
+      }
     } satisfies ProgressAnnotation);
 
     // Analyze project complexity and type
@@ -133,6 +168,12 @@ if (requiresPlanning || requiresDiscussionPlanning) {
       status: 'in-progress',
       order: progressCounter++,
       message: `📊 Analyse terminée • Type: ${projectType} • Complexité: ${complexityLevel}`,
+      metadata: {
+        agentId: '',
+        agentName: '',
+        agentModel: '',
+        agentProvider: ''
+      }
     } satisfies ProgressAnnotation);
     
     const planningInstructionContent = `Before ${requiresPlanning ? 'generating any code' : 'providing detailed guidance'} for the main task, please first create a comprehensive project plan in Markdown format.
@@ -230,6 +271,12 @@ Your subsequent ${requiresPlanning ? 'code generation' : 'recommendations'} shou
       status: 'complete',
       order: progressCounter++,
       message: '✅ Plan de projet stratégique préparé avec succès',
+      metadata: {
+        agentId: '',
+        agentName: '',
+        agentModel: '',
+        agentProvider: ''
+      }
     } satisfies ProgressAnnotation);
     
     logger.info(`Enhanced project planning instruction injected for ${chatMode} mode. Project type: ${projectType}, Complexity: ${complexityLevel}`);
@@ -241,6 +288,12 @@ Your subsequent ${requiresPlanning ? 'code generation' : 'recommendations'} shou
       status: 'in-progress',
       order: progressCounter++,
       message: '📝 Génération du plan du projet avec une architecture détaillée et une feuille de route de mise en œuvre...',
+      metadata: {
+        agentId: '',
+        agentName: '',
+        agentModel: '',
+        agentProvider: ''
+      }
     } satisfies ProgressAnnotation);
 }
 
@@ -291,6 +344,12 @@ function assessComplexity(message: string): string {
             status: 'in-progress',
             order: progressCounter++,
             message: '🧠 Analyse intelligente de la conversation en cours...',
+            metadata: {
+              agentId: '',
+              agentName: '',
+              agentModel: '',
+              agentProvider: ''
+            }
           } satisfies ProgressAnnotation);
 
           // Créer un résumé de la conversation
@@ -318,6 +377,12 @@ function assessComplexity(message: string): string {
             status: 'complete',
             order: progressCounter++,
             message: '✅ Analyse de conversation terminée avec succès',
+            metadata: {
+              agentId: '',
+              agentName: '',
+              agentModel: '',
+              agentProvider: ''
+            }
           } satisfies ProgressAnnotation);
 
           dataStream.writeMessageAnnotation({
@@ -334,6 +399,12 @@ function assessComplexity(message: string): string {
             status: 'in-progress',
             order: progressCounter++,
             message: '📁 Sélection intelligente des fichiers pertinents...',
+            metadata: {
+              agentId: '',
+              agentName: '',
+              agentModel: '',
+              agentProvider: ''
+            }
           } satisfies ProgressAnnotation);
 
           // Sélectionner les fichiers de contexte
@@ -381,6 +452,12 @@ function assessComplexity(message: string): string {
             status: 'complete',
             order: progressCounter++,
             message: `✅ ${fileCount} fichier${fileCount > 1 ? 's' : ''} de code sélectionné${fileCount > 1 ? 's' : ''} pour le contexte`,
+            metadata: {
+              agentId: '',
+              agentName: '',
+              agentModel: '',
+              agentProvider: ''
+            }
           } satisfies ProgressAnnotation);
 
           // logger.debug('Fichiers de code sélectionnés');
@@ -407,6 +484,12 @@ function assessComplexity(message: string): string {
                   status: 'complete',
                   order: progressCounter++,
                   message: '📋 Plan de projet généré avec succès',
+                  metadata: {
+                    agentId: '',
+                    agentName: '',
+                    agentModel: '',
+                    agentProvider: ''
+                  }
                 } satisfies ProgressAnnotation);
               }
               
@@ -424,6 +507,12 @@ function assessComplexity(message: string): string {
                 status: 'complete',
                 order: progressCounter++,
                 message: `✅ Réponse générée (${cumulativeUsage.totalTokens} tokens utilisés)`,
+                metadata: {
+                  agentId: '',
+                  agentName: '',
+                  agentModel: '',
+                  agentProvider: ''
+                }
               } satisfies ProgressAnnotation);
               await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -445,6 +534,12 @@ function assessComplexity(message: string): string {
                 status: 'error',
                 order: progressCounter++,
                 message: '❌ Erreur : Limite de segments atteinte',
+                metadata: {
+                  agentId: '',
+                  agentName: '',
+                  agentModel: '',
+                  agentProvider: ''
+                }
               } satisfies ProgressAnnotation);
               await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -461,6 +556,12 @@ function assessComplexity(message: string): string {
               status: 'in-progress',
               order: progressCounter++,
               message: `🔄 Continuation du message (${switchesLeft} segments restants)...`,
+              metadata: {
+                agentId: '',
+                agentName: '',
+                agentModel: '',
+                agentProvider: ''
+              }
             } satisfies ProgressAnnotation);
 
             const lastUserMessage = messages.filter((x) => x.role == 'user').slice(-1)[0];
@@ -489,6 +590,7 @@ function assessComplexity(message: string): string {
               designScheme,
               summary,
               messageSliceId,
+              selectedAgent,
             });
 
             result.mergeIntoDataStream(dataStream);
@@ -514,6 +616,12 @@ function assessComplexity(message: string): string {
           status: 'in-progress',
           order: progressCounter++,
           message: '🤖 Génération de la réponse intelligente en cours...',
+          metadata: {
+            agentId: '',
+            agentName: '',
+            agentModel: '',
+            agentProvider: ''
+          }
         } satisfies ProgressAnnotation);
 
         const result = await streamText({
@@ -530,6 +638,7 @@ function assessComplexity(message: string): string {
           designScheme,
           summary,
           messageSliceId,
+          selectedAgent,
         });
 
         (async () => {

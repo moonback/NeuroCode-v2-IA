@@ -15,6 +15,12 @@ export type ProgressAnnotation = {
   status: 'in-progress' | 'complete' | 'error';
   order: number;
   message: string;
+   metadata: {
+    agentId: string;
+    agentName: string;
+    agentModel: string;
+    agentProvider: string;
+}
 };
 
 export type SegmentsGroupAnnotation = {

@@ -86,9 +86,15 @@ export default function ProgressCompilation({ data }: { data?: ProgressAnnotatio
 }
 
 const ProgressItem = ({ progress }: { progress: ProgressAnnotation }) => {
+  const isAgentContext = progress.label === 'agent-context';
+  const agentMetadata = progress.metadata as any;
+  
   return (
     <motion.div
-      className={classNames('flex text-sm gap-3')}
+      className={classNames(
+        'flex text-sm gap-3',
+        isAgentContext ? 'bg-bolt-elements-item-backgroundDefault rounded-md p-2 border border-bolt-elements-borderColor' : ''
+      )}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -106,7 +112,16 @@ const ProgressItem = ({ progress }: { progress: ProgressAnnotation }) => {
         </div>
         {/* {x.label} */}
       </div>
-      {progress.message}
+      <div className="flex-1">
+        {progress.message}
+        {isAgentContext && agentMetadata && (
+          <div className="mt-1 text-xs text-bolt-elements-textSecondary flex gap-2">
+            <span>Modèle: {agentMetadata.agentModel}</span>
+            <span>•</span>
+            <span>Fournisseur: {agentMetadata.agentProvider}</span>
+          </div>
+        )}
+      </div>
     </motion.div>
   );
 };
