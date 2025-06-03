@@ -138,11 +138,11 @@ export const InspectorPanel = ({ selectedElement, isVisible, onClose }: Inspecto
           >
             <div className="flex items-center gap-2">
               <CodeBracketIcon className="w-4 h-4 text-bolt-elements-textSecondary" />
-              <h3 className="text-sm font-medium text-bolt-elements-textPrimary">Element Inspector</h3>
+              <h3 className="text-sm font-medium text-bolt-elements-textPrimary">Inspecteur d'éléments</h3>
             </div>
             <motion.button 
               onClick={onClose} 
-              className="text-bolt-elements-item-contentDefault hover:text-bolt-elements-item-contentActive p-1 rounded hover:bg-bolt-elements-item-backgroundActive transition-colors"
+              className="text-bolt-elements-item-contentDefault bg-bolt-elements-background-depth-1 hover:text-bolt-elements-item-contentActive p-1 rounded hover:bg-bolt-elements-item-backgroundActive transition-colors"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -197,7 +197,7 @@ export const InspectorPanel = ({ selectedElement, isVisible, onClose }: Inspecto
 
           {/* Tabs */}
           <motion.div 
-            className="flex border-b border-bolt-elements-borderColor bg-bolt-elements-background-depth-1"
+            className="flex border-b border-bolt-elements-borderColor bg-bolt-elements-background-depth-1 "
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
@@ -208,6 +208,7 @@ export const InspectorPanel = ({ selectedElement, isVisible, onClose }: Inspecto
                 onClick={() => setActiveTab(tab)}
                 className={`
                   flex-1 px-3 py-2 
+                  bg-bolt-elements-background-depth-1
                   flex items-center justify-center gap-1.5
                   text-sm font-medium capitalize
                   transition-all duration-200
