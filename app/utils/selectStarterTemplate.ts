@@ -182,8 +182,8 @@ export async function getTemplates(templateName: string, title?: string) {
   }
 
   const assistantMessage = `
-Bolt is initializing your project with the required files using the ${template.name} template.
-<boltArtifact id="imported-files" title="${title || 'Create initial files'}" type="bundled">
+Neurocode initialise votre projet avec les fichiers requis en utilisant le modèle ${template.name}.
+<boltArtifact id="imported-files" title="${title || 'Créer les fichiers initiaux'}" type="bundled">
 ${filesToImport.files
   .map(
     (file) =>

@@ -125,20 +125,20 @@ export const PromptEnhancer: React.FC<PromptEnhancerProps> = ({
         disabled={disabled}
         className={classNames(
           "relative group transition-all duration-300 ease-out",
-          "hover:bg-indigo-500/15 hover:shadow-lg hover:shadow-indigo-500/20",
+          "hover:bg-violet-500/15 hover:shadow-lg hover:shadow-violet-500/20",
           "hover:scale-105 active:scale-95",
-          "border border-transparent hover:border-indigo-400/40",
-          isOpen ? "bg-indigo-500/10 border-indigo-400/50 shadow-md shadow-indigo-500/15" : ""
+          "border border-transparent hover:border-violet-400/40",
+          isOpen ? "bg-violet-500/10 border-violet-400/50 shadow-md shadow-violet-500/15" : ""
         )}
         onClick={() => setIsOpen(!isOpen)}
       >
         <div className={classNames(
           "i-ph:magic-wand text-xl transition-all duration-300",
-          "group-hover:text-indigo-400",
-          isOpen ? "text-indigo-400" : "text-bolt-elements-textSecondary"
+          "group-hover:text-violet-400",
+          isOpen ? "text-violet-400" : "text-bolt-elements-textSecondary"
         )}></div>
         {/* Subtle glow effect */}
-        <div className="absolute inset-0 rounded-lg bg-indigo-500/0 group-hover:bg-indigo-500/5 transition-all duration-300"></div>
+        <div className="absolute inset-0 rounded-lg bg-violet-500/0 group-hover:bg-violet-500/5 transition-all duration-300"></div>
       </IconButton>
       
       {/* Modal Panel */}
@@ -151,14 +151,14 @@ export const PromptEnhancer: React.FC<PromptEnhancerProps> = ({
           />
           
           {/* Main Panel */}
-          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-[95vw] md:max-w-[800px] z-50">
+          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-[195vw] md:max-w-[500px] z-50">
             <div className="bg-bolt-elements-background-depth-1 border border-bolt-elements-borderColor/50 rounded-2xl shadow-2xl shadow-black/20 backdrop-blur-xl overflow-hidden">
               {/* Header */}
-              <div className="relative bg-indigo-500/5 border-b border-bolt-elements-borderColor/30 p-6">
+              <div className="relative bg-violet-500/5 border-b border-bolt-elements-borderColor/30 p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="p-3 bg-indigo-500/10 border border-indigo-400/20 rounded-xl">
-                      <div className="i-ph:sparkle text-indigo-400 text-lg"></div>
+                    <div className="p-3 bg-violet-500/10 border border-violet-400/20 rounded-xl">
+                      <div className="i-ph:sparkle text-violet-400 text-lg"></div>
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold text-bolt-elements-textPrimary">
@@ -180,11 +180,11 @@ export const PromptEnhancer: React.FC<PromptEnhancerProps> = ({
               </div>
               
               {/* Content */}
-              <div className="p-6 space-y-6 max-h-[300px] overflow-y-auto custom-scrollbar">
+              <div className="p-6 space-y-6 max-h-[600px] overflow-y-auto custom-scrollbar">
                 {/* Description Section */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <div className="i-ph:chat-circle-text text-indigo-400 text-base"></div>
+                    <div className="i-ph:chat-circle-text text-violet-400 text-base"></div>
                     <label className="text-sm font-medium text-bolt-elements-textPrimary">
                       Décrivez votre objectif
                     </label>
@@ -198,7 +198,7 @@ export const PromptEnhancer: React.FC<PromptEnhancerProps> = ({
                       className={classNames(
                         "w-full h-20 px-4 py-3 text-sm rounded-lg resize-none transition-all duration-200",
                         "bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor/50",
-                        "focus:border-indigo-400/60 focus:ring-2 focus:ring-indigo-500/10",
+                        "focus:border-violet-400/60 focus:ring-2 focus:ring-violet-500/10",
                         "text-bolt-elements-textPrimary placeholder-bolt-elements-textTertiary",
                         "hover:border-bolt-elements-borderColor/70",
                         "focus:outline-none"
@@ -211,7 +211,7 @@ export const PromptEnhancer: React.FC<PromptEnhancerProps> = ({
                 {/* Context Section */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <div className="i-ph:info text-indigo-400 text-base"></div>
+                    <div className="i-ph:info text-violet-400 text-base"></div>
                     <label className="text-sm font-medium text-bolt-elements-textPrimary">
                       Contexte supplémentaire
                       <span className="text-xs text-bolt-elements-textTertiary ml-1">(optionnel)</span>
@@ -225,7 +225,7 @@ export const PromptEnhancer: React.FC<PromptEnhancerProps> = ({
                       className={classNames(
                         "w-full h-16 px-4 py-3 text-sm rounded-lg resize-none transition-all duration-200",
                         "bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor/50",
-                        "focus:border-indigo-400/60 focus:ring-2 focus:ring-indigo-500/10",
+                        "focus:border-violet-400/60 focus:ring-2 focus:ring-violet-500/10",
                         "text-bolt-elements-textPrimary placeholder-bolt-elements-textTertiary",
                         "hover:border-bolt-elements-borderColor/70",
                         "focus:outline-none"
@@ -238,7 +238,7 @@ export const PromptEnhancer: React.FC<PromptEnhancerProps> = ({
                 {/* Technical Specifications */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
-                    <div className="i-ph:gear text-indigo-400 text-base"></div>
+                    <div className="i-ph:gear text-violet-400 text-base"></div>
                     <label className="text-sm font-medium text-bolt-elements-textPrimary">
                       Spécifications techniques
                       <span className="text-xs text-bolt-elements-textTertiary ml-1">(optionnel)</span>
@@ -257,7 +257,7 @@ export const PromptEnhancer: React.FC<PromptEnhancerProps> = ({
                         className={classNames(
                           "w-full px-3 py-2 text-sm rounded-lg transition-all duration-200",
                           "bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor/50",
-                          "focus:border-indigo-400/60 focus:ring-2 focus:ring-indigo-500/10",
+                          "focus:border-violet-400/60 focus:ring-2 focus:ring-violet-500/10",
                           "hover:border-bolt-elements-borderColor/70",
                           "text-bolt-elements-textPrimary focus:outline-none"
                         )}
@@ -285,7 +285,7 @@ export const PromptEnhancer: React.FC<PromptEnhancerProps> = ({
                         className={classNames(
                           "w-full px-3 py-2 text-sm rounded-lg transition-all duration-200",
                           "bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor/50",
-                          "focus:border-indigo-400/60 focus:ring-2 focus:ring-indigo-500/10",
+                          "focus:border-violet-400/60 focus:ring-2 focus:ring-violet-500/10",
                           "hover:border-bolt-elements-borderColor/70",
                           "text-bolt-elements-textPrimary focus:outline-none"
                         )}
@@ -314,7 +314,7 @@ export const PromptEnhancer: React.FC<PromptEnhancerProps> = ({
                         className={classNames(
                           "w-full px-3 py-2 text-sm rounded-lg transition-all duration-200",
                           "bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor/50",
-                          "focus:border-indigo-400/60 focus:ring-2 focus:ring-indigo-500/10",
+                          "focus:border-violet-400/60 focus:ring-2 focus:ring-violet-500/10",
                           "hover:border-bolt-elements-borderColor/70",
                           "text-bolt-elements-textPrimary focus:outline-none"
                         )}
@@ -343,7 +343,7 @@ export const PromptEnhancer: React.FC<PromptEnhancerProps> = ({
                         className={classNames(
                           "w-full h-16 px-3 py-2 text-sm rounded-lg resize-none transition-all duration-200",
                           "bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor/50",
-                          "focus:border-indigo-400/60 focus:ring-2 focus:ring-indigo-500/10",
+                          "focus:border-violet-400/60 focus:ring-2 focus:ring-violet-500/10",
                           "text-bolt-elements-textPrimary placeholder-bolt-elements-textTertiary",
                           "hover:border-bolt-elements-borderColor/70",
                           "focus:outline-none"
@@ -359,7 +359,7 @@ export const PromptEnhancer: React.FC<PromptEnhancerProps> = ({
                   {/* Complexity */}
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <div className="i-ph:graduation-cap text-indigo-400 text-sm"></div>
+                      <div className="i-ph:graduation-cap text-violet-400 text-sm"></div>
                       <label className="text-sm font-medium text-bolt-elements-textPrimary">
                         Niveau
                       </label>
@@ -370,7 +370,7 @@ export const PromptEnhancer: React.FC<PromptEnhancerProps> = ({
                       className={classNames(
                         "w-full px-3 py-2.5 text-sm rounded-lg transition-all duration-200",
                         "bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor/50",
-                        "focus:border-indigo-400/60 focus:ring-2 focus:ring-indigo-500/10",
+                        "focus:border-violet-400/60 focus:ring-2 focus:ring-violet-500/10",
                         "hover:border-bolt-elements-borderColor/70",
                         "text-bolt-elements-textPrimary focus:outline-none"
                       )}
@@ -386,7 +386,7 @@ export const PromptEnhancer: React.FC<PromptEnhancerProps> = ({
                   {/* Output Type */}
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <div className="i-ph:list-bullets text-indigo-400 text-sm"></div>
+                      <div className="i-ph:list-bullets text-violet-400 text-sm"></div>
                       <label className="text-sm font-medium text-bolt-elements-textPrimary">
                         Format
                       </label>
@@ -397,7 +397,7 @@ export const PromptEnhancer: React.FC<PromptEnhancerProps> = ({
                       className={classNames(
                         "w-full px-3 py-2.5 text-sm rounded-lg transition-all duration-200",
                         "bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor/50",
-                        "focus:border-indigo-400/60 focus:ring-2 focus:ring-indigo-500/10",
+                        "focus:border-violet-400/60 focus:ring-2 focus:ring-violet-500/10",
                         "hover:border-bolt-elements-borderColor/70",
                         "text-bolt-elements-textPrimary focus:outline-none"
                       )}
@@ -413,7 +413,7 @@ export const PromptEnhancer: React.FC<PromptEnhancerProps> = ({
                   {/* Language */}
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <div className="i-ph:globe text-indigo-400 text-sm"></div>
+                      <div className="i-ph:globe text-violet-400 text-sm"></div>
                       <label className="text-sm font-medium text-bolt-elements-textPrimary">
                         Langue
                       </label>
@@ -424,7 +424,7 @@ export const PromptEnhancer: React.FC<PromptEnhancerProps> = ({
                       className={classNames(
                         "w-full px-3 py-2.5 text-sm rounded-lg transition-all duration-200",
                         "bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor/50",
-                        "focus:border-indigo-400/60 focus:ring-2 focus:ring-indigo-500/10",
+                        "focus:border-violet-400/60 focus:ring-2 focus:ring-violet-500/10",
                         "hover:border-bolt-elements-borderColor/70",
                         "text-bolt-elements-textPrimary focus:outline-none"
                       )}
@@ -441,7 +441,7 @@ export const PromptEnhancer: React.FC<PromptEnhancerProps> = ({
                   {/* Tone */}
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <div className="i-ph:chat-teardrop text-indigo-400 text-sm"></div>
+                      <div className="i-ph:chat-teardrop text-violet-400 text-sm"></div>
                       <label className="text-sm font-medium text-bolt-elements-textPrimary">
                         Ton
                       </label>
@@ -452,7 +452,7 @@ export const PromptEnhancer: React.FC<PromptEnhancerProps> = ({
                       className={classNames(
                         "w-full px-3 py-2.5 text-sm rounded-lg transition-all duration-200",
                         "bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor/50",
-                        "focus:border-indigo-400/60 focus:ring-2 focus:ring-indigo-500/10",
+                        "focus:border-violet-400/60 focus:ring-2 focus:ring-violet-500/10",
                         "hover:border-bolt-elements-borderColor/70",
                         "text-bolt-elements-textPrimary focus:outline-none"
                       )}
@@ -480,12 +480,12 @@ export const PromptEnhancer: React.FC<PromptEnhancerProps> = ({
                     disabled={isEnhancing || !description.trim()}
                     className={classNames(
                       'px-6 py-3 text-sm font-semibold rounded-lg transition-all duration-200',
-                      'bg-indigo-600 hover:bg-indigo-700 text-white',
-                      'shadow-md hover:shadow-lg hover:shadow-indigo-500/20',
+                      'bg-violet-600 hover:bg-violet-700 text-white',
+                      'shadow-md hover:shadow-lg hover:shadow-violet-500/20',
                       'disabled:opacity-50 disabled:cursor-not-allowed',
                       'hover:scale-[1.02] active:scale-[0.98]',
-                      'focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:ring-offset-2 focus:ring-offset-bolt-elements-background-depth-1',
-                      'border border-indigo-500/20'
+                      'focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:ring-offset-2 focus:ring-offset-bolt-elements-background-depth-1',
+                      'border border-violet-500/20'
                     )}
                   >
                     {isEnhancing ? (
