@@ -10,6 +10,9 @@ import { db, deleteById, getAll, chatId, type ChatHistoryItem, useChatHistory } 
 import { cubicEasingFn } from '~/utils/easings';
 import { HistoryItem } from './HistoryItem';
 import { binDates } from './date-binning';
+import { agentsListStore, agentThreadsStore } from '~/lib/stores/agents';
+import { agentService } from '~/lib/services/agentService';
+import type { AgentProfile, AgentChatThread } from '~/utils/types';
 import { useSearchFilter } from '~/lib/hooks/useSearchFilter';
 import { classNames } from '~/utils/classNames';
 import { useStore } from '@nanostores/react';
@@ -243,6 +246,12 @@ export const Menu = () => {
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [viewMode, setViewMode] = useState<'projects' | 'agents'>('projects');
+  const [agentThreads, setAgentThreads] = useState<AgentChatThread[]>([]);
+  const [loadingAgentThreads, setLoadingAgentThreads] = useState(false);
+  
+  const agents = useStore(agentsListStore);
+  const allAgentThreads = useStore(agentThreadsStore);
   const chat = useStore(chatStore);
   const isChatStarted = chat.started;
 
@@ -439,6 +448,33 @@ export const Menu = () => {
     }
   }, [open, loadEntries]);
 
+  // Fonctions pour gérer l'historique des agents
+  const loadAgentThreads = useCallback(async () => {
+    if (viewMode !== 'agents') return;
+    
+    setLoadingAgentThreads(true);
+    try {
+      const allThreads: AgentChatThread[] = [];
+      for (const agent of agents) {
+        const threads = await agentService.getAgentThreads(agent.id);
+        allThreads.push(...threads);
+      }
+      setAgentThreads(allThreads.sort((a, b) => 
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      ));
+    } catch (error) {
+      console.error('Erreur lors du chargement des threads d\'agents:', error);
+    } finally {
+      setLoadingAgentThreads(false);
+    }
+  }, [viewMode, agents]);
+
+  useEffect(() => {
+    if (viewMode === 'agents') {
+      loadAgentThreads();
+    }
+  }, [viewMode, loadAgentThreads]);
+
   // Exit selection mode when sidebar is closed
   useEffect(() => {
     if (!open && selectionMode) {
@@ -479,6 +515,40 @@ export const Menu = () => {
     await duplicateCurrentChat(id);
     loadEntries(); // Reload the list after duplication
   };
+
+  const handleAgentThreadClick = useCallback((thread: AgentChatThread) => {
+    // Naviguer vers le chat de l'agent avec ce thread
+    window.location.href = `/agent/${thread.agentId}?threadId=${thread.id}`;
+  }, []);
+
+  const handleDeleteAgentThread = useCallback(async (event: React.UIEvent, thread: AgentChatThread) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce thread d\'agent ?')) {
+      try {
+        await agentService.deleteAgentThread(thread.agentId, thread.id);
+        await loadAgentThreads();
+      } catch (error) {
+        console.error('Erreur lors de la suppression du thread:', error);
+      }
+    }
+  }, [loadAgentThreads]);
+
+  const formatAgentThreadForHistoryItem = useCallback((thread: AgentChatThread): ChatHistoryItem & { agentName?: string; agentColor?: string; agentAvatar?: string; url?: string } => {
+    const agent = agents.find(a => a.id === thread.agentId);
+    return {
+      id: thread.id,
+      description: thread.title || 'Conversation sans titre',
+      timestamp: thread.updatedAt,
+      messages: [], // Les threads d'agents n'ont pas de messages dans ce contexte
+      // Propriétés spécifiques aux agents
+      agentName: agent?.name || 'Agent inconnu',
+      agentColor: agent?.color || '#6B7280',
+      agentAvatar: agent?.avatar || '🤖',
+      url: `/agent/${thread.agentId}?threadId=${thread.id}`
+    };
+  }, [agents]);
 
   const handleSettingsClick = () => {
     setIsSettingsOpen(true);
@@ -577,32 +647,51 @@ export const Menu = () => {
             </a>
             <div className="flex gap-2">
               <button
-                onClick={() => setShowTemplates(!showTemplates)}
+                onClick={() => {
+                  setViewMode('projects');
+                  setShowTemplates(!showTemplates);
+                }}
                 className={classNames(
                   'flex-1 flex gap-1.5 items-center justify-center rounded-lg px-3 py-2 transition-all duration-200 text-xs font-medium',
-                  showTemplates
+                  viewMode === 'projects' && showTemplates
                     ? 'bg-violet-600 dark:bg-violet-500 text-white'
                     : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700',
                 )}
-                aria-label={showTemplates ? 'Masquer les projets' : 'Afficher les projets'}
-                title={showTemplates ? 'Masquer les projets' : 'Afficher les projets'}
+                aria-label="Afficher les projets"
+                title="Afficher les projets"
               >
                 <span className="i-ph:folder h-3.5 w-3.5" />
                 <span>Projets</span>
               </button>
               <button
-                onClick={toggleSelectionMode}
+                onClick={() => setViewMode('agents')}
                 className={classNames(
                   'flex-1 flex gap-1.5 items-center justify-center rounded-lg px-3 py-2 transition-all duration-200 text-xs font-medium',
-                  selectionMode
-                    ? 'bg-red-600 dark:bg-red-500 text-white'
+                  viewMode === 'agents'
+                    ? 'bg-blue-600 dark:bg-blue-500 text-white'
                     : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700',
                 )}
-                aria-label={selectionMode ? 'Quitter le mode sélection' : 'Entrer en mode sélection'}
+                aria-label="Afficher l'historique des agents"
+                title="Afficher l'historique des agents"
               >
-                <span className={selectionMode ? 'i-ph:x h-3.5 w-3.5' : 'i-ph:check-square h-3.5 w-3.5'} />
-                <span>{selectionMode ? 'Annuler' : 'Sélection'}</span>
+                <span className="i-ph:robot h-3.5 w-3.5" />
+                <span>Agents</span>
               </button>
+              {viewMode === 'projects' && (
+                <button
+                  onClick={toggleSelectionMode}
+                  className={classNames(
+                    'flex gap-1.5 items-center justify-center rounded-lg px-3 py-2 transition-all duration-200 text-xs font-medium',
+                    selectionMode
+                      ? 'bg-red-600 dark:bg-red-500 text-white'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700',
+                  )}
+                  aria-label={selectionMode ? 'Quitter le mode sélection' : 'Entrer en mode sélection'}
+                >
+                  <span className={selectionMode ? 'i-ph:x h-3.5 w-3.5' : 'i-ph:check-square h-3.5 w-3.5'} />
+                  <span>{selectionMode ? 'Annuler' : 'Sélection'}</span>
+                </button>
+              )}
             </div>
             <div className="relative w-full">
               <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10">
@@ -619,15 +708,29 @@ export const Menu = () => {
           </div>
           <div className="flex items-center justify-between text-sm px-4 py-2.5 bg-gray-50/60 dark:bg-gray-800/40 border-b border-gray-200/40 dark:border-gray-700/30">
             <div className="font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
-              <div className="w-4 h-4 bg-gradient-to-br from-purple-600 to-violet-600 rounded flex items-center justify-center">
-                <div className="i-ph:chat text-white text-xs" />
-              </div>
-              <span className="text-sm">Projets</span>
-              <span className="px-1.5 py-0.5 bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 rounded text-xs font-medium">
-                {filteredList.length}
-              </span>
+              {viewMode === 'projects' ? (
+                <>
+                  <div className="w-4 h-4 bg-gradient-to-br from-purple-600 to-violet-600 rounded flex items-center justify-center">
+                    <div className="i-ph:chat text-white text-xs" />
+                  </div>
+                  <span className="text-sm">Projets</span>
+                  <span className="px-1.5 py-0.5 bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 rounded text-xs font-medium">
+                    {filteredList.length}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <div className="w-4 h-4 bg-gradient-to-br from-blue-600 to-blue-600 rounded flex items-center justify-center">
+                    <div className="i-ph:robot text-white text-xs" />
+                  </div>
+                  <span className="text-sm">Historique des Agents</span>
+                  <span className="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded text-xs font-medium">
+                    {agentThreads.length}
+                  </span>
+                </>
+              )}
             </div>
-            {selectionMode && (
+            {viewMode === 'projects' && selectionMode && (
               <div className="flex items-center gap-1.5">
                 <Button 
                   variant="ghost" 
@@ -650,48 +753,119 @@ export const Menu = () => {
             )}
           </div>
           <div className="flex-1 overflow-auto px-3 pb-3">
-            {filteredList.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-violet-100 dark:from-purple-900/30 dark:to-violet-900/30 rounded-lg flex items-center justify-center mb-3">
-                  <div className="i-ph:chat-circle text-purple-600 dark:text-purple-400 text-xl" />
-                </div>
-                <h3 className="font-medium text-gray-800 dark:text-gray-200 mb-1 text-sm">
-                  {list.length === 0 ? 'Aucun projet' : 'Aucun résultat'}
-                </h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400 max-w-40">
-                  {list.length === 0 
-                    ? 'Commencez avec NeuroCode' 
-                    : 'Essayez d\'autres mots-clés'}
-                </p>
-              </div>
+            {viewMode === 'projects' ? (
+              <>
+                {filteredList.length === 0 && (
+                  <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
+                    <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-violet-100 dark:from-purple-900/30 dark:to-violet-900/30 rounded-lg flex items-center justify-center mb-3">
+                      <div className="i-ph:chat-circle text-purple-600 dark:text-purple-400 text-xl" />
+                    </div>
+                    <h3 className="font-medium text-gray-800 dark:text-gray-200 mb-1 text-sm">
+                      {list.length === 0 ? 'Aucun projet' : 'Aucun résultat'}
+                    </h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 max-w-40">
+                      {list.length === 0 
+                        ? 'Commencez avec NeuroCode' 
+                        : 'Essayez d\'autres mots-clés'}
+                    </p>
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                {loadingAgentThreads ? (
+                  <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
+                    <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mb-3"></div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Chargement des conversations...</p>
+                  </div>
+                ) : agentThreads.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-100 dark:from-blue-900/30 dark:to-blue-900/30 rounded-lg flex items-center justify-center mb-3">
+                      <div className="i-ph:robot text-blue-600 dark:text-blue-400 text-xl" />
+                    </div>
+                    <h3 className="font-medium text-gray-800 dark:text-gray-200 mb-1 text-sm">
+                      Aucune conversation d'agent
+                    </h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 max-w-40">
+                      Commencez une conversation avec un agent
+                    </p>
+                  </div>
+                ) : null}
+              </>
             )}
             <DialogRoot open={dialogContent !== null}>
-              {binDates(filteredList).map(({ category, items }) => (
-                <div key={category} className="mt-3 first:mt-0 space-y-1">
-                  <div className="text-xs font-medium text-gray-600 dark:text-gray-300 sticky top-0 z-1 bg-white dark:bg-gray-950 px-3 py-1.5 rounded border border-gray-200/40 dark:border-gray-700/40">
-                    {category}
+              {viewMode === 'projects' ? (
+                binDates(filteredList).map(({ category, items }) => (
+                  <div key={category} className="mt-3 first:mt-0 space-y-1">
+                    <div className="text-xs font-medium text-gray-600 dark:text-gray-300 sticky top-0 z-1 bg-white dark:bg-gray-950 px-3 py-1.5 rounded border border-gray-200/40 dark:border-gray-700/40">
+                      {category}
+                    </div>
+                    <div className="space-y-0.5 pr-1">
+                      {items.map((item) => (
+                        <HistoryItem
+                          key={item.id}
+                          item={item}
+                          exportChat={exportChat}
+                          onDelete={(event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            console.log('Delete triggered for item:', item);
+                            setDialogContentWithLogging({ type: 'delete', item });
+                          }}
+                          onDuplicate={() => handleDuplicate(item.id)}
+                          selectionMode={selectionMode}
+                          isSelected={selectedItems.includes(item.id)}
+                          onToggleSelection={toggleItemSelection}
+                        />
+                      ))}
+                    </div>
                   </div>
-                  <div className="space-y-0.5 pr-1">
-                    {items.map((item) => (
-                      <HistoryItem
-                        key={item.id}
-                        item={item}
-                        exportChat={exportChat}
-                        onDelete={(event) => {
-                          event.preventDefault();
-                          event.stopPropagation();
-                          console.log('Delete triggered for item:', item);
-                          setDialogContentWithLogging({ type: 'delete', item });
-                        }}
-                        onDuplicate={() => handleDuplicate(item.id)}
-                        selectionMode={selectionMode}
-                        isSelected={selectedItems.includes(item.id)}
-                        onToggleSelection={toggleItemSelection}
-                      />
-                    ))}
+                ))
+              ) : (
+                binDates(agentThreads.map(formatAgentThreadForHistoryItem)).map(({ category, items }) => (
+                  <div key={category} className="mt-3 first:mt-0 space-y-1">
+                    <div className="text-xs font-medium text-gray-600 dark:text-gray-300 sticky top-0 z-1 bg-white dark:bg-gray-950 px-3 py-1.5 rounded border border-gray-200/40 dark:border-gray-700/40">
+                      {category}
+                    </div>
+                    <div className="space-y-0.5 pr-1">
+                      {items.map((item) => {
+                        const thread = agentThreads.find(t => t.id === item.id);
+                        return (
+                          <div
+                            key={item.id}
+                            className="group flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer transition-all duration-200"
+                            onClick={() => thread && handleAgentThreadClick(thread)}
+                          >
+                            <div 
+                              className="w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0"
+                              style={{ backgroundColor: (item as any).agentColor || '#6B7280' }}
+                            >
+                              {(item as any).agentAvatar || '🤖'}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-gray-900 dark:text-gray-100 text-sm truncate">
+                                {item.description}
+                              </div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                                <span>{(item as any).agentName || 'Agent inconnu'}</span>
+                                <span>•</span>
+                                <span>{new Date(item.timestamp).toLocaleDateString('fr-FR')}</span>
+                              </div>
+                            </div>
+                            <button
+                              onClick={(e) => thread && handleDeleteAgentThread(e, thread)}
+                              className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 transition-all duration-200"
+                              title="Supprimer cette conversation"
+                            >
+                              <span className="i-ph:trash text-sm" />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
               <Dialog onBackdrop={closeDialog} onClose={closeDialog}>
                 {dialogContent?.type === 'delete' && (
                   <>
