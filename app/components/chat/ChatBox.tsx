@@ -462,7 +462,9 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
                   </IconButton>
                 </motion.div>
               )}
+{!props.chatStarted && (
             <ColorSchemeDialog designScheme={props.designScheme} setDesignScheme={props.setDesignScheme} />
+          )}
               <IconButton 
                 title="Télécharger un fichier" 
                 className="transition-all hover:bg-bolt-elements-item-backgroundAccent/50" 
