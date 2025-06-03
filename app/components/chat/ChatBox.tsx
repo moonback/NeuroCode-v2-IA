@@ -152,7 +152,7 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
         {aiTargetFiles.size > 0 && (
         <div className="flex mx-1.5 gap-2 items-center justify-between rounded-lg rounded-b-none border border-b-none border-bolt-elements-borderColor text-bolt-elements-textPrimary flex py-1 px-2.5 font-medium text-xs">
           <div className="flex gap-2 items-center lowercase">
-            <code className="bg-blue-500 rounded-4px px-1.5 py-1 mr-0.5 text-white">
+            <code className="bg-violet-500 rounded-4px px-1.5 py-1 mr-0.5 text-white">
               {aiTargetFiles.size}
             </code>
             fichier(s) ciblé(s) pour l'IA
@@ -312,7 +312,10 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
             minHeight: props.TEXTAREA_MIN_HEIGHT,
             maxHeight: props.TEXTAREA_MAX_HEIGHT,
           }}
-          placeholder={props.chatMode === 'build' ? 'Comment NeuroCode peut-il vous aider aujourd\'hui ?' : 'Quelle est votre question ?'}
+          placeholder={props.chatMode === 'build' 
+            ? "Créons quelque chose d'incroyable ensemble ! Comment NeuroCode peut-il vous aider aujourd'hui ?" 
+            : "De quoi souhaitez-vous discuter ? Je suis là pour vous aider !"
+          }
           translate="no"
         />
         <ClientOnly>
@@ -423,32 +426,27 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
                       'active:scale-95',
                       props.chatMode === 'discuss' 
                         ? [
-                            'bg-gradient-to-br from-blue-500/10 to-blue-600/5',
-                            'border-blue-400/30',
-                            'text-blue-400',
-                            'hover:bg-blue-500/15',
-                            'hover:border-blue-400/50',
-                            'hover:text-blue-300',
-                            'shadow-sm shadow-blue-500/10'
+                            'bg-gradient-to-br from-violet-500/10 to-violet-600/5',
+                            'border-violet-400/30',
+                            'text-violet-400',
+                            'hover:bg-violet-500/15',
+                            'hover:border-violet-400/50',
+                            'hover:text-violet-300',
+                            'shadow-sm shadow-violet-500/10'
                           ]
                         : [
-                            'bg-gradient-to-br from-emerald-500/10 to-emerald-600/5',
-                            'border-emerald-400/30',
-                            'text-emerald-400',
-                            'hover:bg-emerald-500/15',
-                            'hover:border-emerald-400/50', 
-                            'hover:text-emerald-300',
-                            'shadow-sm shadow-emerald-500/10'
+                            'bg-gradient-to-br from-violet-500/10 to-violet-600/5',
+                            'border-violet-400/30',
+                            'text-violet-400',
+                            'hover:bg-violet-500/15',
+                            'hover:border-violet-400/50', 
+                            'hover:text-violet-300',
+                            'shadow-sm shadow-violet-500/10'
                           ]
                     )}
                     onClick={() => {
                       props.setChatMode?.(props.chatMode === 'discuss' ? 'build' : 'discuss');
-                      // toast.success(`Mode ${props.chatMode === 'discuss' ? 'Build' : 'Discussion'} activé`, {
-                      //   position: "bottom-right",
-                      //   autoClose: 1500,
-                      //   hideProgressBar: true,
-                      //   className: props.chatMode === 'discuss' ? 'bg-emerald-500' : 'bg-blue-500'
-                      // });
+                     
                     }}
                   >
                     <div className={classNames(
