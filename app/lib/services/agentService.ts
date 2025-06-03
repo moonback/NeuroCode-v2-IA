@@ -180,9 +180,27 @@ class AgentService {
   }
 
   /**
+   * Crée un nouveau thread de chat pour un agent
+   */
+  async createAgentThread(agentId: string, title?: string): Promise<AgentChatThread> {
+    const newThread: AgentChatThread = {
+      id: this.generateThreadId(),
+      agentId,
+      title: title || 'Nouvelle conversation',
+      messages: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.saveAgentThread(newThread);
+    logger.info('Thread créé:', newThread.id);
+    return newThread;
+  }
+
+  /**
    * Sauvegarde un thread de chat pour un agent
    */
-  async saveAgentThread(thread: AgentChatThread): Promise<void> {
+  async saveAgentThread(thread: AgentChatThread): Promise<AgentChatThread> {
     try {
       const stored = localStorage.getItem(this.threadsStorageKey);
       const allThreads = stored ? JSON.parse(stored) as AgentChatThread[] : [];
@@ -196,8 +214,10 @@ class AgentService {
 
       localStorage.setItem(this.threadsStorageKey, JSON.stringify(allThreads));
       logger.info('Thread sauvegardé:', thread.id);
+      return thread;
     } catch (error) {
       logger.error('Erreur lors de la sauvegarde du thread:', error);
+      throw error;
     }
   }
 
@@ -256,10 +276,17 @@ class AgentService {
   }
 
   /**
-   * Génère un ID unique
+   * Génère un ID unique pour un agent
    */
   private generateId(): string {
     return `agent_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  /**
+   * Génère un ID unique pour un thread
+   */
+  private generateThreadId(): string {
+    return `thread_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 }
 

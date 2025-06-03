@@ -18,9 +18,11 @@ import { toast } from 'react-toastify';
 interface AgentSelectionProps {
   onConfigureAgent: (agent: AgentProfile) => void;
   onCreateAgent: () => void;
+  onManageAgents: () => void;
+  onViewDashboard: () => void;
 }
 
-export default function AgentSelection({ onConfigureAgent, onCreateAgent }: AgentSelectionProps) {
+export default function AgentSelection({ onConfigureAgent, onCreateAgent, onManageAgents, onViewDashboard }: AgentSelectionProps) {
   const agents = useStore(agentsListStore);
   const selectedAgent = useStore(selectedAgentStore);
   const loading = useStore(agentsLoadingStore);
@@ -90,19 +92,49 @@ export default function AgentSelection({ onConfigureAgent, onCreateAgent }: Agen
             Sélectionnez et gérez vos agents IA spécialisés
           </p>
         </div>
-        <button
-          onClick={onCreateAgent}
-          className={classNames(
-            'flex items-center gap-2 px-4 py-2 rounded-lg',
-            'bg-bolt-elements-button-primary-background',
-            'text-bolt-elements-button-primary-text',
-            'hover:bg-bolt-elements-button-primary-backgroundHover',
-            'transition-colors duration-200'
-          )}
-        >
-          <div className="i-ph:plus text-lg" />
-          <span>Créer un agent</span>
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={onViewDashboard}
+            className={classNames(
+              'flex items-center gap-2 px-4 py-2 rounded-lg',
+              'border border-bolt-elements-borderColor',
+              'bg-bolt-elements-background-depth-2',
+              'text-bolt-elements-textPrimary',
+              'hover:bg-bolt-elements-background-depth-3',
+              'transition-colors duration-200'
+            )}
+          >
+            <div className="i-ph:chart-bar text-lg" />
+            <span>Tableau de bord</span>
+          </button>
+          <button
+            onClick={onManageAgents}
+            className={classNames(
+              'flex items-center gap-2 px-4 py-2 rounded-lg',
+              'border border-bolt-elements-borderColor',
+              'bg-bolt-elements-background-depth-2',
+              'text-bolt-elements-textPrimary',
+              'hover:bg-bolt-elements-background-depth-3',
+              'transition-colors duration-200'
+            )}
+          >
+            <div className="i-ph:gear text-lg" />
+            <span>Gestion avancée</span>
+          </button>
+          <button
+            onClick={onCreateAgent}
+            className={classNames(
+              'flex items-center gap-2 px-4 py-2 rounded-lg',
+              'bg-bolt-elements-button-primary-background',
+              'text-bolt-elements-button-primary-text',
+              'hover:bg-bolt-elements-button-primary-backgroundHover',
+              'transition-colors duration-200'
+            )}
+          >
+            <div className="i-ph:plus text-lg" />
+            <span>Créer un agent</span>
+          </button>
+        </div>
       </div>
 
       {/* Agents Grid */}
