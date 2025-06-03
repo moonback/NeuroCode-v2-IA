@@ -34,10 +34,10 @@ export function StatsDialog({ isOpen, onClose, onConfirm, stats, isLargeRepo }: 
                   </div>
                   <div>
                     <h3 className="text-lg font-medium text-bolt-elements-textPrimary dark:text-bolt-elements-textPrimary-dark">
-                      Repository Overview
+                      Aperçu du Dépôt
                     </h3>
                     <p className="text-sm text-bolt-elements-textSecondary dark:text-bolt-elements-textSecondary-dark">
-                      Review repository details before importing
+                      Examinez les détails du dépôt avant l'importation
                     </p>
                   </div>
                 </div>
@@ -50,8 +50,8 @@ export function StatsDialog({ isOpen, onClose, onConfirm, stats, isLargeRepo }: 
                   <div className="p-3 bg-yellow-50 dark:bg-yellow-500/10 rounded-lg text-sm flex items-start gap-2">
                     <span className="i-ph:warning text-yellow-600 dark:text-yellow-500 w-4 h-4 flex-shrink-0 mt-0.5" />
                     <div className="text-yellow-800 dark:text-yellow-500">
-                      This repository is quite large ({formatSize(stats.totalSize)}). Importing it might take a while
-                      and could impact performance.
+                      Ce dépôt est assez volumineux ({formatSize(stats.totalSize)}). L'importation pourrait prendre du temps
+                      et pourrait impacter les performances.
                     </div>
                   </div>
                 )}
@@ -63,7 +63,7 @@ export function StatsDialog({ isOpen, onClose, onConfirm, stats, isLargeRepo }: 
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  Cancel
+                  Annuler
                 </motion.button>
                 <motion.button
                   onClick={onConfirm}
@@ -71,7 +71,7 @@ export function StatsDialog({ isOpen, onClose, onConfirm, stats, isLargeRepo }: 
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  Import Repository
+                  Importer le Dépôt
                 </motion.button>
               </div>
             </Dialog.Content>

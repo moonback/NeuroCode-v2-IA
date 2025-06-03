@@ -553,10 +553,10 @@ export function RepositorySelectionDialog({ isOpen, onClose, onSelect }: Reposit
                 </div>
                 <div>
                   <Dialog.Title className="text-lg font-semibold text-bolt-elements-textPrimary dark:text-bolt-elements-textPrimary-dark">
-                    Import GitHub Repository
+                    Importer un dépôt GitHub
                   </Dialog.Title>
                   <p className="text-sm text-bolt-elements-textSecondary dark:text-bolt-elements-textSecondary-dark">
-                    Clone a repository from GitHub to your workspace
+                    Cloner un dépôt depuis GitHub vers votre espace de travail
                   </p>
                 </div>
               </div>
@@ -571,7 +571,7 @@ export function RepositorySelectionDialog({ isOpen, onClose, onSelect }: Reposit
                 )}
               >
                 <span className="i-ph:x block w-5 h-5" aria-hidden="true" />
-                <span className="sr-only">Close dialog</span>
+                <span className="sr-only">Fermer</span>
               </Dialog.Close>
             </div>
 
@@ -580,7 +580,7 @@ export function RepositorySelectionDialog({ isOpen, onClose, onSelect }: Reposit
               <div className="flex items-center gap-2">
                 <span className="i-ph:info text-blue-500" />
                 <span className="text-sm text-bolt-elements-textSecondary dark:text-bolt-elements-textSecondary-dark">
-                  Need to access private repositories?
+                Besoin d'accéder à des référentiels privés ?
                 </span>
               </div>
               <motion.button
@@ -590,7 +590,7 @@ export function RepositorySelectionDialog({ isOpen, onClose, onSelect }: Reposit
                 whileTap={{ scale: 0.98 }}
               >
                 <span className="i-ph:github-logo w-4 h-4" />
-                Connect GitHub Account
+                Connecter le compte GitHub
               </motion.button>
             </div>
 
@@ -609,7 +609,7 @@ export function RepositorySelectionDialog({ isOpen, onClose, onSelect }: Reposit
                           : 'bg-[#f0f0f0] dark:bg-[#1e1e1e] text-bolt-elements-textSecondary dark:text-bolt-elements-textSecondary-dark hover:bg-[#e6e6e6] dark:hover:bg-[#2a2a2a]/50',
                       )}
                     >
-                      My Repos
+                      Mes dépôts
                     </button>
                     <button
                       onClick={() => setActiveTab('search')}
@@ -620,7 +620,7 @@ export function RepositorySelectionDialog({ isOpen, onClose, onSelect }: Reposit
                           : 'bg-[#f0f0f0] dark:bg-[#1e1e1e] text-bolt-elements-textSecondary dark:text-bolt-elements-textSecondary-dark hover:bg-[#e6e6e6] dark:hover:bg-[#2a2a2a]/50',
                       )}
                     >
-                      Search
+                      Recherche
                     </button>
                     <button
                       onClick={() => setActiveTab('url')}
@@ -631,7 +631,7 @@ export function RepositorySelectionDialog({ isOpen, onClose, onSelect }: Reposit
                           : 'bg-[#f0f0f0] dark:bg-[#1e1e1e] text-bolt-elements-textSecondary dark:text-bolt-elements-textSecondary-dark hover:bg-[#e6e6e6] dark:hover:bg-[#2a2a2a]/50',
                       )}
                     >
-                      From URL
+                     À partir de l'URL
                     </button>
                   </div>
                 </div>
@@ -642,7 +642,7 @@ export function RepositorySelectionDialog({ isOpen, onClose, onSelect }: Reposit
                   <div className="bg-gradient-to-br from-bolt-elements-background-depth-1 to-bolt-elements-background-depth-1 dark:from-bolt-elements-background-depth-2-dark dark:to-bolt-elements-background-depth-2-dark p-5 rounded-xl border border-bolt-elements-borderColor dark:border-bolt-elements-borderColor-dark">
                     <h3 className="text-base font-medium text-bolt-elements-textPrimary dark:text-bolt-elements-textPrimary-dark mb-3 flex items-center gap-2">
                       <span className="i-ph:link-simple w-4 h-4 text-purple-500" />
-                      Repository URL
+                      URL du référentiel
                     </h3>
 
                     <div className="relative">
@@ -651,7 +651,7 @@ export function RepositorySelectionDialog({ isOpen, onClose, onSelect }: Reposit
                       </div>
                       <Input
                         type="text"
-                        placeholder="Enter GitHub repository URL (e.g., https://github.com/user/repo)"
+                        placeholder="Entrez l'URL du référentiel GitHub (e.g., https://github.com/user/repo)"
                         value={customUrl}
                         onChange={(e) => setCustomUrl(e.target.value)}
                         className="w-full pl-10 py-3 border-bolt-elements-borderColor dark:border-bolt-elements-borderColor-dark focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -662,8 +662,7 @@ export function RepositorySelectionDialog({ isOpen, onClose, onSelect }: Reposit
                       <p className="flex items-start gap-2">
                         <span className="i-ph:info w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-blue-500" />
                         <span>
-                          You can paste any GitHub repository URL, including specific branches or tags.
-                          <br />
+                        Vous pouvez coller n'importe quelle URL de référentiel GitHub, y compris des branches ou des balises spécifiques.                          <br />
                           <span className="text-bolt-elements-textTertiary dark:text-bolt-elements-textTertiary-dark">
                             Example: https://github.com/username/repository/tree/branch-name
                           </span>
@@ -674,7 +673,7 @@ export function RepositorySelectionDialog({ isOpen, onClose, onSelect }: Reposit
 
                   <div className="flex items-center gap-3 text-sm text-bolt-elements-textSecondary dark:text-bolt-elements-textSecondary-dark">
                     <div className="h-px flex-grow bg-bolt-elements-borderColor dark:bg-bolt-elements-borderColor-dark"></div>
-                    <span>Ready to import?</span>
+                    <span>Prêt à importer ?</span>
                     <div className="h-px flex-grow bg-bolt-elements-borderColor dark:bg-bolt-elements-borderColor-dark"></div>
                   </div>
 
@@ -691,7 +690,7 @@ export function RepositorySelectionDialog({ isOpen, onClose, onSelect }: Reposit
                     whileTap={customUrl ? { scale: 0.98 } : {}}
                   >
                     <span className="i-ph:git-pull-request w-5 h-5" />
-                    Import Repository
+                    Importer le référentiel
                   </motion.button>
                 </div>
               ) : (
@@ -701,13 +700,13 @@ export function RepositorySelectionDialog({ isOpen, onClose, onSelect }: Reposit
                       <div className="bg-gradient-to-br from-blue-500/5 to-cyan-500/5 p-5 rounded-xl border border-bolt-elements-borderColor dark:border-bolt-elements-borderColor-dark">
                         <h3 className="text-base font-medium text-bolt-elements-textPrimary dark:text-bolt-elements-textPrimary-dark mb-3 flex items-center gap-2">
                           <span className="i-ph:magnifying-glass w-4 h-4 text-blue-500" />
-                          Search GitHub
+                          Rechercher sur GitHub
                         </h3>
 
                         <div className="flex gap-2">
                           <div className="flex-1">
                             <SearchInput
-                              placeholder="Search GitHub repositories..."
+                              placeholder="Rechercher dans les référentiels GitHub..."
                               value={searchQuery}
                               onChange={(e) => {
                                 setSearchQuery(e.target.value);
@@ -735,7 +734,7 @@ export function RepositorySelectionDialog({ isOpen, onClose, onSelect }: Reposit
                             className="px-3 py-2 rounded-lg bg-white dark:bg-bolt-elements-background-depth-4 text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary border border-bolt-elements-borderColor dark:border-bolt-elements-borderColor-dark shadow-sm"
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
-                            title="Clear filters"
+                            title="Effacer les filtres"
                           >
                             <span className="i-ph:funnel-simple w-4 h-4" />
                           </motion.button>
@@ -743,7 +742,7 @@ export function RepositorySelectionDialog({ isOpen, onClose, onSelect }: Reposit
 
                         <div className="mt-3">
                           <div className="text-xs text-bolt-elements-textSecondary dark:text-bolt-elements-textSecondary-dark mb-2">
-                            Filters
+                            Filtres
                           </div>
 
                           {/* Active filters */}
@@ -855,8 +854,8 @@ export function RepositorySelectionDialog({ isOpen, onClose, onSelect }: Reposit
                           <p className="flex items-start gap-2">
                             <span className="i-ph:info w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-blue-500" />
                             <span>
-                              Search for repositories by name, description, or topics. Use filters to narrow down
-                              results.
+                              Recherchez des dépôts par nom, description ou sujets. Utilisez les filtres pour affiner
+                              les résultats.
                             </span>
                           </p>
                         </div>
@@ -945,7 +944,7 @@ export function RepositorySelectionDialog({ isOpen, onClose, onSelect }: Reposit
 
                         <div className="flex items-center gap-3 text-sm text-bolt-elements-textSecondary dark:text-bolt-elements-textSecondary-dark">
                           <div className="h-px flex-grow bg-bolt-elements-borderColor/30 dark:bg-bolt-elements-borderColor-dark/30"></div>
-                          <span>Ready to import?</span>
+                          <span>Prêt à importer ?</span>
                           <div className="h-px flex-grow bg-bolt-elements-borderColor/30 dark:bg-bolt-elements-borderColor-dark/30"></div>
                         </div>
 
