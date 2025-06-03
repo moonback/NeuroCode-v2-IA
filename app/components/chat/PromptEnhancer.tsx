@@ -151,7 +151,7 @@ export const PromptEnhancer: React.FC<PromptEnhancerProps> = ({
           />
           
           {/* Main Panel */}
-          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-[195vw] md:max-w-[500px] z-50">
+          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-[95vw] md:max-w-[800px] z-50">
             <div className="bg-bolt-elements-background-depth-1 border border-bolt-elements-borderColor/50 rounded-2xl shadow-2xl shadow-black/20 backdrop-blur-xl overflow-hidden">
               {/* Header */}
               <div className="relative bg-violet-500/5 border-b border-bolt-elements-borderColor/30 p-6">
@@ -180,7 +180,7 @@ export const PromptEnhancer: React.FC<PromptEnhancerProps> = ({
               </div>
               
               {/* Content */}
-              <div className="p-6 space-y-6 max-h-[600px] overflow-y-auto custom-scrollbar">
+              <div className="p-6 space-y-6 max-h-[300px] overflow-y-auto custom-scrollbar">
                 {/* Description Section */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
