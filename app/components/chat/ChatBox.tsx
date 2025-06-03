@@ -11,7 +11,6 @@ import { SendButton } from './SendButton.client';
 import { IconButton } from '~/components/ui/IconButton';
 import { toast } from 'react-toastify';
 import { SpeechRecognitionButton } from '~/components/chat/SpeechRecognition';
-import { ExportChatButton } from '~/components/chat/chatExportAndImport/ExportChatButton';
 import { ImportButtons } from '~/components/chat/chatExportAndImport/ImportButtons';
 import GitCloneButton from './GitCloneButton';
 import { ColorSchemeDialog } from '~/components/ui/ColorSchemeDialog';
@@ -106,48 +105,7 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
       )}
     >
       {/* Bouton flottant de changement de mode */}
-      {props.chatStarted && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.9 }}
-          transition={{ type: "spring", stiffness: 400, damping: 25 }}
-          className="absolute top-3 right-3 z-40"
-        >
-          <IconButton
-            title={`Passer en mode ${props.chatMode === 'discuss' ? 'Build' : 'Discussion'}`}
-            className={classNames(
-              'group relative flex items-center gap-1 px-2 py-1 rounded-md',
-              'transition-all duration-300 ease-out',
-              'hover:scale-105 hover:shadow-sm',
-              'bg-bolt-elements-background-depth-1/80 backdrop-blur-sm',
-              'border border-bolt-elements-borderColor/50',
-              'hover:border-bolt-elements-borderColor',
-              props.chatMode === 'discuss'
-                ? 'text-blue-400 hover:text-blue-300 hover:bg-blue-500/10'
-                : 'text-green-400 hover:text-green-300 hover:bg-green-500/10',
-            )}
-            onClick={() => {
-              props.setChatMode?.(props.chatMode === 'discuss' ? 'build' : 'discuss');
-              toast.success(`Mode ${props.chatMode === 'discuss' ? 'Build' : 'Discussion'} activé`, {
-                position: "bottom-right",
-                autoClose: 1500,
-                hideProgressBar: true
-              });
-            }}
-          >
-            <div className={`i-ph:${props.chatMode === 'discuss' ? 'code' : 'chats'} text-sm transition-transform group-hover:scale-110`} />
-            <span className="text-xs font-medium opacity-90 group-hover:opacity-100">
-              {props.chatMode === 'discuss' ? 'Build' : 'Chat'}
-            </span>
-            {/* Indicateur subtil du mode actuel */}
-            <div className={classNames(
-              'absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full transition-all duration-200',
-              props.chatMode === 'discuss' ? 'bg-blue-400' : 'bg-green-400'
-            )} />
-          </IconButton>
-        </motion.div>
-      )}
+
       <svg className={classNames(styles.PromptEffectContainer)}>
         <defs>
           <linearGradient
@@ -181,13 +139,29 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
             <code className="bg-accent-500 rounded-4px px-1.5 py-1 mr-0.5 text-white">
               {props?.selectedElement?.tagName}
             </code>
-            selected for inspection
+            sélectionné pour inspection
           </div>
           <button
-            className="bg-transparent text-accent-500 pointer-auto"
+            className="bg-transparent text-accent-500 pointer-auto ml-[-20px]"
             onClick={() => props.setSelectedElement?.(null)}
           >
-            Clear
+            Effacer
+          </button>
+        </div>
+      )}
+        {aiTargetFiles.size > 0 && (
+        <div className="flex mx-1.5 gap-2 items-center justify-between rounded-lg rounded-b-none border border-b-none border-bolt-elements-borderColor text-bolt-elements-textPrimary flex py-1 px-2.5 font-medium text-xs">
+          <div className="flex gap-2 items-center lowercase">
+            <code className="bg-blue-500 rounded-4px px-1.5 py-1 mr-0.5 text-white">
+              {aiTargetFiles.size}
+            </code>
+            fichier(s) ciblé(s) pour l'IA
+          </div>
+          <button
+            className="bg-transparent text-accent-500 pointer-auto ml-[-20px]"
+            onClick={() => workbenchStore.clearAITargetFiles()}
+          >
+            Effacer
           </button>
         </div>
       )}
@@ -348,7 +322,7 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
               return (
                 <motion.button
                   title={`Envoyer ${aiTargetFiles.size} fichier(s) ciblé(s) à l'IA`}
-                  className="absolute flex justify-center items-center top-[18px] right-[22px] bg-violet-500 hover:bg-violet-600 color-white rounded-md w-[34px] h-[34px] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                  className="absolute flex justify-center items-center top-[35px] right-[22px] bg-violet-500 hover:bg-violet-600 color-white rounded-md w-[34px] h-[34px] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
@@ -426,6 +400,68 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
           <div className="flex gap-3 items-center">
             {/* Groupe 1: Actions de fichiers */}
             <div className="flex gap-1 items-center">
+              {/* Bouton de changement de mode Chat/Build */}
+              {props.chatStarted && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ 
+                    type: "spring",
+                    stiffness: 400,
+                    damping: 25
+                  }}
+                  className="relative"
+                >
+                  <IconButton
+                    title={`Switch to ${props.chatMode === 'discuss' ? 'Build' : 'Chat'} mode`}
+                    className={classNames(
+                      'group relative flex items-center gap-2 px-3 py-2 rounded-lg',
+                      'transition-all duration-300 ease-out',
+                      'hover:scale-105',
+                      'backdrop-blur-sm border',
+                      'active:scale-95',
+                      props.chatMode === 'discuss' 
+                        ? [
+                            'bg-gradient-to-br from-blue-500/10 to-blue-600/5',
+                            'border-blue-400/30',
+                            'text-blue-400',
+                            'hover:bg-blue-500/15',
+                            'hover:border-blue-400/50',
+                            'hover:text-blue-300',
+                            'shadow-sm shadow-blue-500/10'
+                          ]
+                        : [
+                            'bg-gradient-to-br from-emerald-500/10 to-emerald-600/5',
+                            'border-emerald-400/30',
+                            'text-emerald-400',
+                            'hover:bg-emerald-500/15',
+                            'hover:border-emerald-400/50', 
+                            'hover:text-emerald-300',
+                            'shadow-sm shadow-emerald-500/10'
+                          ]
+                    )}
+                    onClick={() => {
+                      props.setChatMode?.(props.chatMode === 'discuss' ? 'build' : 'discuss');
+                      toast.success(`Switched to ${props.chatMode === 'discuss' ? 'Build' : 'Chat'} mode`, {
+                        position: "bottom-right",
+                        autoClose: 1500,
+                        hideProgressBar: true,
+                        className: props.chatMode === 'discuss' ? 'bg-emerald-500' : 'bg-blue-500'
+                      });
+                    }}
+                  >
+                    <div className={classNames(
+                      `i-ph:${props.chatMode === 'discuss' ? 'code' : 'chats'} text-lg`,
+                      'transition-transform duration-300',
+                      'group-hover:scale-110 group-hover:rotate-6'
+                    )} />
+                    <span className="text-xs font-medium tracking-wide">
+                      {props.chatMode === 'discuss' ? 'Build' : 'Chat'}
+                    </span>
+                  </IconButton>
+                </motion.div>
+              )}
             <ColorSchemeDialog designScheme={props.designScheme} setDesignScheme={props.setDesignScheme} />
               <IconButton 
                 title="Télécharger un fichier" 
@@ -444,20 +480,40 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
                 />
               )}
               <IconButton
-                title="Améliorer le prompt"
+                title="Améliorer le prompt avec l'IA"
                 disabled={props.input.length === 0 || props.enhancingPrompt}
-                className={classNames('transition-all hover:bg-bolt-elements-item-backgroundAccent/50', props.enhancingPrompt ? 'opacity-100' : '')}
+                className={classNames(
+                  'group relative transition-all duration-300 transform-gpu',
+                  'hover:scale-110 hover:shadow-lg hover:shadow-purple-500/20',
+                  'bg-gradient-to-br from-purple-500/10 to-pink-500/10',
+                  'border border-purple-500/20 hover:border-purple-400/40',
+                  'backdrop-blur-sm rounded-lg',
+                  'hover:from-purple-500/20 hover:to-pink-500/20',
+                  'active:scale-95',
+                  props.enhancingPrompt ? 'animate-pulse' : 'hover:animate-none'
+                )}
                 onClick={() => {
                   props.enhancePrompt?.();
-                  toast.success('Prompt amélioré !');
+                  toast.success('✨ Prompt amélioré avec succès !', {
+                    position: "bottom-right",
+                    autoClose: 2000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true
+                  });
                 }}
               >
                 {props.enhancingPrompt ? (
-                  <div className="i-svg-spinners:90-ring-with-bg text-bolt-elements-loader-progress text-xl animate-spin"></div>
+                  <div className="i-svg-spinners:90-ring-with-bg text-purple-400 text-xl animate-spin"></div>
                 ) : (
-                  <div className="i-bolt:stars text-xl"></div>
+                  <div className="i-bolt:stars text-purple-400 group-hover:text-purple-300 text-xl transition-all duration-300 group-hover:scale-125 group-hover:rotate-12 drop-shadow-sm"></div>
                 )}
+                {/* Effet de brillance */}
+                <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform -skew-x-12 group-hover:animate-pulse"></div>
               </IconButton>
+              
+              
               
               {!props.chatStarted && (
                 <PromptEnhancer
@@ -492,8 +548,7 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
               </div>
             </div>
 
-            {/* Séparateur visuel conditionnel */}
-            {props.chatStarted && <div className="w-px h-6 bg-bolt-elements-borderColor"></div>}
+            
 
             {/* Séparateur visuel */}
             <div className="w-px h-6 bg-bolt-elements-borderColor"></div>
