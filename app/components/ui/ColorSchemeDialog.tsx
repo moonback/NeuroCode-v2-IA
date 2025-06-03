@@ -133,10 +133,18 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
   const [features, setFeatures] = useState<string[]>(designScheme?.features || defaultDesignScheme.features);
   const [font, setFont] = useState<string[]>(designScheme?.font || defaultDesignScheme.font);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState<'colors' | 'typography' | 'features' | 'presets'>('colors');
+  const [activeSection, setActiveSection] = useState<'suggestions' | 'colors' | 'typography' | 'features' | 'presets'>('suggestions');
   const [searchTerm, setSearchTerm] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestions, setSuggestions] = useState<Array<{
+    type: 'accessibility' | 'harmony' | 'trend' | 'optimization';
+    title: string;
+    description: string;
+    action: () => void;
+    priority: 'high' | 'medium' | 'low';
+  }>>([]);
 
   useEffect(() => {
     if (designScheme) {
@@ -245,6 +253,177 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
     
     return warnings;
   }, [palette]);
+
+  // Utilitaires de conversion de couleurs
+  const hexToHsl = useCallback((hex: string) => {
+    const r = parseInt(hex.slice(1, 3), 16) / 255;
+    const g = parseInt(hex.slice(3, 5), 16) / 255;
+    const b = parseInt(hex.slice(5, 7), 16) / 255;
+    
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h = 0, s = 0, l = (max + min) / 2;
+    
+    if (max !== min) {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        case b: h = (r - g) / d + 4; break;
+      }
+      h /= 6;
+    }
+    
+    return { h: h * 360, s: s * 100, l: l * 100 };
+  }, []);
+  
+  const hslToHex = useCallback((h: number, s: number, l: number) => {
+    h /= 360; s /= 100; l /= 100;
+    const a = s * Math.min(l, 1 - l);
+    const f = (n: number) => {
+      const k = (n + h * 12) % 12;
+      const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+      return Math.round(255 * color).toString(16).padStart(2, '0');
+    };
+    return `#${f(0)}${f(8)}${f(4)}`;
+  }, []);
+
+  // Génération de suggestions intelligentes
+  const generateSuggestions = useCallback(() => {
+    const newSuggestions: typeof suggestions = [];
+    
+    // Suggestions d'accessibilité
+    const textContrast = getContrastRatio(palette.text, palette.background);
+    if (textContrast < 4.5) {
+      newSuggestions.push({
+        type: 'accessibility',
+        title: 'Améliorer le contraste du texte',
+        description: `Contraste actuel: ${textContrast.toFixed(1)}:1. Recommandé: 4.5:1 minimum`,
+        priority: 'high',
+        action: () => {
+          const isLightBg = getContrastRatio('#FFFFFF', palette.background) > getContrastRatio('#000000', palette.background);
+          setPalette(prev => ({ ...prev, text: isLightBg ? '#1a1a1a' : '#f5f5f5' }));
+        }
+      });
+    }
+    
+    // Suggestions d'harmonie des couleurs
+    const primaryHue = hexToHsl(palette.primary).h;
+    const complementaryHue = (primaryHue + 180) % 360;
+    const complementaryColor = hslToHex(complementaryHue, 70, 50);
+    
+    newSuggestions.push({
+      type: 'harmony',
+      title: 'Couleur complémentaire',
+      description: `Utiliser ${complementaryColor} comme accent pour une harmonie parfaite`,
+      priority: 'medium',
+      action: () => setPalette(prev => ({ ...prev, accent: complementaryColor }))
+    });
+    
+    // Suggestions de tendances
+    const currentYear = new Date().getFullYear();
+    if (!palette.primary.includes('#6366f1') && !palette.primary.includes('#8b5cf6')) {
+      newSuggestions.push({
+        type: 'trend',
+        title: `Couleurs tendance ${currentYear}`,
+        description: 'Adopter les violets modernes très populaires cette année',
+        priority: 'low',
+        action: () => setPalette(prev => ({ ...prev, primary: '#6366f1', secondary: '#8b5cf6' }))
+      });
+    }
+    
+    // Suggestions d'optimisation
+    if (features.includes('gradient') && !features.includes('shadow')) {
+      newSuggestions.push({
+        type: 'optimization',
+        title: 'Ajouter des ombres',
+        description: 'Les ombres complètent parfaitement les dégradés pour plus de profondeur',
+        priority: 'medium',
+        action: () => setFeatures(prev => [...prev, 'shadow'])
+      });
+    }
+    
+    setSuggestions(newSuggestions);
+  }, [palette, features, hexToHsl, hslToHex]);
+  
+  useEffect(() => {
+    generateSuggestions();
+  }, [generateSuggestions]);
+
+  const renderSuggestionsSection = () => (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-semibold text-bolt-elements-textPrimary flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-bolt-elements-item-contentAccent"></div>
+          Suggestions Intelligentes
+        </h3>
+        <button
+          onClick={generateSuggestions}
+          className="text-sm bg-transparent hover:bg-bolt-elements-bg-depth-2 text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary rounded-lg flex items-center gap-2 px-3 py-2 transition-all duration-200"
+        >
+          <span className="i-ph:sparkle text-sm" />
+          Actualiser
+        </button>
+      </div>
+      
+      {suggestions.length === 0 ? (
+        <div className="text-center py-8 text-bolt-elements-textSecondary">
+          <span className="i-ph:check-circle text-2xl mb-2 block" />
+          <p>Votre schéma de couleurs est parfaitement optimisé !</p>
+        </div>
+      ) : (
+        <div className="space-y-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
+          {suggestions.map((suggestion, index) => {
+            const priorityColors = {
+              high: 'border-red-500/20 bg-red-500/5',
+              medium: 'border-yellow-500/20 bg-yellow-500/5',
+              low: 'border-blue-500/20 bg-blue-500/5'
+            };
+            
+            const typeIcons = {
+              accessibility: 'i-ph:eye',
+              harmony: 'i-ph:palette',
+              trend: 'i-ph:trend-up',
+              optimization: 'i-ph:gear'
+            };
+            
+            return (
+              <div
+                key={index}
+                className={`p-4 rounded-xl border transition-all duration-200 hover:bg-bolt-elements-bg-depth-2 ${priorityColors[suggestion.priority]}`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-bolt-elements-bg-depth-1 flex items-center justify-center">
+                    <span className={`${typeIcons[suggestion.type]} text-bolt-elements-textSecondary`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className="font-semibold text-bolt-elements-textPrimary">{suggestion.title}</h4>
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        suggestion.priority === 'high' ? 'bg-red-500/20 text-red-400' :
+                        suggestion.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
+                        'bg-blue-500/20 text-blue-400'
+                      }`}>
+                        {suggestion.priority === 'high' ? 'Urgent' : suggestion.priority === 'medium' ? 'Recommandé' : 'Optionnel'}
+                      </span>
+                    </div>
+                    <p className="text-sm text-bolt-elements-textSecondary mb-3">{suggestion.description}</p>
+                    <button
+                      onClick={suggestion.action}
+                      className="text-sm bg-bolt-elements-button-primary-background hover:bg-bolt-elements-button-primary-backgroundHover text-bolt-elements-button-primary-text rounded-lg px-3 py-1.5 transition-all duration-200"
+                    >
+                      Appliquer
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
 
   const renderPresetsSection = () => (
     <div className="space-y-4">
@@ -580,28 +759,36 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
             {/* Navigation Tabs */}
             <div className="flex gap-1 p-1 bg-bolt-elements-bg-depth-3 rounded-xl">
               {[
+                { key: 'suggestions', label: 'Suggestions', icon: 'i-ph:lightbulb' },
                 { key: 'presets', label: 'Préréglages', icon: 'i-ph:swatches' },
                 { key: 'colors', label: 'Couleurs', icon: 'i-ph:palette' },
                 { key: 'typography', label: 'Typographie', icon: 'i-ph:text-aa' },
                 { key: 'features', label: 'Fonctionnalités', icon: 'i-ph:magic-wand' },
-              ].map((tab) => (
-                <button
-                  key={tab.key}
-                  onClick={() => setActiveSection(tab.key as any)}
-                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 rounded-lg font-medium transition-all duration-200 text-sm ${
-                    activeSection === tab.key
-                      ? 'bg-bolt-elements-background-depth-3 text-bolt-elements-textPrimary shadow-md'
-                      : 'bg-bolt-elements-background-depth-2 text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary hover:bg-bolt-elements-bg-depth-2'
-                  }`}
-                >
-                  <span className={`${tab.icon} text-lg`} />
-                  <span className="hidden sm:inline">{tab.label}</span>
-                </button>
-              ))}
+              ].map((tab) => {
+                const hasNotification = tab.key === 'suggestions' && suggestions.some(s => s.priority === 'high');
+                return (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveSection(tab.key as any)}
+                    className={`relative flex-1 flex items-center justify-center gap-2 px-3 py-3 rounded-lg font-medium transition-all duration-200 text-sm ${
+                      activeSection === tab.key
+                        ? 'bg-bolt-elements-background-depth-3 text-bolt-elements-textPrimary shadow-md'
+                        : 'bg-bolt-elements-background-depth-2 text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary hover:bg-bolt-elements-bg-depth-2'
+                    }`}
+                  >
+                    <span className={`${tab.icon} text-lg`} />
+                    <span className="hidden sm:inline">{tab.label}</span>
+                    {hasNotification && (
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+                    )}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Content Area */}
             <div className="min-h-92 overflow-y-auto">
+              {activeSection === 'suggestions' && renderSuggestionsSection()}
               {activeSection === 'presets' && renderPresetsSection()}
               {activeSection === 'colors' && renderColorSection()}
               {activeSection === 'typography' && renderTypographySection()}
