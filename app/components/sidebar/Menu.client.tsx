@@ -727,11 +727,11 @@ export const Menu = () => {
                 {dialogContent?.type === 'bulkDelete' && (
                   <>
                     <div className="p-6 bg-white dark:bg-gray-950">
-                      <DialogTitle className="text-gray-900 dark:text-white">Supprimer les chats sélectionnés ?</DialogTitle>
+                      <DialogTitle className="text-gray-900 dark:text-white">Supprimer les projets sélectionnés ?</DialogTitle>
                       <DialogDescription className="mt-2 text-gray-600 dark:text-gray-400">
                         <p>
                           Vous êtes sur le point de supprimer {dialogContent.items.length}{' '}
-                          {dialogContent.items.length === 1 ? 'chat' : 'chats'} :
+                          {dialogContent.items.length === 1 ? 'projet' : 'projets'} :
                         </p>
                         <div className="mt-2 max-h-32 overflow-auto border border-gray-100 dark:border-gray-800 rounded-md bg-gray-50 dark:bg-gray-900 p-2">
                           <ul className="list-disc pl-5 space-y-1">
@@ -742,7 +742,7 @@ export const Menu = () => {
                             ))}
                           </ul>
                         </div>
-                        <p className="mt-3">Êtes-vous sûr de vouloir supprimer ces chats ?</p>
+                        <p className="mt-3">Êtes-vous sûr de vouloir supprimer ces projets ?</p>
                       </DialogDescription>
                     </div>
                     <div className="flex justify-end gap-3 px-6 py-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800">
