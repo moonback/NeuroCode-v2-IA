@@ -414,9 +414,9 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
                   className="relative"
                 >
                   <IconButton
-                    title={`Switch to ${props.chatMode === 'discuss' ? 'Build' : 'Chat'} mode`}
+                    title={`Passer en mode ${props.chatMode === 'discuss' ? 'Build' : 'Discussion'}`}
                     className={classNames(
-                      'group relative flex items-center gap-2 px-3 py-2 rounded-lg',
+                      'group relative flex items-center gap-2 px-1 py-1 rounded-lg',
                       'transition-all duration-300 ease-out',
                       'hover:scale-105',
                       'backdrop-blur-sm border',
@@ -443,12 +443,12 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
                     )}
                     onClick={() => {
                       props.setChatMode?.(props.chatMode === 'discuss' ? 'build' : 'discuss');
-                      toast.success(`Switched to ${props.chatMode === 'discuss' ? 'Build' : 'Chat'} mode`, {
-                        position: "bottom-right",
-                        autoClose: 1500,
-                        hideProgressBar: true,
-                        className: props.chatMode === 'discuss' ? 'bg-emerald-500' : 'bg-blue-500'
-                      });
+                      // toast.success(`Mode ${props.chatMode === 'discuss' ? 'Build' : 'Discussion'} activé`, {
+                      //   position: "bottom-right",
+                      //   autoClose: 1500,
+                      //   hideProgressBar: true,
+                      //   className: props.chatMode === 'discuss' ? 'bg-emerald-500' : 'bg-blue-500'
+                      // });
                     }}
                   >
                     <div className={classNames(
@@ -457,7 +457,7 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
                       'group-hover:scale-110 group-hover:rotate-6'
                     )} />
                     <span className="text-xs font-medium tracking-wide">
-                      {props.chatMode === 'discuss' ? 'Build' : 'Chat'}
+                      {props.chatMode === 'discuss' ? 'Build' : 'Discussion'}
                     </span>
                   </IconButton>
                 </motion.div>
