@@ -501,43 +501,70 @@ export const Menu = () => {
           isSettingsOpen ? 'z-40' : 'z-sidebar',
         )}
       >
-        <div className="h-12 flex items-center justify-between px-4 border-b border-gray-200/60 dark:border-gray-700/40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
-          <div className="flex items-center gap-2">
+        <div className="relative h-16 flex items-center justify-between px-4 border-b border-gray-200/60 dark:border-gray-700/40 bg-gradient-to-r from-white via-purple-50/30 to-violet-50/30 dark:from-gray-900 dark:via-purple-900/10 dark:to-violet-900/10 backdrop-blur-sm">
+          {/* Logo et titre */}
+          <div className="flex items-center gap-3">
+            
+          </div>
+          
+          {/* Profil utilisateur */}
+          <div className="flex items-center gap-3">
+            <div className="flex flex-col items-end">
+              <span className="font-semibold text-xs text-gray-800 dark:text-gray-200 truncate max-w-20">
+                {profile?.username || 'Invité'}
+              </span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                En ligne
+              </span>
             </div>
-          <div className="flex items-center gap-2">
-            <span className="font-medium text-xs text-gray-700 dark:text-gray-300 truncate max-w-20">
-              {profile?.username || 'Invité'}
-            </span>
-            <div className="relative">
-              <div className="flex items-center justify-center w-7 h-7 overflow-hidden bg-gradient-to-br from-purple-100 to-violet-100 dark:from-purple-800/40 dark:to-violet-800/40 text-purple-600 dark:text-purple-300 rounded-lg shrink-0 border border-purple-200/40 dark:border-purple-600/30">
+            <div className="relative group">
+              <div className="flex items-center justify-center w-9 h-9 overflow-hidden bg-gradient-to-br from-purple-100 via-violet-100 to-indigo-100 dark:from-purple-800/40 dark:via-violet-800/40 dark:to-indigo-800/40 text-purple-600 dark:text-purple-300 rounded-xl shrink-0 border-2 border-purple-200/60 dark:border-purple-600/40 shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-105">
                 {profile?.avatar ? (
                   <img
                     src={profile.avatar}
                     alt={profile?.username || 'User'}
-                    className="w-full h-full object-cover rounded-lg"
+                    className="w-full h-full object-cover rounded-xl"
                     loading="eager"
                     decoding="sync"
                   />
                 ) : (
-                  <div className="i-ph:user-fill text-sm" />
+                  <div className="i-ph:user-fill text-lg" />
                 )}
               </div>
-              <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-green-500 border border-white dark:border-gray-900 rounded-full"></div>
+              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-gradient-to-br from-emerald-400 to-emerald-500 border-2 border-white dark:border-gray-900 rounded-full shadow-sm animate-pulse"></div>
+              
+              {/* Effet de hover */}
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-purple-500/0 to-violet-500/0 group-hover:from-purple-500/10 group-hover:to-violet-500/10 transition-all duration-300"></div>
             </div>
           </div>
+          
+          {/* Effet de fond décoratif */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/5 to-transparent opacity-50"></div>
         </div>
         {/* <CurrentDateTime /> */}
         
         <div className="flex-1 flex flex-col h-full w-full overflow-hidden">
-          <div className="p-4 space-y-3">
+          <div className="p-4 space-y-4">
+            {/* Bouton Nouveau projet amélioré */}
             <a
               href="/"
-              className="flex gap-2 items-center bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white rounded-lg px-3 py-2.5 transition-all duration-200 group"
+              className="relative flex gap-3 items-center bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 hover:from-purple-700 hover:via-violet-700 hover:to-indigo-700 text-white rounded-xl px-4 py-3 transition-all duration-300 group shadow-lg hover:shadow-xl overflow-hidden"
             >
-              <div className="w-5 h-5 bg-white/20 rounded flex items-center justify-center group-hover:bg-white/30 transition-all duration-200">
-                <span className="i-ph:plus h-3 w-3" />
+              {/* Effet de brillance */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+              
+              <div className="relative w-6 h-6 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 group-hover:scale-110 transition-all duration-300 shadow-sm">
+                <span className="i-ph:plus h-4 w-4 font-bold" />
               </div>
-              <span className="text-sm font-medium">Nouveau chat</span>
+              <div className="relative flex flex-col">
+                <span className="text-sm font-semibold">Nouveau projet</span>
+                <span className="text-xs text-white/80">Créer un nouveau projet IA</span>
+              </div>
+              
+              {/* Icône flèche */}
+              <div className="relative ml-auto opacity-60 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300">
+                <span className="i-ph:arrow-right h-4 w-4" />
+              </div>
             </a>
             <div className="flex gap-2">
               <button
@@ -586,7 +613,7 @@ export const Menu = () => {
               <div className="w-4 h-4 bg-gradient-to-br from-purple-600 to-violet-600 rounded flex items-center justify-center">
                 <div className="i-ph:chat text-white text-xs" />
               </div>
-              <span className="text-sm">Conversations</span>
+              <span className="text-sm">Projets</span>
               <span className="px-1.5 py-0.5 bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 rounded text-xs font-medium">
                 {filteredList.length}
               </span>
@@ -620,7 +647,7 @@ export const Menu = () => {
                   <div className="i-ph:chat-circle text-purple-600 dark:text-purple-400 text-xl" />
                 </div>
                 <h3 className="font-medium text-gray-800 dark:text-gray-200 mb-1 text-sm">
-                  {list.length === 0 ? 'Aucune conversation' : 'Aucun résultat'}
+                  {list.length === 0 ? 'Aucun projet' : 'Aucun résultat'}
                 </h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400 max-w-40">
                   {list.length === 0 
