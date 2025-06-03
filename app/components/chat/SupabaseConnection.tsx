@@ -82,20 +82,23 @@ export function SupabaseConnection() {
           active
           disabled={connecting}
           onClick={() => setIsDialogOpen(!isDialogOpen)}
-          className="hover:bg-bolt-elements-item-backgroundActive !text-white flex items-center gap-2"
+          className="hover:bg-bolt-elements-item-backgroundActive !text-white flex items-center gap-2 transition-colors duration-200"
         >
           <img
-            className="w-4 h-4"
+            className="w-4 h-4 transition-transform hover:scale-105"
             height="20" 
             width="20"
             crossOrigin="anonymous"
             src="https://cdn.simpleicons.org/supabase"
             alt="Supabase Logo"
+            loading="lazy"
           />
-          {isConnected && supabaseConn.project && (
-            <span className="ml-1 text-xs max-w-[100px] truncate" title={supabaseConn.project.name}>
-              {supabaseConn.project.name}
-            </span>
+          {isConnected && (
+            <div 
+              className="w-2 h-2 ml-1 rounded-full bg-green-500 animate-pulse" 
+              title="Connected to Supabase"
+              aria-label="Connection Status Indicator"
+            ></div>
           )}
         </Button>
       </div>
