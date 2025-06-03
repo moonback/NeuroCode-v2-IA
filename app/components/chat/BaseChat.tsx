@@ -346,16 +346,36 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
           <div className={classNames(styles.Chat, 'flex flex-col flex-grow lg:min-w-[var(--chat-min-width)] h-full')}>
             {!chatStarted && (
               <div id="intro" className="mt-[6vh] max-w-2xl mx-auto text-center px-4 lg:px-0">
-                  <div className="animate-fade-in">
-                    <h1 className="text-3xl lg:text-6xl font-bold text-bolt-elements-textPrimary mb-6 animate-slide-up">
-                      <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent animate-gradient">
-                        L'IA au service de vos projets
+                <div className="animate-fade-in">
+                  <h1 className="text-3xl lg:text-6xl font-bold text-bolt-elements-textPrimary mb-6">
+                    {['N', 'E', 'U', 'R', 'O'].map((letter, index) => (
+                      <span
+                        key={index}
+                        className="inline-block hover:animate-bounce text-white"
+                        style={{
+                          animationDelay: `${index * 0.1}s`,
+                          animation: `floating 3s ease-in-out infinite ${index * 0.2}s`
+                        }}
+                      >
+                        {letter}
                       </span>
-                    </h1>
-                    <p className="text-lg lg:text-xl mb-8 text-bolt-elements-textSecondary animate-fade-in animation-delay-300 leading-relaxed">
-                      Développement IA • Prototypage • Solutions clés en main
-                    </p>
-                  
+                    ))}
+                    {['C', 'O', 'D', 'E'].map((letter, index) => (
+                      <span
+                        key={index + 5}
+                        className="inline-block hover:animate-bounce text-purple-600"
+                        style={{
+                          animationDelay: `${(index + 5) * 0.1}s`,
+                          animation: `floating 3s ease-in-out infinite ${(index + 5) * 0.2}s`
+                        }}
+                      >
+                        {letter}
+                      </span>
+                    ))}
+                  </h1>
+                  <p className="text-lg lg:text-xl mb-8 text-bolt-elements-textSecondary animate-typing overflow-hidden whitespace-nowrap border-r-4 border-r-transparent">
+                    Développement IA • Prototypage • Solutions clés en main
+                  </p>
                 </div>
               </div>
             )}
