@@ -105,6 +105,49 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
          */
       )}
     >
+      {/* Bouton flottant de changement de mode */}
+      {props.chatStarted && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          transition={{ type: "spring", stiffness: 400, damping: 25 }}
+          className="absolute top-3 right-3 z-40"
+        >
+          <IconButton
+            title={`Passer en mode ${props.chatMode === 'discuss' ? 'Build' : 'Discussion'}`}
+            className={classNames(
+              'group relative flex items-center gap-1 px-2 py-1 rounded-md',
+              'transition-all duration-300 ease-out',
+              'hover:scale-105 hover:shadow-sm',
+              'bg-bolt-elements-background-depth-1/80 backdrop-blur-sm',
+              'border border-bolt-elements-borderColor/50',
+              'hover:border-bolt-elements-borderColor',
+              props.chatMode === 'discuss'
+                ? 'text-blue-400 hover:text-blue-300 hover:bg-blue-500/10'
+                : 'text-green-400 hover:text-green-300 hover:bg-green-500/10',
+            )}
+            onClick={() => {
+              props.setChatMode?.(props.chatMode === 'discuss' ? 'build' : 'discuss');
+              toast.success(`Mode ${props.chatMode === 'discuss' ? 'Build' : 'Discussion'} activé`, {
+                position: "bottom-right",
+                autoClose: 1500,
+                hideProgressBar: true
+              });
+            }}
+          >
+            <div className={`i-ph:${props.chatMode === 'discuss' ? 'code' : 'chats'} text-sm transition-transform group-hover:scale-110`} />
+            <span className="text-xs font-medium opacity-90 group-hover:opacity-100">
+              {props.chatMode === 'discuss' ? 'Build' : 'Chat'}
+            </span>
+            {/* Indicateur subtil du mode actuel */}
+            <div className={classNames(
+              'absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full transition-all duration-200',
+              props.chatMode === 'discuss' ? 'bg-blue-400' : 'bg-green-400'
+            )} />
+          </IconButton>
+        </motion.div>
+      )}
       <svg className={classNames(styles.PromptEffectContainer)}>
         <defs>
           <linearGradient
@@ -451,27 +494,6 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
 
             {/* Séparateur visuel conditionnel */}
             {props.chatStarted && <div className="w-px h-6 bg-bolt-elements-borderColor"></div>}
-
-            {/* Groupe 3: Actions de chat */}
-            {props.chatStarted && (
-              <div className="flex gap-1 items-center">
-                <IconButton
-                  title="Discussion"
-                  className={classNames(
-                    'transition-all flex items-center gap-1 px-1.5 hover:bg-bolt-elements-item-backgroundAccent/50',
-                    props.chatMode === 'discuss'
-                      ? '!bg-bolt-elements-item-backgroundAccent !text-bolt-elements-item-contentAccent'
-                      : 'bg-bolt-elements-item-backgroundDefault text-bolt-elements-item-contentDefault',
-                  )}
-                  onClick={() => {
-                    props.setChatMode?.(props.chatMode === 'discuss' ? 'build' : 'discuss');
-                  }}
-                >
-                  <div className={`i-ph:chats text-xl`} />
-                  {props.chatMode === 'discuss' ? <span></span> : <span />}
-                </IconButton>
-              </div>
-            )}
 
             {/* Séparateur visuel */}
             <div className="w-px h-6 bg-bolt-elements-borderColor"></div>
