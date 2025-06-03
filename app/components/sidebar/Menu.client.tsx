@@ -122,28 +122,37 @@ function ConnectionStatus() {
     <div className="px-4 py-3 border-b border-gray-200/50 dark:border-gray-700/50 bg-gray-50/30 dark:bg-gray-800/30">
       <div className="flex items-center justify-between">
         {/* Left section - Status overview */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4 p-1">
           {/* Status indicator */}
           <div className="relative">
-            <div className={`w-4 h-4 rounded-full flex items-center justify-center transition-all duration-300 ${
+            <div className={`w-5 h-5 rounded-xl flex items-center justify-center transition-all duration-500 ${
               allConnected 
-                ? 'bg-green-500 shadow-green-500/30 shadow-lg' 
+                ? 'bg-gradient-to-br from-green-400 to-green-600 shadow-green-500/40 shadow-lg scale-110' 
                 : connectedCount > 0 
-                  ? 'bg-orange-500 shadow-orange-500/30 shadow-lg'
-                  : 'bg-gray-400 shadow-gray-400/30 shadow-lg'
+                  ? 'bg-gradient-to-br from-orange-400 to-orange-600 shadow-orange-500/40 shadow-lg'
+                  : 'bg-gradient-to-br from-gray-400 to-gray-500 shadow-gray-400/30'
             }`}>
-              <div className={`w-2 h-2 rounded-full bg-white ${
-                allConnected ? 'animate-pulse' : ''
+              <div className={`w-2.5 h-2.5 rounded-full bg-white/90 backdrop-blur-sm transition-all duration-300 ${
+                allConnected ? 'animate-pulse scale-110' : 'scale-90'
               }`}></div>
             </div>
+            
+            {/* Decorative ring */}
+            <div className={`absolute -inset-1 rounded-xl bg-gradient-to-br opacity-30 blur-sm transition-all duration-500 ${
+              allConnected 
+                ? 'from-green-400/50 to-green-600/50 animate-pulse'
+                : connectedCount > 0
+                  ? 'from-orange-400/30 to-orange-600/30'
+                  : 'from-gray-400/20 to-gray-500/20'
+            }`}></div>
           </div>
           
           {/* Status text */}
           <div className="flex flex-col">
-            <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+            <span className="text-sm font-semibold bg-gradient-to-br from-gray-800 to-gray-600 dark:from-gray-200 dark:to-gray-400 bg-clip-text text-transparent">
               Connexions
             </span>
-            <span className={`text-xs transition-colors duration-300 ${
+            <span className={`text-xs font-medium transition-colors duration-300 ${
               allConnected 
                 ? 'text-green-600 dark:text-green-400' 
                 : connectedCount > 0 
