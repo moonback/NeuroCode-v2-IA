@@ -19,6 +19,8 @@ export interface Chat {
   timestamp: string;
   urlId?: string;
   metadata?: IChatMetadata;
+  agentId?: string; // ID de l'agent associé à ce chat
+  threadId?: string; // ID du thread d'agent
 }
 
 /**

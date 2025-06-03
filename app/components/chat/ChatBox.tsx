@@ -26,6 +26,7 @@ import type { ProviderInfo } from '~/types/model';
 import type { Message } from 'ai';
 import { workbenchStore } from '~/lib/stores/workbench';
 import { useStore } from '@nanostores/react';
+import  AgentChatSelector  from './AgentChatSelector';
 
 interface ChatBoxProps {
   isModelSettingsCollapsed: boolean;
@@ -168,6 +169,7 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
         <ClientOnly>
           {() => (
             <div className={props.isModelSettingsCollapsed ? 'hidden' : ''}>
+              <AgentChatSelector />
               <ModelSelector
                 key={props.provider?.name + ':' + props.modelList.length}
                 model={props.model}

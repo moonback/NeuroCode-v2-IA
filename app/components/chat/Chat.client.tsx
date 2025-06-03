@@ -10,6 +10,7 @@ import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { cssTransition, toast, ToastContainer } from 'react-toastify';
 import { useMessageParser, usePromptEnhancer, useShortcuts } from '~/lib/hooks';
 import { description, useChatHistory } from '~/lib/persistence';
+import { useAgentChatHistory } from '~/lib/persistence/useAgentChatHistory';
 import { chatStore } from '~/lib/stores/chat';
 import { workbenchStore } from '~/lib/stores/workbench';
 import { contextItems } from '~/lib/stores/context';
@@ -147,6 +148,7 @@ export const ChatImpl = memo(
     });
 
     const { showChat } = useStore(chatStore);
+    const agentChatHistory = useAgentChatHistory();
 
     const [animationScope, animate] = useAnimate();
 

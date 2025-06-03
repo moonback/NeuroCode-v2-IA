@@ -17,7 +17,8 @@ export type TabType =
   | 'update'
   | 'task-manager'
   | 'tab-management'
-  | 'custom-prompts';
+  | 'custom-prompts'
+  | 'agents';
 
 export type WindowType = 'user' | 'developer';
 

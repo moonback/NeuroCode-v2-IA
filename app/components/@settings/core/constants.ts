@@ -16,6 +16,7 @@ export const TAB_ICONS: Record<TabType, string> = {
   'task-manager': 'i-ph:chart-line',
   'tab-management': 'i-ph:sliders-horizontal',
   'custom-prompts': 'i-ph:chat-text',
+  agents: 'i-ph:robot',
 };
 
 // Define which tabs are beta
@@ -23,6 +24,7 @@ export const BETA_TABS = new Set<TabType>(['task-manager', 'service-status', 'up
 
 // Define which tabs are default in user mode
 export const DEFAULT_USER_TABS: TabType[] = [
+  'agents',
   'features',
   'data',
   'cloud-providers',
@@ -56,6 +58,7 @@ export const TAB_LABELS: Record<TabType, string> = {
   'task-manager': 'Gestionnaire de Tâches',
   'tab-management': 'Gestion des Onglets',
   'custom-prompts': 'Prompts Personnalisés',
+  agents: 'Agents IA',
 };
 
 export const TAB_DESCRIPTIONS: Record<TabType, string> = {
@@ -74,18 +77,20 @@ export const TAB_DESCRIPTIONS: Record<TabType, string> = {
   'task-manager': 'Surveiller les ressources système et processus',
   'tab-management': 'Configurer les onglets visibles et leur ordre',
   'custom-prompts': 'Créer et gérer vos prompts personnalisés',
+  agents: 'Gérer et configurer vos agents IA spécialisés',
 };
 
 export const DEFAULT_TAB_CONFIG = [
   // User Window Tabs (Always visible by default)
-  { id: 'features', visible: true, window: 'user' as const, order: 0 },
-  { id: 'data', visible: true, window: 'user' as const, order: 1 },
-  { id: 'cloud-providers', visible: true, window: 'user' as const, order: 2 },
-  { id: 'local-providers', visible: true, window: 'user' as const, order: 3 },
-  { id: 'connection', visible: true, window: 'user' as const, order: 4 },
-  { id: 'notifications', visible: true, window: 'user' as const, order: 5 },
-  { id: 'event-logs', visible: true, window: 'user' as const, order: 6 },
-  { id: 'custom-prompts', visible: true, window: 'user' as const, order: 7 },
+  { id: 'agents', visible: true, window: 'user' as const, order: 0 },
+  { id: 'features', visible: true, window: 'user' as const, order: 1 },
+  { id: 'data', visible: true, window: 'user' as const, order: 2 },
+  { id: 'cloud-providers', visible: true, window: 'user' as const, order: 3 },
+  { id: 'local-providers', visible: true, window: 'user' as const, order: 4 },
+  { id: 'connection', visible: true, window: 'user' as const, order: 5 },
+  { id: 'notifications', visible: true, window: 'user' as const, order: 6 },
+  { id: 'event-logs', visible: true, window: 'user' as const, order: 7 },
+  { id: 'custom-prompts', visible: true, window: 'user' as const, order: 8 },
 
   // User Window Tabs (In dropdown, initially hidden)
   { id: 'profile', visible: false, window: 'user' as const, order: 7 },
@@ -98,17 +103,18 @@ export const DEFAULT_TAB_CONFIG = [
   { id: 'update', visible: false, window: 'user' as const, order: 12 },
 
   // Developer Window Tabs (All visible by default)
-  { id: 'features', visible: true, window: 'developer' as const, order: 0 },
-  { id: 'data', visible: true, window: 'developer' as const, order: 1 },
-  { id: 'cloud-providers', visible: true, window: 'developer' as const, order: 2 },
-  { id: 'local-providers', visible: true, window: 'developer' as const, order: 3 },
-  { id: 'connection', visible: true, window: 'developer' as const, order: 4 },
-  { id: 'notifications', visible: true, window: 'developer' as const, order: 5 },
-  { id: 'event-logs', visible: true, window: 'developer' as const, order: 6 },
-  { id: 'profile', visible: true, window: 'developer' as const, order: 7 },
-  { id: 'settings', visible: true, window: 'developer' as const, order: 8 },
-  { id: 'task-manager', visible: true, window: 'developer' as const, order: 9 },
-  { id: 'service-status', visible: true, window: 'developer' as const, order: 10 },
-  { id: 'debug', visible: true, window: 'developer' as const, order: 11 },
-  { id: 'update', visible: true, window: 'developer' as const, order: 12 },
+  { id: 'agents', visible: true, window: 'developer' as const, order: 0 },
+  { id: 'features', visible: true, window: 'developer' as const, order: 1 },
+  { id: 'data', visible: true, window: 'developer' as const, order: 2 },
+  { id: 'cloud-providers', visible: true, window: 'developer' as const, order: 3 },
+  { id: 'local-providers', visible: true, window: 'developer' as const, order: 4 },
+  { id: 'connection', visible: true, window: 'developer' as const, order: 5 },
+  { id: 'notifications', visible: true, window: 'developer' as const, order: 6 },
+  { id: 'event-logs', visible: true, window: 'developer' as const, order: 7 },
+  { id: 'profile', visible: true, window: 'developer' as const, order: 8 },
+  { id: 'settings', visible: true, window: 'developer' as const, order: 9 },
+  { id: 'task-manager', visible: true, window: 'developer' as const, order: 10 },
+  { id: 'service-status', visible: true, window: 'developer' as const, order: 11 },
+  { id: 'debug', visible: true, window: 'developer' as const, order: 12 },
+  { id: 'update', visible: true, window: 'developer' as const, order: 13 },
 ];
