@@ -345,7 +345,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
         <div className="flex flex-col lg:flex-row overflow-y-auto w-full h-full">
           <div className={classNames(styles.Chat, 'flex flex-col flex-grow lg:min-w-[var(--chat-min-width)] h-full')}>
             {!chatStarted && (
-              <div id="intro" className="mt-[16vh] max-w-2xl mx-auto text-center px-4 lg:px-0">
+              <div id="intro" className="mt-[6vh] max-w-2xl mx-auto text-center px-4 lg:px-0">
                   <div className="animate-fade-in">
                     <h1 className="text-3xl lg:text-6xl font-bold text-bolt-elements-textPrimary mb-6 animate-slide-up">
                       <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent animate-gradient">
@@ -355,16 +355,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                     <p className="text-lg lg:text-xl mb-8 text-bolt-elements-textSecondary animate-fade-in animation-delay-300 leading-relaxed">
                       Développement IA • Prototypage • Solutions clés en main
                     </p>
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in animation-delay-500">
-                    <div className="flex items-center gap-2 text-sm text-bolt-elements-textSecondary">
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                      <span>IA avancée disponible</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-bolt-elements-textSecondary">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse animation-delay-200"></div>
-                      <span>Déploiement instantané</span>
-                    </div>
-                  </div>
+                  
                 </div>
               </div>
             )}
