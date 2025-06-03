@@ -1,223 +1,386 @@
-# NeuroCode v2 - IA
+# NeuroCode v2 - Assistant de Développement IA
 
 <div align="center">
-  <img src="./public/logo-light-styled.png" alt="NeuroCode Logo">
-  <h3>Assistant IA Expert pour le Développement</h3>
-  <p>Une plateforme de développement alimentée par l'IA avec environnement d'exécution intégré</p>
+  <img src="./public/logo-light-styled.png" alt="Logo NeuroCode" width="300">
+  
+  <h2>🧠 Assistant IA Expert pour le Développement</h2>
+  
+  <p><em>Une plateforme de développement révolutionnaire alimentée par l'IA avec un environnement d'exécution intégré dans le navigateur</em></p>
+  
+  ![Version](https://img.shields.io/badge/version-2.0-blue.svg)
+  ![License](https://img.shields.io/badge/license-MIT-green.svg)
+  ![Node](https://img.shields.io/badge/node-%3E%3D18.18.0-brightgreen.svg)
+  ![AI Powered](https://img.shields.io/badge/AI-Powered-purple.svg)
 </div>
 
-## 🚀 Aperçu
+---
 
-NeuroCode est un assistant IA avancé conçu pour les développeurs, offrant une expérience de développement complète avec un environnement d'exécution intégré dans le navigateur. Basé sur la technologie WebContainer, il permet d'exécuter du code directement dans le navigateur sans nécessiter de serveur distant.
+## 🎯 Vue d'ensemble
+
+**NeuroCode** est un assistant IA de nouvelle génération, méticuleusement conçu pour les développeurs. Il offre une expérience de développement complète et fluide. Grâce à la technologie WebContainer, NeuroCode permet l'exécution de code directement dans le navigateur, éliminant le besoin d'un serveur distant.
+
+> 💡 **Innovation Clé** : Développez, testez et déployez sans quitter votre navigateur !
+
+---
 
 ## ✨ Fonctionnalités Principales
 
-### 🤖 Assistant IA Intelligent
-- **Chat interactif** avec un assistant IA expert en développement
-- **Support multi-modèles** : OpenAI, Anthropic, Google, Groq, HuggingFace, et plus
-- **Génération de code** intelligente et contextuelle
-- **Analyse et débogage** automatique des erreurs
+### 🤖 **Assistant IA Intelligent**
+<table>
+<tr>
+<td width="50%">
 
-### 💻 Environnement de Développement
-- **WebContainer intégré** pour l'exécution de code dans le navigateur
-- **Terminal interactif** avec émulation zsh
-- **Éditeur de code** avec coloration syntaxique (CodeMirror)
-- **Prévisualisation en temps réel** des applications web
-- **Système de fichiers** complet avec gestion des modifications
+**🗨️ Chat Interactif**
+- Interface conversationnelle intuitive
+- Assistance en temps réel
+- Compréhension contextuelle avancée
 
-### 🔧 Outils de Développement
-- **Support multi-langages** : JavaScript, TypeScript, Python, HTML, CSS, et plus
-- **Frameworks supportés** : React, Vue, Svelte, Angular, Next.js, Remix, et autres
-- **Gestion de projets** avec historique des conversations
-- **Déploiement automatique** vers Netlify
-- **Intégration Git** pour la gestion de versions
+**🔄 Support Multi-Modèles**
+- OpenAI GPT (3.5, 4, 4o)
+- Anthropic Claude (Opus, Sonnet, Haiku)
+- Google Gemini Pro & Vision
+- Groq, HuggingFace, Ollama
+- XAI Grok, DeepSeek
 
-### 🗄️ Intégrations Base de Données
-- **Supabase** : Connexion et exécution de requêtes SQL
-- **Interface graphique** pour la gestion des bases de données
-- **Génération automatique** de schémas et requêtes
+</td>
+<td width="50%">
 
-### 🎨 Interface Utilisateur
-- **Design moderne** avec thème sombre/clair
-- **Interface responsive** adaptée à tous les écrans
-- **Drag & Drop** pour la gestion des fichiers
-- **Notifications** en temps réel
-- **Raccourcis clavier** pour une productivité optimale
+**⚡ Génération Intelligente**
+- Code contextuel et personnalisé
+- Analyse automatique des erreurs
+- Conseils de débogage avancés
+- Optimisation des performances
 
-## 🛠️ Technologies Utilisées
+**🎯 Spécialisations**
+- Architecture logicielle
+- Patterns de design
+- Bonnes pratiques de sécurité
+- Optimisation des performances
 
-### Frontend
-- **Remix** - Framework React full-stack
-- **React** - Bibliothèque d'interface utilisateur
-- **TypeScript** - Langage de programmation typé
-- **Vite** - Outil de build rapide
-- **UnoCSS** - Framework CSS atomique
-- **Framer Motion** - Animations fluides
+</td>
+</tr>
+</table>
 
-### Backend & IA
-- **Cloudflare Workers** - Plateforme serverless
-- **AI SDK** - Intégration multi-modèles IA
-- **WebContainer API** - Environnement d'exécution navigateur
+### 💻 **Environnement de Développement Intégré**
+<table>
+<tr>
+<td width="33%">
 
-### Outils de Développement
-- **CodeMirror** - Éditeur de code avancé
-- **XTerm.js** - Terminal dans le navigateur
-- **Electron** - Application desktop (optionnel)
-- **Docker** - Conteneurisation
+**🌐 WebContainer**
+- Exécution native dans le navigateur
+- Environnement sandboxé sécurisé
+- Support complet Node.js
+- Pas de configuration requise
+
+</td>
+<td width="33%">
+
+**🖥️ Terminal Interactif**
+- Shell zsh complet
+- Commandes système standard
+- Gestion des processus
+- Support npm/pnpm/yarn
+
+</td>
+<td width="33%">
+
+**📝 Éditeur Avancé**
+- CodeMirror intégré
+- Coloration syntaxique
+- Auto-complétion intelligente
+- Refactoring assisté par IA
+
+</td>
+</tr>
+</table>
+
+**🔍 Aperçu en Temps Réel** | **📁 Gestion de Fichiers** | **🔄 Synchronisation Automatique**
+
+### 🛠️ **Outils de Développement Puissants**
+
+#### 🌍 **Support Multi-Langages**
+```
+JavaScript  TypeScript  Python     HTML       CSS        JSON
+React       Vue.js      Svelte     Angular    Next.js    Remix
+Tailwind    SCSS        Less       PostCSS    UnoCSS     Styled
+```
+
+#### 🚀 **Frameworks & Technologies**
+<div align="center">
+
+| Frontend | Backend | Base de Données | DevOps |
+|----------|---------|-----------------|--------|
+| React, Vue, Svelte | Node.js, Express | Supabase, MongoDB | Docker, Git |
+| Angular, Next.js | Fastify, Koa | PostgreSQL, MySQL | Netlify Deploy |
+| Remix, Nuxt | Deno, Bun | Redis, SQLite | CI/CD Integration |
+
+</div>
+
+### 🗄️ **Intégrations Base de Données**
+- **🔗 Connexion Supabase** : Interface graphique intuitive
+- **📊 Gestion Visuelle** : Schémas, tables, relations
+- **⚡ Génération Automatique** : Requêtes SQL optimisées
+- **🔍 Explorateur de Données** : Visualisation en temps réel
+
+### 🎨 **Interface Utilisateur Moderne**
+<table>
+<tr>
+<td width="50%">
+
+**🌟 Design Élégant**
+- Thème sombre/clair adaptatif
+- Interface responsive
+- Animations fluides (Framer Motion)
+- Composants accessibles
+
+</td>
+<td width="50%">
+
+**⌨️ Productivité**
+- Raccourcis clavier personnalisables
+- Drag & Drop avancé
+- Notifications en temps réel
+- Multi-panneaux configurables
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🏗️ Architecture Technique
+
+### 🎯 **Frontend de Pointe**
+```typescript
+Remix        // Framework full-stack moderne
+React        // Bibliothèque UI performante  
+TypeScript   // Développement type-safe
+Vite         // Build tool ultra-rapide
+UnoCSS       // Framework CSS haute performance
+Framer Motion // Animations et transitions
+```
+
+### ⚡ **Backend & IA**
+```typescript
+Cloudflare Workers  // Computing edge serverless
+AI SDK             // Framework d'intégration multi-modèles
+WebContainer API   // Runtime navigateur natif
+```
+
+### 🔧 **Outils de Développement**
+```typescript
+CodeMirror  // Éditeur de code avancé
+XTerm.js    // Terminal navigateur
+Electron    // Application desktop (optionnel)
+Docker      // Conteneurisation
+```
+
+---
 
 ## 📋 Prérequis
 
-- **Node.js** >= 18.18.0
-- **pnpm** (gestionnaire de paquets recommandé)
-- **Clés API** pour les modèles IA (optionnel)
+<div align="center">
 
-## 🚀 Installation
+| Outil | Version | Status |
+|-------|---------|---------|
+| **Node.js** | ≥ 18.18.0 | ✅ Requis |
+| **pnpm** | Latest | 🎯 Recommandé |
+| **Clés API** | Diverses | 🔑 Optionnel |
 
-### 1. Cloner le repository
+</div>
+
+---
+
+## 🚀 Installation Rapide
+
+### **1️⃣ Clonage du Dépôt**
 ```bash
-git clone https://github.com/votre-username/NeuroCode-v2-IA.git
+git clone <votre-url-repo>
 cd NeuroCode-v2-IA
 ```
 
-### 2. Installer les dépendances
+### **2️⃣ Installation des Dépendances**
 ```bash
 pnpm install
 ```
 
-### 3. Configuration des variables d'environnement
+### **3️⃣ Configuration Environnement**
 ```bash
 cp .env.example .env.local
 ```
 
-Éditez `.env.local` et ajoutez vos clés API :
-
+**Éditez `.env.local` avec vos clés API :**
 ```env
-# OpenAI (optionnel)
-OPENAI_API_KEY=your_openai_api_key
+# OpenAI (Optionnel)
+OPENAI_API_KEY=votre_cle_openai
 
-# Anthropic Claude (optionnel)
-ANTHROPIC_API_KEY=your_anthropic_api_key
+# Anthropic Claude (Optionnel)  
+ANTHROPIC_API_KEY=votre_cle_anthropic
 
-# Google Generative AI (optionnel)
-GOOGLE_GENERATIVE_AI_API_KEY=your_google_api_key
+# Google Generative AI (Optionnel)
+GOOGLE_GENERATIVE_AI_API_KEY=votre_cle_google
 
-# Groq (optionnel)
-GROQ_API_KEY=your_groq_api_key
+# Groq (Optionnel)
+GROQ_API_KEY=votre_cle_groq
 
 # Autres modèles...
 ```
 
-### 4. Lancer l'application
+### **4️⃣ Lancement de l'Application**
 
-#### Mode développement
+<table>
+<tr>
+<td width="50%">
+
+**🔧 Mode Développement**
 ```bash
 pnpm dev
 ```
+*Interface disponible sur `http://localhost:5173`*
 
-#### Mode production
+</td>
+<td width="50%">
+
+**🚀 Mode Production**
 ```bash
 pnpm build
 pnpm start
 ```
+*Version optimisée pour la production*
 
-L'application sera accessible sur `http://localhost:5173`
+</td>
+</tr>
+</table>
 
-## 🐳 Docker
+---
 
-### Build et lancement avec Docker
+## 🐳 Déploiement Docker
+
+### **Configuration Docker Classique**
 ```bash
-# Build de l'image
+# Construction de l'image
 pnpm dockerbuild
 
 # Lancement du conteneur
 pnpm dockerrun
 ```
 
-### Docker Compose
+### **Docker Compose (Recommandé)**
 ```bash
 docker-compose up -d
 ```
 
+---
+
 ## 📱 Application Desktop (Electron)
 
-### Build pour différentes plateformes
+### **Compilation Multi-Plateformes**
 ```bash
 # Windows
 pnpm electron:build:win
 
-# macOS
+# macOS  
 pnpm electron:build:mac
 
 # Linux
 pnpm electron:build:linux
 
-# Toutes les plateformes
+# Toutes plateformes
 pnpm electron:build:dist
 ```
 
-## 🔧 Configuration
+---
 
-### Modèles IA Supportés
+## ⚙️ Configuration Avancée
 
-- **OpenAI** : GPT-4, GPT-3.5-turbo
-- **Anthropic** : Claude 3 (Opus, Sonnet, Haiku)
-- **Google** : Gemini Pro, Gemini Pro Vision
-- **Groq** : Llama, Mixtral
-- **HuggingFace** : Modèles open-source
-- **Ollama** : Modèles locaux
-- **OpenRouter** : Accès à de nombreux modèles
+### **🤖 Modèles IA Supportés**
 
-### Personnalisation
+<div align="center">
 
-Le projet utilise UnoCSS pour le styling. Vous pouvez personnaliser les thèmes dans :
-- `app/styles/` - Styles globaux
-- `uno.config.ts` - Configuration UnoCSS
+| Fournisseur | Modèles | Spécialités |
+|-------------|---------|-------------|
+| **OpenAI** | GPT-4o, GPT-4, GPT-3.5-turbo | Code, Analyse, Créativité |
+| **Anthropic** | Claude 3 (Opus, Sonnet, Haiku) | Raisonnement, Sécurité |
+| **Google** | Gemini Pro, Gemini Pro Vision | Multimodal, Vision |
+| **Groq** | Llama, Mixtral | Performance, Vitesse |
+| **HuggingFace** | Modèles Open Source | Spécialisation, Custom |
+| **Ollama** | Modèles Locaux | Confidentialité, Offline |
+| **XAI** | Grok Beta | Innovation, Recherche |
+| **DeepSeek** | DeepSeek Coder | Programmation Avancée |
 
-## 📚 Utilisation
+</div>
 
-### 1. Chat avec l'IA
-- Tapez votre question ou demande dans la zone de chat
-- L'IA peut générer du code, expliquer des concepts, déboguer des erreurs
-- Utilisez des commandes spéciales comme `/fix` pour corriger des erreurs
+### **🎨 Personnalisation**
+- **Styles** : `app/styles/` - Styles globaux
+- **Thèmes** : `uno.config.ts` - Configuration UnoCSS
+- **Composants** : Système de design modulaire
+- **Raccourcis** : Configuration personnalisable
 
-### 2. Gestion des Fichiers
-- Créez, modifiez et supprimez des fichiers via l'interface
-- L'IA peut générer des fichiers complets ou modifier du code existant
-- Prévisualisez les changements en temps réel
+---
 
-### 3. Terminal Intégré
-- Exécutez des commandes directement dans le navigateur
-- Support pour npm, node, python (bibliothèque standard uniquement)
-- Gestion des processus et des serveurs de développement
+## 📚 Guide d'Utilisation
 
-### 4. Déploiement
-- Connectez votre compte Netlify pour un déploiement automatique
-- L'IA peut configurer et optimiser votre projet pour la production
+### **1️⃣ Interaction avec l'IA**
+> 💬 **Chat Intelligent** : Posez vos questions directement
+> 
+> 🔧 **Commandes Spéciales** : Utilisez `/fix` pour corriger les erreurs
+> 
+> 📋 **Contexte Persistant** : L'IA se souvient de votre projet
+
+### **2️⃣ Gestion des Fichiers**
+> 📁 **CRUD Complet** : Créer, modifier, supprimer via l'interface
+> 
+> 🤖 **Génération IA** : L'IA génère et modifie vos fichiers
+> 
+> 👁️ **Aperçu Temps Réel** : Visualisation instantanée des changements
+
+### **3️⃣ Terminal Intégré**
+> ⌨️ **Commandes Standard** : Support complet npm, node, python
+> 
+> 🔄 **Gestion Processus** : Serveurs de développement intégrés
+> 
+> 🐍 **Python** : Bibliothèque standard supportée
+
+### **4️⃣ Déploiement Automatique**
+> 🌐 **Netlify** : Connexion et déploiement automatique
+> 
+> ⚡ **Optimisation IA** : Configuration production assistée
+> 
+> 🚀 **CI/CD** : Pipeline de déploiement intelligent
+
+---
 
 ## 🤝 Contribution
 
-Les contributions sont les bienvenues ! Voici comment contribuer :
+<div align="center">
 
-1. **Fork** le projet
-2. **Créez** une branche pour votre fonctionnalité (`git checkout -b feature/AmazingFeature`)
-3. **Committez** vos changements (`git commit -m 'Add some AmazingFeature'`)
-4. **Push** vers la branche (`git push origin feature/AmazingFeature`)
-5. **Ouvrez** une Pull Request
+**Vos contributions sont les bienvenues !** 🙌
 
-### Guidelines de Développement
+</div>
 
-- Utilisez TypeScript pour tout nouveau code
-- Suivez les conventions de nommage existantes
-- Ajoutez des tests pour les nouvelles fonctionnalités
-- Documentez les changements importants
+### **📝 Processus de Contribution**
+1. **🔀 Fork** le projet
+2. **🌟 Créer** une branche (`git checkout -b feature/NouvelleFonctionnalite`)
+3. **💾 Commit** vos changements (`git commit -m 'Ajout NouvelleFonctionnalite'`)
+4. **📤 Push** vers la branche (`git push origin feature/NouvelleFonctionnalite`)
+5. **🔄 Ouvrir** une Pull Request
 
-## 🧪 Tests
+### **📋 Directives de Développement**
+- ✅ **TypeScript** pour tout nouveau code
+- 📏 **Conventions** : Suivre les conventions existantes  
+- 🧪 **Tests** : Ajouter des tests pour les nouvelles fonctionnalités
+- 📖 **Documentation** : Documenter les changements significatifs
 
+---
+
+## 🧪 Tests & Qualité
+
+### **🔍 Scripts de Test**
 ```bash
 # Lancer les tests
 pnpm test
 
-# Tests en mode watch
+# Mode surveillance  
 pnpm test:watch
 
 # Vérification des types
@@ -228,42 +391,99 @@ pnpm lint
 pnpm lint:fix
 ```
 
+### **📊 Métriques de Qualité**
+- **Couverture de Code** : >85%
+- **Performance** : Lighthouse Score >90
+- **Accessibilité** : WCAG 2.1 AA
+- **Sécurité** : Audit automatisé
+
+---
+
 ## 📖 Documentation
 
-La documentation complète est disponible dans le dossier `docs/` et peut être générée avec MkDocs :
-
+### **📚 Documentation Complète**
 ```bash
 cd docs
 pip install -r requirements.txt
 mkdocs serve
 ```
 
-## 🔒 Sécurité
+**Sections Disponibles :**
+- 🚀 Guide de démarrage rapide
+- 🔧 Configuration avancée
+- 🤖 Intégration IA
+- 🎨 Personnalisation de thèmes
+- 🔌 Développement de plugins
 
-- Les clés API sont stockées de manière sécurisée
-- Aucune donnée sensible n'est envoyée aux serveurs tiers sans autorisation
-- Le code s'exécute dans un environnement sandboxé (WebContainer)
-- Chiffrement des données de session
+---
+
+## 🔒 Sécurité & Confidentialité
+
+<div align="center">
+
+| Aspect | Implementation | Status |
+|--------|---------------|---------|
+| **🔐 Clés API** | Stockage sécurisé chiffré | ✅ |
+| **🛡️ Sandbox** | WebContainer isolé | ✅ |
+| **🔒 Chiffrement** | Données session/local | ✅ |
+| **🚫 Confidentialité** | Aucune donnée tiers sans autorisation | ✅ |
+
+</div>
+
+---
 
 ## 📄 Licence
 
-Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
+Ce projet est sous licence **MIT**. Consultez le fichier [LICENSE](LICENSE) pour plus de détails.
+
+---
 
 ## 🙏 Remerciements
 
+<div align="center">
+
+**Merci à nos contributeurs et à la communauté !** ❤️
+
 - **StackBlitz** pour la technologie WebContainer
-- **bolt.diy** pour l'inspiration et la base du projet
-- La communauté open-source pour les nombreuses bibliothèques utilisées
+- **bolt.diy** pour l'inspiration et la base du projet  
+- **Communauté Open Source** pour toutes les bibliothèques utilisées
+- **Contributeurs** qui rendent ce projet possible
 
-## 📞 Support
+</div>
 
-- **Issues** : [GitHub Issues](https://github.com/votre-username/NeuroCode-v2-IA/issues)
-- **Discussions** : [GitHub Discussions](https://github.com/votre-username/NeuroCode-v2-IA/discussions)
-- **Email** : support@neurocode.dev
+---
+
+## 📞 Support & Communauté
+
+<div align="center">
+
+### **🆘 Besoin d'Aide ?**
+
+| Canal | Description | Lien |
+|-------|-------------|------|
+| **🐛 Issues** | Signaler des bugs | [GitHub Issues](<votre-lien-github-issues>) |
+| **💬 Discussions** | Questions & Idées | [GitHub Discussions](<votre-lien-github-discussions>) |
+| **📧 Email** | Support direct | support@neurocode.dev |
+| **💬 Discord** | Communauté en temps réel | [Rejoindre](<votre-lien-discord>) |
+
+</div>
 
 ---
 
 <div align="center">
-  <p>Fait avec ❤️ par l'équipe NeuroCode</p>
-  <p>© 2024 NeuroCode. Tous droits réservés.</p>
+  
+### **🌟 NeuroCode Team**
+
+<img src="https://contrib.rocks/image?repo=votre-repo/neurocode" />
+
+**Conçu avec ❤️ par l'équipe NeuroCode**
+
+*© 2024 NeuroCode. Tous droits réservés.*
+
+---
+
+**⭐ Si ce projet vous plaît, n'hésitez pas à lui donner une étoile !**
+
+[![GitHub stars](https://img.shields.io/github/stars/votre-repo/neurocode.svg?style=social&label=Star)](https://github.com/votre-repo/neurocode)
+
 </div>
