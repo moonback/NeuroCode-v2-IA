@@ -416,12 +416,14 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
                 )}
               </IconButton>
               
-              <PromptEnhancer
-                onEnhancedPrompt={handleEnhancedPrompt}
-                disabled={props.isStreaming}
-                provider={props.provider}
-                model={props.model}
-              />
+              {!props.chatStarted && (
+                <PromptEnhancer
+                  onEnhancedPrompt={handleEnhancedPrompt}
+                  disabled={props.isStreaming}
+                  provider={props.provider}
+                  model={props.model}
+                />
+              )}
 
             </div>
 
@@ -466,9 +468,8 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
                   }}
                 >
                   <div className={`i-ph:chats text-xl`} />
-                  {props.chatMode === 'discuss' ? <span>Discussion</span> : <span />}
+                  {props.chatMode === 'discuss' ? <span></span> : <span />}
                 </IconButton>
-                {/* <ClientOnly>{() => <ExportChatButton exportChat={props.exportChat} />}</ClientOnly> */}
               </div>
             )}
 
