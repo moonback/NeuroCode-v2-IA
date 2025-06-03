@@ -1058,6 +1058,8 @@ export const Preview = memo(({ setSelectedElement }: PreviewProps) => {
            setIsInspectorPanelVisible(false);
            setSelectedInspectorElement(null);
          }}
+         initialPosition={{ x: window.innerWidth - 360, y: 100 }}
+         initialSize={{ width: 340, height: Math.min(700, window.innerHeight - 150) }}
        />
     </div>
   );

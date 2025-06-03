@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRightIcon, ClipboardIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { ChevronRightIcon, ClipboardIcon, XMarkIcon, ArrowsPointingOutIcon } from '@heroicons/react/24/outline';
 import { CodeBracketIcon } from '@heroicons/react/24/solid';
 
 interface ElementInfo {
@@ -23,12 +23,31 @@ interface InspectorPanelProps {
   selectedElement: ElementInfo | null;
   isVisible: boolean;
   onClose: () => void;
+  initialPosition?: { x: number; y: number };
+  initialSize?: { width: number; height: number };
 }
 
-export const InspectorPanel = ({ selectedElement, isVisible, onClose }: InspectorPanelProps) => {
+export const InspectorPanel = ({ 
+  selectedElement, 
+  isVisible, 
+  onClose, 
+  initialPosition = { x: window.innerWidth - 340, y: 80 },
+  initialSize = { width: 320, height: 600 }
+}: InspectorPanelProps) => {
   const [activeTab, setActiveTab] = useState<'styles' | 'computed' | 'box'>('styles');
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['layout', 'appearance']));
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Floating panel state
+  const [position, setPosition] = useState(initialPosition);
+  const [size, setSize] = useState(initialSize);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  
+  const panelRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);
@@ -48,6 +67,77 @@ export const InspectorPanel = ({ selectedElement, isVisible, onClose }: Inspecto
       console.error('Failed to copy:', err);
     }
   };
+
+  // Dragging functionality
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (e.target === headerRef.current || headerRef.current?.contains(e.target as Node)) {
+      setIsDragging(true);
+      setDragStart({
+        x: e.clientX - position.x,
+        y: e.clientY - position.y
+      });
+    }
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (isDragging) {
+      const newX = Math.max(0, Math.min(window.innerWidth - size.width, e.clientX - dragStart.x));
+      const newY = Math.max(0, Math.min(window.innerHeight - size.height, e.clientY - dragStart.y));
+      setPosition({ x: newX, y: newY });
+    }
+    
+    if (isResizing) {
+      const newWidth = Math.max(280, Math.min(800, resizeStart.width + (e.clientX - resizeStart.x)));
+      const newHeight = Math.max(400, Math.min(window.innerHeight - position.y, resizeStart.height + (e.clientY - resizeStart.y)));
+      setSize({ width: newWidth, height: newHeight });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    setIsResizing(false);
+  };
+
+  // Resize functionality
+  const handleResizeStart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsResizing(true);
+    setResizeStart({
+      x: e.clientX,
+      y: e.clientY,
+      width: size.width,
+      height: size.height
+    });
+  };
+
+  useEffect(() => {
+    if (isDragging || isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = isDragging ? 'grabbing' : 'nw-resize';
+      
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+        document.body.style.userSelect = '';
+        document.body.style.cursor = '';
+      };
+    }
+  }, [isDragging, isResizing, dragStart, resizeStart, position, size]);
+
+  // Constrain panel to viewport on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setPosition(prev => ({
+        x: Math.max(0, Math.min(window.innerWidth - size.width, prev.x)),
+        y: Math.max(0, Math.min(window.innerHeight - size.height, prev.y))
+      }));
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [size]);
 
   if (!isVisible || !selectedElement) {
     return null;
@@ -123,15 +213,25 @@ export const InspectorPanel = ({ selectedElement, isVisible, onClose }: Inspecto
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          initial={{ opacity: 0, x: 320, scale: 0.95 }}
-          animate={{ opacity: 1, x: 0, scale: 1 }}
-          exit={{ opacity: 0, x: 320, scale: 0.95 }}
+          ref={panelRef}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
           transition={{ duration: 0.2, ease: "easeOut" }}
-          className="fixed right-4 top-20 w-80 bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor rounded-lg shadow-sm z-40 max-h-[calc(100vh-6rem)] overflow-hidden"
+          className="fixed bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor rounded-lg shadow-2xl z-50 overflow-hidden backdrop-blur-sm"
+          style={{
+            left: position.x,
+            top: position.y,
+            width: size.width,
+            height: size.height,
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05)'
+          }}
+          onMouseDown={handleMouseDown}
         >
           {/* Header */}
           <motion.div 
-            className="flex items-center justify-between px-3 py-2 border-b border-bolt-elements-borderColor"
+            ref={headerRef}
+            className="flex items-center justify-between px-3 py-2 border-b border-bolt-elements-borderColor cursor-move bg-gradient-to-r from-bolt-elements-background-depth-1 to-bolt-elements-background-depth-2"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.1 }}
@@ -139,15 +239,29 @@ export const InspectorPanel = ({ selectedElement, isVisible, onClose }: Inspecto
             <div className="flex items-center gap-2">
               <CodeBracketIcon className="w-4 h-4 text-bolt-elements-textSecondary" />
               <h3 className="text-sm font-medium text-bolt-elements-textPrimary">Inspecteur d'éléments</h3>
+              <div className="flex items-center gap-1 ml-2">
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-xs text-bolt-elements-textTertiary">Flottant</span>
+              </div>
             </div>
-            <motion.button 
-              onClick={onClose} 
-              className="text-bolt-elements-item-contentDefault bg-bolt-elements-background-depth-1 hover:text-bolt-elements-item-contentActive p-1 rounded hover:bg-bolt-elements-item-backgroundActive transition-colors"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <XMarkIcon className="w-4 h-4" />
-            </motion.button>
+            <div className="flex items-center gap-1">
+              <motion.button 
+                className="text-bolt-elements-item-contentDefault hover:text-bolt-elements-item-contentActive p-1 rounded hover:bg-bolt-elements-item-backgroundActive transition-colors"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                title="Redimensionner"
+              >
+                <ArrowsPointingOutIcon className="w-3 h-3" />
+              </motion.button>
+              <motion.button 
+                onClick={onClose} 
+                className="text-bolt-elements-item-contentDefault hover:text-bolt-elements-item-contentActive p-1 rounded hover:bg-bolt-elements-item-backgroundActive transition-colors"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <XMarkIcon className="w-4 h-4" />
+              </motion.button>
+            </div>
           </motion.div>
 
           {/* Element Info */}
@@ -237,7 +351,7 @@ export const InspectorPanel = ({ selectedElement, isVisible, onClose }: Inspecto
           </motion.div>
 
           {/* Content */}
-          <div className="overflow-y-auto max-h-96">
+          <div className="overflow-y-auto flex-1" style={{ height: size.height - 120 }}>
             <AnimatePresence mode="wait">
               {activeTab === 'styles' && (
                 <motion.div
@@ -414,6 +528,17 @@ export const InspectorPanel = ({ selectedElement, isVisible, onClose }: Inspecto
               )}
             </AnimatePresence>
           </div>
+          
+          {/* Resize Handle */}
+          <motion.div
+            className="absolute bottom-0 right-0 w-4 h-4 cursor-nw-resize bg-bolt-elements-borderColor hover:bg-bolt-elements-borderColorActive transition-colors"
+            style={{
+              background: 'linear-gradient(-45deg, transparent 30%, currentColor 30%, currentColor 70%, transparent 70%)'
+            }}
+            onMouseDown={handleResizeStart}
+            whileHover={{ scale: 1.1 }}
+            title="Redimensionner le panneau"
+          />
         </motion.div>
       )}
     </AnimatePresence>
