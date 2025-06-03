@@ -119,7 +119,7 @@ if (requiresPlanning || requiresDiscussionPlanning) {
       label: 'project-planning',
       status: 'in-progress',
       order: progressCounter++,
-      message: 'Analyse du projet et génération du plan',
+      message: '🔍 Analyse du projet et génération du plan stratégique...',
     } satisfies ProgressAnnotation);
 
     // Analyze project complexity and type
@@ -132,7 +132,7 @@ if (requiresPlanning || requiresDiscussionPlanning) {
       label: 'project-analysis',
       status: 'in-progress',
       order: progressCounter++,
-      message: `Type: ${projectType} | Complexité: ${complexityLevel}`,
+      message: `📊 Analyse terminée • Type: ${projectType} • Complexité: ${complexityLevel}`,
     } satisfies ProgressAnnotation);
     
     const planningInstructionContent = `Before ${requiresPlanning ? 'generating any code' : 'providing detailed guidance'} for the main task, please first create a comprehensive project plan in Markdown format.
@@ -229,7 +229,7 @@ Your subsequent ${requiresPlanning ? 'code generation' : 'recommendations'} shou
       label: 'project-planning',
       status: 'complete',
       order: progressCounter++,
-      message: 'Plan de projet préparé',
+      message: '✅ Plan de projet stratégique préparé avec succès',
     } satisfies ProgressAnnotation);
     
     logger.info(`Enhanced project planning instruction injected for ${chatMode} mode. Project type: ${projectType}, Complexity: ${complexityLevel}`);
@@ -240,7 +240,7 @@ Your subsequent ${requiresPlanning ? 'code generation' : 'recommendations'} shou
       label: 'plan-generation',
       status: 'in-progress',
       order: progressCounter++,
-      message: 'Génération du fichier PROJECT_PLAN.md',
+      message: '📝 Génération du plan du projet avec une architecture détaillée et une feuille de route de mise en œuvre...',
     } satisfies ProgressAnnotation);
 }
 
@@ -290,7 +290,7 @@ function assessComplexity(message: string): string {
             label: 'summary',
             status: 'in-progress',
             order: progressCounter++,
-            message: 'Analyse de la requête',
+            message: '🧠 Analyse intelligente de la conversation en cours...',
           } satisfies ProgressAnnotation);
 
           // Créer un résumé de la conversation
@@ -317,7 +317,7 @@ function assessComplexity(message: string): string {
             label: 'summary',
             status: 'complete',
             order: progressCounter++,
-            message: 'Analyse terminée',
+            message: '✅ Analyse de conversation terminée avec succès',
           } satisfies ProgressAnnotation);
 
           dataStream.writeMessageAnnotation({
@@ -333,7 +333,7 @@ function assessComplexity(message: string): string {
             label: 'context',
             status: 'in-progress',
             order: progressCounter++,
-            message: 'Détermination des fichiers à lire',
+            message: '📁 Sélection intelligente des fichiers pertinents...',
           } satisfies ProgressAnnotation);
 
           // Sélectionner les fichiers de contexte
@@ -374,12 +374,13 @@ function assessComplexity(message: string): string {
             }),
           } as ContextAnnotation);
 
+          const fileCount = filteredFiles ? Object.keys(filteredFiles).length : 0;
           dataStream.writeData({
             type: 'progress',
             label: 'context',
             status: 'complete',
             order: progressCounter++,
-            message: 'Fichiers de code sélectionnés',
+            message: `✅ ${fileCount} fichier${fileCount > 1 ? 's' : ''} de code sélectionné${fileCount > 1 ? 's' : ''} pour le contexte`,
           } satisfies ProgressAnnotation);
 
           // logger.debug('Fichiers de code sélectionnés');
@@ -405,7 +406,7 @@ function assessComplexity(message: string): string {
                   label: 'plan-generation',
                   status: 'complete',
                   order: progressCounter++,
-                  message: 'PROJECT_PLAN.md généré avec succès',
+                  message: '📋 Plan de projet généré avec succès',
                 } satisfies ProgressAnnotation);
               }
               
@@ -422,7 +423,7 @@ function assessComplexity(message: string): string {
                 label: 'response',
                 status: 'complete',
                 order: progressCounter++,
-                message: 'Réponse générée',
+                message: `✅ Réponse générée (${cumulativeUsage.totalTokens} tokens utilisés)`,
               } satisfies ProgressAnnotation);
               await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -436,14 +437,14 @@ function assessComplexity(message: string): string {
               dataStream.writeData({
                 type: 'error',
                 id: generateId(),
-                message: 'Impossible de continuer le message : Nombre maximum de segments atteint.',
+                message: '⚠️ Impossible de continuer le message : Nombre maximum de segments atteint.',
               } satisfies DataStreamError);
               dataStream.writeData({
                 type: 'progress',
-                label: 'summary',
+                label: 'response',
                 status: 'error',
                 order: progressCounter++,
-                message: 'Erreur : nombre maximum de segments atteint.',
+                message: '❌ Erreur : Limite de segments atteinte',
               } satisfies ProgressAnnotation);
               await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -452,6 +453,15 @@ function assessComplexity(message: string): string {
 
             const switchesLeft = MAX_RESPONSE_SEGMENTS - responseSegments;
             logger.info(`Limite maximale de tokens atteinte (${MAX_TOKENS}) : Poursuite du message (${switchesLeft} changements restants)`);
+            
+            // Add progress message for continuation
+            dataStream.writeData({
+              type: 'progress',
+              label: 'continuation',
+              status: 'in-progress',
+              order: progressCounter++,
+              message: `🔄 Continuation du message (${switchesLeft} segments restants)...`,
+            } satisfies ProgressAnnotation);
 
             const lastUserMessage = messages.filter((x) => x.role == 'user').slice(-1)[0];
             const { model, provider } = extractPropertiesFromMessage(lastUserMessage);
@@ -503,7 +513,7 @@ function assessComplexity(message: string): string {
           label: 'response',
           status: 'in-progress',
           order: progressCounter++,
-          message: 'Génération de la réponse',
+          message: '🤖 Génération de la réponse intelligente en cours...',
         } satisfies ProgressAnnotation);
 
         const result = await streamText({
