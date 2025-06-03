@@ -1,7 +1,7 @@
 # NeuroCode v2 - IA
 
 <div align="center">
-  <img src="./public/logo-light-styled.png" alt="NeuroCode Logo" width="120" height="120">
+  <img src="./public/logo-light-styled.png" alt="NeuroCode Logo">
   <h3>Assistant IA Expert pour le Développement</h3>
   <p>Une plateforme de développement alimentée par l'IA avec environnement d'exécution intégré</p>
 </div>
