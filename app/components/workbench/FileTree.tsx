@@ -535,19 +535,19 @@ function FileContextMenu({
               <ContextMenuItem onSelect={() => setIsCreatingFile(true)}>
                 <div className="flex items-center gap-2">
                   <div className="i-ph:file-plus" />
-                  New File
+                  Nouveau fichier
                 </div>
               </ContextMenuItem>
               <ContextMenuItem onSelect={() => setIsCreatingFolder(true)}>
                 <div className="flex items-center gap-2">
                   <div className="i-ph:folder-plus" />
-                  New Folder
+                  Nouveau dossier
                 </div>
               </ContextMenuItem>
             </ContextMenu.Group>
             <ContextMenu.Group className="p-1">
-              <ContextMenuItem onSelect={onCopyPath}>Copy path</ContextMenuItem>
-              <ContextMenuItem onSelect={onCopyRelativePath}>Copy relative path</ContextMenuItem>
+              <ContextMenuItem onSelect={onCopyPath}>Copier le chemin</ContextMenuItem>
+              <ContextMenuItem onSelect={onCopyRelativePath}>Copier le chemin relatif</ContextMenuItem>
             </ContextMenu.Group>
             {/* Add AI targeting option for files */}
             {!isFolder && (
@@ -570,14 +570,14 @@ function FileContextMenu({
                   <ContextMenuItem onSelect={handleLockFile}>
                     <div className="flex items-center gap-2">
                       <div className="i-ph:lock-simple" />
-                      Lock File
+                      Verrouiller fichier
                     </div>
                   </ContextMenuItem>
                   <ContextMenuItem onSelect={handleUnlockFile}>
                     <div className="flex items-center gap-2">
                       <div className="i-ph:lock-key-open" />
-                      Unlock File
-                    </div>
+                      Déverrouiller fichier
+                      </div>
                   </ContextMenuItem>
                 </>
               ) : (
@@ -585,13 +585,13 @@ function FileContextMenu({
                   <ContextMenuItem onSelect={handleLockFolder}>
                     <div className="flex items-center gap-2">
                       <div className="i-ph:lock-simple" />
-                      Lock Folder
+                      Verrouiller dossier
                     </div>
                   </ContextMenuItem>
                   <ContextMenuItem onSelect={handleUnlockFolder}>
                     <div className="flex items-center gap-2">
                       <div className="i-ph:lock-key-open" />
-                      Unlock Folder
+                      Déverrouiller dossier
                     </div>
                   </ContextMenuItem>
                 </>
@@ -602,7 +602,7 @@ function FileContextMenu({
               <ContextMenuItem onSelect={handleDelete}>
                 <div className="flex items-center gap-2 text-red-500">
                   <div className="i-ph:trash" />
-                  Delete {isFolder ? 'Folder' : 'File'}
+                  Supprimer {isFolder ? 'Folder' : 'File'}
                 </div>
               </ContextMenuItem>
             </ContextMenu.Group>
@@ -612,7 +612,7 @@ function FileContextMenu({
       {isCreatingFile && (
         <InlineInput
           depth={depth}
-          placeholder="Enter file name..."
+          placeholder="Entrez le nom du fichier..."
           onSubmit={handleCreateFile}
           onCancel={() => setIsCreatingFile(false)}
         />
@@ -620,7 +620,7 @@ function FileContextMenu({
       {isCreatingFolder && (
         <InlineInput
           depth={depth}
-          placeholder="Enter folder name..."
+          placeholder="Entrez le nom du dossier..."
           onSubmit={handleCreateFolder}
           onCancel={() => setIsCreatingFolder(false)}
         />

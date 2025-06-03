@@ -36,7 +36,7 @@ export const AITargetManager = memo<AITargetManagerProps>(({ className }) => {
   const handleRemoveFile = (filePath: string) => {
     workbenchStore.removeAITargetFile(filePath);
     const fileName = filePath.split('/').pop() || 'file';
-    toast.success(`File "${fileName}" removed from AI targets`);
+    toast.success(`Fichier "${fileName}" retiré des cibles IA`);
     // Remove from selection if it was selected
     const newSelectedFiles = new Set(selectedFiles);
     newSelectedFiles.delete(filePath);
@@ -45,13 +45,13 @@ export const AITargetManager = memo<AITargetManagerProps>(({ className }) => {
 
   const handleClearAll = () => {
     workbenchStore.clearAITargetFiles();
-    toast.success('All AI targets cleared');
+    toast.success('Toutes les cibles IA effacées');
     setSelectedFiles(new Set());
   };
 
   const handleRemoveSelected = () => {
     if (selectedFiles.size === 0) {
-      toast.error('No files selected to remove.');
+      toast.error('Aucun fichier sélectionné à supprimer.');
       return;
     }
 
@@ -62,7 +62,7 @@ export const AITargetManager = memo<AITargetManagerProps>(({ className }) => {
     });
 
     if (removedCount > 0) {
-      toast.success(`Removed ${removedCount} selected file(s) from AI targets.`);
+      toast.success(`${removedCount} fichier(s) sélectionné(s) retiré(s) des cibles IA.`);
       setSelectedFiles(new Set());
     }
   };
@@ -84,13 +84,7 @@ export const AITargetManager = memo<AITargetManagerProps>(({ className }) => {
     });
   }, [aiTargetFiles]);
 
-  if (targetedFilesArray.length === 0) {
-    return null;
-  };
 
-  if (targetedFilesArray.length === 0) {
-    return null;
-  }
 
   // Filter and sort the targeted files
   const filteredAndSortedFiles = targetedFilesArray
@@ -173,33 +167,7 @@ export const AITargetManager = memo<AITargetManagerProps>(({ className }) => {
   };
 
   return (
-    <div className={classNames(
-      'flex flex-col h-full overflow-hidden',
-      'bg-bolt-elements-background-depth-1 border border-bolt-elements-borderColor rounded-lg',
-      className
-    )}>
-      {/* Header */}
-      <div className="flex items-center justify-between px-3 py-2 border-b border-bolt-elements-borderColor bg-bolt-elements-background-depth-2">
-        <div className="flex items-center gap-2">
-          <div className="i-ph:target text-violet-500" />
-          <span className="text-sm font-semibold text-bolt-elements-textPrimary">AI Targets</span>
-          <span className="px-2 py-0.5 text-xs bg-violet-500/20 text-violet-300 rounded-full font-bold">
-            {targetedFilesArray.length}
-          </span>
-        </div>
-        {targetedFilesArray.length > 0 && (
-          <button
-            onClick={handleClearAll}
-            className="px-2 py-1 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded transition-colors"
-            title="Clear all targets"
-          >
-            <div className="i-ph:trash" />
-          </button>
-        )}
-      </div>
-
-
-
+    <div className="flex flex-col h-full overflow-hidden">
       {/* Controls */}
       <div className="flex items-center gap-1 px-2 py-1 border-b border-bolt-elements-borderColor">
         {/* Search Input */}
@@ -207,7 +175,7 @@ export const AITargetManager = memo<AITargetManagerProps>(({ className }) => {
           <span className="absolute left-2 top-1/2 -translate-y-1/2 text-bolt-elements-textTertiary i-ph:magnifying-glass text-xs pointer-events-none" />
           <input
             type="text"
-            placeholder="Search files..."
+            placeholder="Rechercher des fichiers..."
             className="w-full text-xs pl-6 pr-2 py-0.5 h-6 bg-bolt-elements-background-depth-2 text-bolt-elements-textPrimary rounded border border-bolt-elements-borderColor focus:outline-none"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -220,11 +188,11 @@ export const AITargetManager = memo<AITargetManagerProps>(({ className }) => {
           value={filter}
           onChange={(e) => setFilter(e.target.value as any)}
         >
-          <option value="all">All</option>
+          <option value="all">Tous</option>
           <option value="js">JS/JSX</option>
           <option value="ts">TS/TSX</option>
           <option value="py">Python</option>
-          <option value="other">Other</option>
+          <option value="other">Autres</option>
         </select>
       </div>
 
@@ -235,20 +203,21 @@ export const AITargetManager = memo<AITargetManagerProps>(({ className }) => {
             checked={selectAllCheckedState}
             onCheckedChange={handleSelectAll}
             className="w-3 h-3 rounded border-bolt-elements-borderColor mr-2"
-            aria-label="Select all files"
+            aria-label="Sélectionner tous les fichiers"
             disabled={filteredAndSortedFiles.length === 0}
           />
-          <span>All</span>
+          <span>Tous</span>
         </div>
         {selectedFiles.size > 0 && (
           <button
             className="ml-auto px-2 py-0.5 rounded bg-bolt-elements-button-secondary-background hover:bg-bolt-elements-button-secondary-backgroundHover text-bolt-elements-button-secondary-text text-xs flex items-center gap-1"
             onClick={handleRemoveSelected}
-            title="Remove all selected files"
+            title="Supprimer tous les fichiers sélectionnés"
           >
-            Remove selected
+            Supprimer sélectionnés
           </button>
         )}
+        <div></div>
       </div>
 
       {/* List of targeted files */}
@@ -256,9 +225,9 @@ export const AITargetManager = memo<AITargetManagerProps>(({ className }) => {
         {filteredAndSortedFiles.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-bolt-elements-textTertiary text-xs gap-2">
             <span className="i-ph:target text-lg opacity-50" />
-            <span>No targeted files found</span>
+            <span>Aucun fichier ciblé trouvé</span>
             {targetedFilesArray.length > 0 && (
-              <span className="text-center">Try adjusting your search or filter</span>
+              <span className="text-center">Essayez d'ajuster votre recherche ou filtre</span>
             )}
           </div>
         ) : (
@@ -279,22 +248,23 @@ export const AITargetManager = memo<AITargetManagerProps>(({ className }) => {
                 />
                 <span
                   className={classNames(
-                    'shrink-0 text-xs',
+                    'shrink-0 text-bolt-elements-textTertiary text-xs',
                     getFileIcon(file.extension)
                   )}
                 />
-                <div className="flex-1 min-w-0">
-                  <div id={`file-label-${file.path}`} className="truncate text-xs font-medium" title={file.name}>
-                    {file.name}
-                  </div>
-                  <div className="truncate text-xs text-bolt-elements-textTertiary" title={file.path}>
-                    {file.path.replace('/home/project/', '')}
-                  </div>
-                </div>
+                <span id={`file-label-${file.path}`} className="truncate flex-1 text-xs" title={file.path}>
+                  {file.path.replace('/home/project/', '')}
+                </span>
+                <span
+                  className={classNames(
+                    'inline-flex items-center px-1 rounded-sm text-xs',
+                    'bg-violet-500/10 text-violet-500',
+                  )}
+                ></span>
                 <button
                   className="flex items-center px-1 py-0.5 text-xs rounded bg-transparent hover:bg-bolt-elements-background-depth-3"
                   onClick={() => handleRemoveFile(file.path)}
-                  title="Remove from targets"
+                  title="Retirer des cibles"
                 >
                   <span className="i-ph:x text-xs" />
                 </button>
@@ -307,7 +277,7 @@ export const AITargetManager = memo<AITargetManagerProps>(({ className }) => {
       {/* Footer */}
       <div className="px-2 py-1 border-t border-bolt-elements-borderColor bg-bolt-elements-background-depth-2 text-xs text-bolt-elements-textTertiary flex justify-between items-center">
         <div>
-          {filteredAndSortedFiles.length} file(s) • {selectedFiles.size} selected
+          {filteredAndSortedFiles.length} fichier(s) • {selectedFiles.size} sélectionné(s)
         </div>
       </div>
     </div>
