@@ -95,39 +95,25 @@ export const EditorPanel = memo(
                 <Tabs.Root defaultValue="files" className="flex flex-col h-full">
                   <PanelHeader className="w-full text-sm font-medium text-bolt-elements-textSecondary px-1">
                     <div className="h-full flex-shrink-0 flex items-center justify-between w-full">
-                      <Tabs.List className="h-full flex-shrink-0 flex items-center">
-                        <Tabs.Trigger
-                          value="files"
-                          className={classNames(
-                            'h-full bg-transparent hover:bg-bolt-elements-background-depth-3 py-0.5 px-2 rounded-lg text-sm font-medium text-bolt-elements-textTertiary hover:text-bolt-elements-textPrimary data-[state=active]:text-bolt-elements-textPrimary',
-                          )}
-                        >
-                          Files
-                        </Tabs.Trigger>
-                        <Tabs.Trigger
-                          value="search"
-                          className={classNames(
-                            'h-full bg-transparent hover:bg-bolt-elements-background-depth-3 py-0.5 px-2 rounded-lg text-sm font-medium text-bolt-elements-textTertiary hover:text-bolt-elements-textPrimary data-[state=active]:text-bolt-elements-textPrimary',
-                          )}
-                        >
-                          Search
-                        </Tabs.Trigger>
-                        <Tabs.Trigger
-                          value="locks"
-                          className={classNames(
-                            'h-full bg-transparent hover:bg-bolt-elements-background-depth-3 py-0.5 px-2 rounded-lg text-sm font-medium text-bolt-elements-textTertiary hover:text-bolt-elements-textPrimary data-[state=active]:text-bolt-elements-textPrimary',
-                          )}
-                        >
-                          Locks
-                        </Tabs.Trigger>
-                        <Tabs.Trigger
-                          value="ai-targets"
-                          className={classNames(
-                            'h-full bg-transparent hover:bg-bolt-elements-background-depth-3 py-0.5 px-2 rounded-lg text-sm font-medium text-bolt-elements-textTertiary hover:text-bolt-elements-textPrimary data-[state=active]:text-bolt-elements-textPrimary',
-                          )}
-                        >
-                          Targets
-                        </Tabs.Trigger>
+                      <Tabs.List className="h-full flex-shrink-0 flex items-center gap-1">
+                        {[
+                          { value: 'files', icon: 'i-ph:folder-duotone', label: 'Fichier' },
+                          { value: 'search', icon: 'i-ph:magnifying-glass-duotone', label: 'Rechercher' },
+                          { value: 'locks', icon: 'i-ph:lock-duotone', label: 'Fichier verrouillage' },
+                          { value: 'ai-targets', icon: 'i-ph:target-duotone', label: 'Fichier cibler' }
+                        ].map(({ value, icon, label }) => (
+                          <Tabs.Trigger
+                            key={value}
+                            value={value}
+                            className={classNames(
+                              'h-full bg-transparent hover:bg-bolt-elements-background-depth-3 py-0.5 px-2 rounded-lg text-sm font-medium text-bolt-elements-textTertiary hover:text-bolt-elements-textPrimary data-[state=active]:text-bolt-elements-textPrimary'
+                            )}
+                            aria-label={label}
+                            title={label}
+                          >
+                            <div className={`${icon} text-lg`} aria-hidden="true" />
+                          </Tabs.Trigger>
+                        ))}
                       </Tabs.List>
                     </div>
                   </PanelHeader>
