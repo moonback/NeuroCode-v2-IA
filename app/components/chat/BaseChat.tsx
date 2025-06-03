@@ -33,6 +33,7 @@ import { StickToBottom, useStickToBottomContext } from '~/lib/hooks';
 import { ChatBox } from './ChatBox';
 import type { DesignScheme } from '~/types/design-scheme';
 import type { ElementInfo } from '~/components/workbench/Inspector';
+import type { AgentInfo } from '~/types/agent';
 const TEXTAREA_MIN_HEIGHT = 76;
 
 interface BaseChatProps {
@@ -79,7 +80,8 @@ interface BaseChatProps {
   selectedElement?: ElementInfo | null;
   setSelectedElement?: (element: ElementInfo | null) => void;
   runAnimation?: () => void;
-
+  selectedAgent?: AgentInfo | null;
+  setSelectedAgent?: (agent: AgentInfo | null) => void;
 }
 
 export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
@@ -140,6 +142,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
     const [progressAnnotations, setProgressAnnotations] = useState<ProgressAnnotation[]>([]);
     const expoUrl = useStore(expoUrlAtom);
     const [qrModalOpen, setQrModalOpen] = useState(false);
+    const [selectedAgent, setSelectedAgent] = useState<AgentInfo | null>(null);
 
     useEffect(() => {
       if (expoUrl) {
@@ -399,6 +402,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                         setChatMode={setChatMode}
                         provider={provider}
                         model={model}
+                        selectedAgent={selectedAgent}
                       />
                     ) : null
                   }
@@ -487,6 +491,8 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                   selectedElement={selectedElement}
                   setSelectedElement={setSelectedElement}
                   runAnimation={runAnimation}
+                  selectedAgent={selectedAgent}
+                  setSelectedAgent={setSelectedAgent}
                 />
               </div>
             </StickToBottom>

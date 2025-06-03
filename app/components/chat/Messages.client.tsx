@@ -12,6 +12,7 @@ import { profileStore } from '~/lib/stores/profile';
 import { forwardRef } from 'react';
 import type { ForwardedRef } from 'react';
 import type { ProviderInfo } from '~/types/model';
+import type { AgentInfo } from '~/types/agent';
 interface MessagesProps {
   id?: string;
   className?: string;
@@ -22,6 +23,7 @@ interface MessagesProps {
   setChatMode?: (mode: 'discuss' | 'build') => void;
   model?: string;
   provider?: ProviderInfo;
+  selectedAgent?: AgentInfo | null;
 }
 
 export const Messages = forwardRef<HTMLDivElement, MessagesProps>(
@@ -90,6 +92,7 @@ export const Messages = forwardRef<HTMLDivElement, MessagesProps>(
                         setChatMode={props.setChatMode}
                         model={props.model}
                         provider={props.provider}
+                        selectedAgent={props.selectedAgent}
                         />
                     )}
                   </div>

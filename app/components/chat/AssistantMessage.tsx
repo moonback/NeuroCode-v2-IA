@@ -12,6 +12,8 @@ import { useSettings } from '~/lib/hooks/useSettings';
 import { PromptLibrary } from '~/lib/common/prompt-library';
 import { toast } from 'react-toastify';
 import type { ProviderInfo } from '~/types/model';
+import type { AgentInfo } from '~/types/agent';
+import { classNames } from '~/utils/classNames';
 interface AssistantMessageProps {
   content: string;
   annotations?: JSONValue[];
@@ -23,6 +25,7 @@ interface AssistantMessageProps {
   setChatMode?: (mode: 'discuss' | 'build') => void;
   model?: string;
   provider?: ProviderInfo;
+  selectedAgent?: AgentInfo | null;
 }
 
 function openArtifactInWorkbench(filePath: string) {
@@ -97,6 +100,7 @@ export const AssistantMessage = memo(
     setChatMode,
     model,
     provider,
+    selectedAgent,
   }: AssistantMessageProps) => {
     const filteredAnnotations = (annotations?.filter(
       (annotation: JSONValue) =>
@@ -125,6 +129,12 @@ export const AssistantMessage = memo(
       <div className="overflow-hidden w-full">
         <>
           <div className=" flex gap-2 items-center text-sm text-bolt-elements-textSecondary mb-2">
+            {selectedAgent && (
+              <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-bolt-elements-background-depth-3 border border-bolt-elements-borderColor">
+                <div className={classNames(selectedAgent.icon, 'w-4 h-4 text-bolt-elements-accent')} />
+                <span className="text-xs font-medium">{selectedAgent.name}</span>
+              </div>
+            )}
             {(codeContext || chatSummary) && (
               <Popover side="right" align="start" trigger={<div className="i-ph:info" />}>
                 {chatSummary && (

@@ -26,6 +26,9 @@ import type { ProviderInfo } from '~/types/model';
 import type { Message } from 'ai';
 import { workbenchStore } from '~/lib/stores/workbench';
 import { useStore } from '@nanostores/react';
+import { AgentSelector } from './AgentSelector';
+import { AGENT_LIST } from '~/lib/agents/agent-list';
+import type { AgentInfo } from '~/types/agent';
 
 interface ChatBoxProps {
   isModelSettingsCollapsed: boolean;
@@ -71,6 +74,8 @@ interface ChatBoxProps {
   selectedElement?: ElementInfo | null;
   setSelectedElement?: ((element: ElementInfo | null) => void) | undefined;
   runAnimation?: () => void;
+  selectedAgent?: AgentInfo | null;
+  setSelectedAgent?: (agent: AgentInfo | null) => void;
 }
 
 export const ChatBox: React.FC<ChatBoxProps> = (props) => {
@@ -165,6 +170,14 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
           </button>
         </div>
       )}
+        {/* Sélecteur d'agent spécialisé */}
+        <AgentSelector
+          selectedAgent={props.selectedAgent}
+          setSelectedAgent={props.setSelectedAgent}
+          agentList={AGENT_LIST}
+          disabled={props.isStreaming}
+        />
+        
         <ClientOnly>
           {() => (
             <div className={props.isModelSettingsCollapsed ? 'hidden' : ''}>

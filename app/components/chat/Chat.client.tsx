@@ -31,6 +31,7 @@ import { supabaseConnection } from '~/lib/stores/supabase';
 import type { DataStreamError } from '~/types/context';
 import { defaultDesignScheme, type DesignScheme } from '~/types/design-scheme';
 import type { ElementInfo } from '~/components/workbench/Inspector';
+import type { AgentInfo } from '~/types/agent';
 const toastAnimation = cssTransition({
   enter: 'animated fadeInRight',
   exit: 'animated fadeOutRight',
@@ -128,6 +129,7 @@ export const ChatImpl = memo(
     const [fakeLoading, setFakeLoading] = useState(false);
     const files = useStore(workbenchStore.files);
     const [designScheme, setDesignScheme] = useState<DesignScheme>(defaultDesignScheme);
+    const [selectedAgent, setSelectedAgent] = useState<AgentInfo | null>(null);
     const actionAlert = useStore(workbenchStore.alert);
     const deployAlert = useStore(workbenchStore.deployAlert);
     const supabaseConn = useStore(supabaseConnection); // Add this line to get Supabase connection
@@ -178,6 +180,7 @@ export const ChatImpl = memo(
         contextOptimization: contextOptimizationEnabled,
         chatMode,
         designScheme,
+        selectedAgent,
         supabase: {
           isConnected: supabaseConn.isConnected,
           hasSelectedProject: !!selectedProject,
@@ -356,6 +359,12 @@ export const ChatImpl = memo(
         const elementInfo = `<div class=\"__boltSelectedElement__\" data-element='${JSON.stringify(selectedElement)}'>${JSON.stringify(`${selectedElement.displayText}`)}</div>`;
         finalMessageContent = messageContent + elementInfo;
       }
+      
+      // Ajouter l'information de l'agent sélectionné au message si disponible
+      if (selectedAgent) {
+        console.log('Selected Agent:', selectedAgent);
+        finalMessageContent = `[Agent: ${selectedAgent.name}]\n\n${finalMessageContent}`;
+      }
 
       runAnimation();
 
@@ -531,12 +540,22 @@ export const ChatImpl = memo(
     );
 
     useEffect(() => {
-      const storedApiKeys = Cookies.get('apiKeys');
+    const storedApiKeys = Cookies.get('apiKeys');
+    const storedAgent = Cookies.get('selectedAgent');
 
-      if (storedApiKeys) {
-        setApiKeys(JSON.parse(storedApiKeys));
+    if (storedApiKeys) {
+      setApiKeys(JSON.parse(storedApiKeys));
+    }
+    
+    if (storedAgent) {
+      try {
+        setSelectedAgent(JSON.parse(storedAgent));
+      } catch (error) {
+        console.error('Error parsing stored agent:', error);
+        Cookies.remove('selectedAgent');
       }
-    }, []);
+    }
+  }, []);
 
     const handleModelChange = (newModel: string) => {
       setModel(newModel);
@@ -546,6 +565,15 @@ export const ChatImpl = memo(
     const handleProviderChange = (newProvider: ProviderInfo) => {
       setProvider(newProvider);
       Cookies.set('selectedProvider', newProvider.name, { expires: 30 });
+    };
+    
+    const handleAgentChange = (newAgent: AgentInfo | null) => {
+      setSelectedAgent(newAgent);
+      if (newAgent) {
+        Cookies.set('selectedAgent', JSON.stringify(newAgent), { expires: 30 });
+      } else {
+        Cookies.remove('selectedAgent');
+      }
     };
 
     return (
@@ -618,6 +646,8 @@ export const ChatImpl = memo(
         selectedElement={selectedElement}
         setSelectedElement={setSelectedElement}
         runAnimation={runAnimation}
+        selectedAgent={selectedAgent}
+        setSelectedAgent={handleAgentChange}
       />
     );
   },

@@ -39,13 +39,21 @@ function parseCookies(cookieHeader: string): Record<string, string> {
 }
 
 async function chatAction({ context, request }: ActionFunctionArgs) {
-  const { messages, files, promptId, contextOptimization, supabase, chatMode, designScheme } = await request.json<{
+  const { messages, files, promptId, contextOptimization, supabase, chatMode, designScheme, selectedAgent } = await request.json<{
     messages: Messages;
     files: any;
     promptId?: string;
     contextOptimization: boolean;
     chatMode: 'discuss' | 'build';
     designScheme?: DesignScheme;
+    selectedAgent?: {
+      id: string;
+      name: string;
+      description: string;
+      icon: string;
+      systemPrompt: string;
+      category: string;
+    };
     supabase?: {
       isConnected: boolean;
       hasSelectedProject: boolean;
@@ -217,11 +225,30 @@ Your subsequent ${requiresPlanning ? 'code generation' : 'recommendations'} shou
 `;
 
     // Add system message at the beginning of the conversation
-    messages.unshift({ 
-        role: 'system', 
-        content: planningInstructionContent, 
-        id: generateId() 
-    });
+    if (selectedAgent) {
+      // Si un agent est sélectionné, utiliser son systemPrompt comme message système
+      messages.unshift({ 
+          role: 'system', 
+          content: selectedAgent.systemPrompt, 
+          id: generateId() 
+      });
+      
+      // Ajouter un message de progression pour indiquer que l'agent est activé
+      dataStream.writeData({
+        type: 'progress',
+        label: 'agent-activation',
+        status: 'complete',
+        order: progressCounter++,
+        message: `🤖 Agent "${selectedAgent.name}" activé`,
+      } satisfies ProgressAnnotation);
+    } else {
+      // Sinon, utiliser le message système standard pour la planification
+      messages.unshift({ 
+          role: 'system', 
+          content: planningInstructionContent, 
+          id: generateId() 
+      });
+    }
     
     // Complete project planning progress
     dataStream.writeData({
