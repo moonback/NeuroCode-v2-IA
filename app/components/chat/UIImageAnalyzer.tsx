@@ -29,79 +29,37 @@ interface AnalysisOption {
 }
 
 const ANALYSIS_OPTIONS: AnalysisOption[] = [
-    {
-      id: 'reproduce',
-      title: 'Reproduire le code',
-      description: 'Génère le code pour reproduire cette interface avec précision',
-      icon: 'i-ph:code',
-      gradient: 'from-bolt-elements-item-backgroundAccent to-bolt-elements-background-depth-3',
-      color: 'text-bolt-elements-item-contentAccent',
-      prompt: `Analyse cette interface utilisateur et génère une application React + Vite complète qui la reproduit fidèlement.
-  
-  **Instructions spécifiques :**
-  - Reproduis exactement la mise en page, les couleurs, les espacements et les interactions
-  - Utilise TypeScript pour un code robuste
-  - Implémente tous les composants avec une architecture modulaire
-  - Inclus la gestion d'état (useState, useContext si nécessaire)
-  - Ajoute les animations et transitions visibles dans l'interface
-  - Utilise CSS Modules ou Styled Components pour le styling
-  - Assure-toi que l'interface est responsive (mobile, tablet, desktop)
-  - Inclus la gestion des erreurs et des états de chargement
-  - Fournis un fichier README avec les instructions d'installation et de lancement
-  - Respecte les bonnes pratiques React (hooks, performance, accessibilité)
-  
-  **Livrables attendus :**
-  1. Structure complète du projet avec tous les fichiers
-  2. Code source commenté et organisé
-  3. Configuration Vite optimisée
-  4. Instructions de déploiement
-  5. Liste des dépendances avec versions spécifiques`
-    },
-  //   {
-  //     id: 'improve',
-  //     title: 'Améliorer l\'UI',
-  //     description: 'Propose des améliorations concrètes de design et d\'expérience utilisateur',
-  //     icon: 'i-ph:magic-wand',
-  //     gradient: 'from-bolt-elements-item-backgroundAccent to-bolt-elements-background-depth-2',
-  //     color: 'text-bolt-elements-item-contentAccent',
-  //     prompt: `Effectue une analyse UX/UI approfondie de cette interface et propose des améliorations concrètes.
-  
-  // **Axes d'analyse :**
-  
-  // **1. Accessibilité (WCAG 2.1)**
-  // - Contraste des couleurs (AA/AAA)
-  // - Navigation clavier et lecteurs d'écran
-  // - Taille des zones cliquables (minimum 44px)
-  // - Alt text et ARIA labels
-  // - Focus management
-  
-  // **2. Ergonomie et Usabilité**
-  // - Parcours utilisateur et friction points
-  // - Charge cognitive et simplicité
-  // - Consistance des patterns UI
-  // - Affordances et feedback visuel
-  // - Performance perçue
-  
-  // **3. Design System et Cohérence**
-  // - Hiérarchie typographique
-  // - Système de couleurs et sémantique
-  // - Espacements et grille
-  // - Composants réutilisables
-  // - States et interactions
-  
-  // **4. Responsive et Multi-plateforme**
-  // - Adaptation mobile/desktop
-  // - Touch targets et gestures
-  // - Performance sur différents devices
-  // - Progressive Web App features
-  
-  // **Pour chaque amélioration proposée :**
-  // - Identifie le problème spécifique
-  // - Explique l'impact sur l'utilisateur
-  // - Propose une solution concrète avec mockup/code
-  // - Justifie le choix par des principes UX établis
-  // - Estime la priorité (Critical/High/Medium/Low)`
-  //   },
+  {
+    id: 'reproduce',
+    title: 'Reproduire le code',
+    description: 'Génère le code pour reproduire cette interface avec une fidélité pixel-perfect',
+    icon: 'i-ph:code',
+    gradient: 'from-bolt-elements-item-backgroundAccent to-bolt-elements-background-depth-3',
+    color: 'text-bolt-elements-item-contentAccent',
+    prompt: `Analyze and reproduce this UI interface with production-ready code.
+
+Key Focus Areas:
+- Visual fidelity & responsive design
+- Component architecture & state management
+- Performance & accessibility
+- Clean code & best practices
+
+Technical Stack:
+- React + TypeScript
+- Tailwind/CSS-in-JS
+- Framer Motion
+- Unit Testing
+
+Deliverables:
+- Pixel-perfect components
+- Styling implementation
+- Custom hooks & utils
+- Documentation
+- Tests
+
+Please provide implementation with clear structure and comments.`
+  },
+
     {
       id: 'explain',
       title: 'Expliquer le design',
