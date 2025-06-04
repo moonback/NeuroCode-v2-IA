@@ -61,12 +61,12 @@ export function FigmaImport({ onImport, className }: FigmaImportProps) {
           {
             id: '1',
             role: 'user',
-            content: `Import and recreate this Figma design: ${figmaUrl}`,
+            content: `Importer et recréer ce design Figma : ${figmaUrl}`,
           },
           {
             id: '2',
             role: 'assistant',
-            content: `I'd love to help you import this Figma design! However, I need a Figma access token to fetch the design data.\n\nTo set up Figma integration:\n\n1. Go to your Figma account settings\n2. Generate a personal access token\n3. Add the token in NeuroCode settings\n\nOnce configured, I'll be able to:\n- Extract design components and styles\n- Generate responsive HTML structure\n- Create matching CSS with exact colors, fonts, and spacing\n- Add interactive JavaScript components\n\nFor now, I can help you recreate the design manually if you describe the components and layout you'd like to build.`,
+            content: `Je serai ravi de vous aider à importer ce design Figma ! Cependant, j'ai besoin d'un token d'accès Figma pour récupérer les données du design.\n\nPour configurer l'intégration Figma :\n\n1. Accédez aux paramètres de votre compte Figma\n2. Générez un token d'accès personnel\n3. Ajoutez le token dans les paramètres de NeuroCode\n\nUne fois configuré, je pourrai :\n- Extraire les composants et styles du design\n- Générer une structure HTML responsive\n- Créer du CSS correspondant avec les couleurs, polices et espacements exacts\n- Ajouter des composants JavaScript interactifs\n\nPour le moment, je peux vous aider à recréer le design manuellement si vous décrivez les composants et la mise en page que vous souhaitez construire.`,
           },
         ];
 
@@ -82,34 +82,120 @@ export function FigmaImport({ onImport, className }: FigmaImportProps) {
         return;
       }
 
-      // Try to convert the Figma file to web code
-      const webCode = await FigmaService.convertToWebCode(fileId);
+      // Try to convert the Figma file to React project
+      const reactProject = await FigmaService.convertToReactProject(fileId);
       
-      if (webCode) {
-        // Create an artifact with boltActions for the generated code
-        const artifactContent = `<boltArtifact id="figma-import-${fileId}" title="Figma Design Import - ${fileId}">
+      if (reactProject) {
+        // Create an artifact with boltActions for the React/Vite project
+        const artifactContent = `<boltArtifact id="figma-react-${fileId}" title="Figma React Project - ${fileId}">
+<boltAction type="shell">
+npm create vite@latest figma-design-${fileId} -- --template react-ts
+cd figma-design-${fileId}
+npm install
+</boltAction>
+
+<boltAction type="file" filePath="package.json">
+${reactProject.packageJson}
+</boltAction>
+
+<boltAction type="file" filePath="vite.config.ts">
+${reactProject.viteConfig}
+</boltAction>
+
 <boltAction type="file" filePath="index.html">
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Figma Design</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-${webCode.html}
-    <script src="script.js"></script>
-</body>
-</html>
+${reactProject.indexHtml}
 </boltAction>
 
-<boltAction type="file" filePath="styles.css">
-${webCode.css}
+<boltAction type="file" filePath="src/main.tsx">
+${reactProject.mainTsx}
 </boltAction>
 
-<boltAction type="file" filePath="script.js">
-${webCode.js}
+<boltAction type="file" filePath="src/components/FigmaDesign.tsx">
+${reactProject.component}
+</boltAction>
+
+<boltAction type="file" filePath="src/components/FigmaDesign.css">
+${reactProject.css}
+</boltAction>
+
+<boltAction type="file" filePath="src/index.css">
+/* Global styles */
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+}
+</boltAction>
+
+<boltAction type="file" filePath="tsconfig.json">
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}
+</boltAction>
+
+<boltAction type="file" filePath="tsconfig.node.json">
+{
+  "compilerOptions": {
+    "composite": true,
+    "skipLibCheck": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true
+  },
+  "include": ["vite.config.ts"]
+}
+</boltAction>
+
+<boltAction type="shell">
+npm run dev
 </boltAction>
 </boltArtifact>`;
 
@@ -118,19 +204,19 @@ ${webCode.js}
           {
             id: '1',
             role: 'user',
-            content: `Import and recreate this Figma design: ${figmaUrl}`,
+            content: `Importer et recréer ce design Figma : ${figmaUrl}`,
           },
           {
             id: '2',
             role: 'assistant',
-            content: `I've successfully imported your Figma design and created the necessary files! The code includes:\n\n- **index.html**: Complete HTML structure based on your Figma layers\n- **styles.css**: CSS styles matching your design colors, fonts, and spacing\n- **script.js**: JavaScript setup for interactions\n\nThe generated code features:\n- Semantic HTML structure\n- Responsive layout considerations\n- Exact color and typography matching\n- Interactive components ready for customization\n\n${artifactContent}`,
+            content: `🎉 **Projet React/Vite créé avec succès !** \n\nJ'ai importé votre design Figma et généré un projet React complet avec Vite. Voici ce qui a été créé :\n\n## 📁 Structure du projet\n- **React 18** avec TypeScript\n- **Vite** pour le développement rapide\n- **Composant React** fidèle au design Figma\n- **CSS optimisé** avec les styles exacts\n- **Configuration complète** prête à l'emploi\n\n## 🚀 Fonctionnalités\n- ✅ Reproduction pixel-perfect du design\n- ✅ Composants React typés\n- ✅ Responsive design intégré\n- ✅ Hot reload avec Vite\n- ✅ Support TypeScript complet\n- ✅ Interactions et animations\n\n## 🛠️ Commandes disponibles\n- \`npm run dev\` - Serveur de développement\n- \`npm run build\` - Build de production\n- \`npm run preview\` - Aperçu du build\n\nLe serveur de développement se lance automatiquement sur http://localhost:3000\n\n${artifactContent}`,
           },
         ];
 
         if (onImport) {
-          console.log('Calling onImport with generated artifact');
-          await onImport(`Figma Design - ${fileId}`, codeMessages);
-          toast.success('Figma design imported and converted to code!');
+          console.log('Calling onImport with React project artifact');
+          await onImport(`Figma React Project - ${fileId}`, codeMessages);
+          toast.success('🎉 Projet React/Vite créé avec succès depuis Figma!');
           setIsOpen(false);
           setFigmaUrl('');
         } else {
@@ -195,12 +281,12 @@ console.log('Figma design recreation ready!');
           {
             id: '1',
             role: 'user',
-            content: `Import and recreate this Figma design: ${figmaUrl}`,
+            content: `Importer et recréer ce design Figma : ${figmaUrl}`,
           },
           {
             id: '2',
             role: 'assistant',
-            content: `I've created a project structure ready for your Figma design recreation! While I couldn't access the Figma file directly, I've set up the foundation files.\n\nTo complete the recreation, please describe:\n1. The main layout and components\n2. Color scheme and typography\n3. Any specific interactions or animations\n\nOr you can:\n- Share screenshots of key screens\n- Export assets from Figma\n- Describe the user flow\n\nI'll help you build a pixel-perfect recreation with the provided structure!\n\n${fallbackArtifact}`,
+            content: `J'ai préparé une structure de projet pour recréer votre design Figma ! Bien que je n'aie pas pu accéder directement au fichier Figma, j'ai mis en place les fichiers de base.\n\nPour compléter la recréation, veuillez décrire :\n1. La mise en page principale et les composants\n2. Le schéma de couleurs et la typographie\n3. Les interactions ou animations spécifiques\n\nVous pouvez également :\n- Partager des captures d'écran des interfaces clés\n- Exporter les ressources depuis Figma\n- Décrire le parcours utilisateur\n\nJe vous aiderai à construire une reproduction fidèle avec la structure fournie !\n\n${fallbackArtifact}`,
           },
         ];
 
@@ -291,12 +377,12 @@ document.addEventListener('DOMContentLoaded', function() {
         {
           id: '1',
           role: 'user',
-          content: `Import and recreate the Figma design: ${design.name}`,
+          content: `Importer et recréer le design Figma : ${design.name}`,
         },
         {
           id: '2',
           role: 'assistant',
-          content: `I've created the project structure for "${design.name}" recreation! The setup includes:\n\n- **index.html**: Base HTML structure\n- **styles.css**: Responsive CSS foundation\n- **script.js**: JavaScript for interactions\n\nI'll help you analyze the design components and generate the corresponding code with:\n1. Semantic HTML structure\n2. Responsive CSS styling\n3. Interactive JavaScript components\n4. Modern design patterns\n\n${designArtifact}`,
+          content: `J'ai créé la structure du projet pour recréer "${design.name}" ! La configuration comprend :\n\n- **index.html** : Structure HTML complète\n- **styles.css** : Base CSS responsive avec variables personnalisées\n- **script.js** : Composants JavaScript interactifs\n\nJe vais vous aider à analyser et générer le code avec :\n1. Structure HTML sémantique et accessible\n2. Styles CSS adaptatifs avec animations fluides\n3. Composants JavaScript optimisés et réutilisables\n4. Bonnes pratiques de design moderne\n5. Support multi-navigateurs\n6. Performance optimisée\n\n${designArtifact}`,
         },
       ];
 
@@ -313,24 +399,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   };
 
-  // Mock recent designs - in a real implementation, this would come from Figma API
-  const mockRecentDesigns: FigmaDesign[] = [
-    {
-      id: '1',
-      name: 'Mobile App Dashboard',
-      lastModified: '2 hours ago',
-    },
-    {
-      id: '2',
-      name: 'Landing Page Design',
-      lastModified: '1 day ago',
-    },
-    {
-      id: '3',
-      name: 'E-commerce Product Page',
-      lastModified: '3 days ago',
-    },
-  ];
+ 
 
   return (
     <div className="">
