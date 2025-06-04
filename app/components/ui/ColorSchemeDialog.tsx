@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, type JSXElementConstructor, type Key, type ReactElement, type ReactNode, type ReactPortal } from 'react';
 import { Dialog, DialogTitle, DialogDescription, DialogRoot } from './Dialog';
 import { Button } from './Button';
 import { IconButton } from './IconButton';
@@ -342,7 +342,7 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
             <span className="i-ph:warning text-yellow-500" />
             <span className="text-sm font-medium text-bolt-elements-textPrimary">Avertissements de Contraste</span>
           </div>
-          {contrastWarnings.map((warning, index) => (
+          {contrastWarnings.map((warning: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined, index: Key | null | undefined) => (
             <div key={index} className="text-xs text-bolt-elements-textSecondary">
               • {warning}
             </div>
