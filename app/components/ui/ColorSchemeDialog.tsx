@@ -251,6 +251,13 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
 
 
 
+  // Fonction pour vérifier si un préréglage est actuellement sélectionné
+  const isPresetSelected = (preset: typeof colorPresets[0]): boolean => {
+    return Object.keys(preset.palette).every(key => 
+      palette[key] === preset.palette[key as keyof typeof preset.palette]
+    );
+  };
+
   const renderPresetsSection = () => (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -270,30 +277,57 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
-        {colorPresets.map((preset, index) => (
-          <div
-            key={index}
-            className="group p-4 rounded-xl bg-bolt-elements-bg-depth-3 hover:bg-bolt-elements-bg-depth-2 border border-transparent hover:border-bolt-elements-borderColor transition-all duration-200 cursor-pointer"
-            onClick={() => handlePresetSelect(preset)}
-          >
-            <div className="flex items-center gap-3 mb-3">
-              <h4 className="font-semibold text-bolt-elements-textPrimary">{preset.name}</h4>
+        {colorPresets.map((preset, index) => {
+          const isSelected = isPresetSelected(preset);
+          
+          return (
+            <div
+              key={index}
+              className={`group relative p-4 rounded-xl border-2 transition-all duration-200 cursor-pointer ${
+                isSelected
+                  ? 'bg-bolt-elements-item-backgroundAccent border-bolt-elements-borderColorActive shadow-lg'
+                  : 'bg-bolt-elements-bg-depth-3 hover:bg-bolt-elements-bg-depth-2 border-transparent hover:border-bolt-elements-borderColor'
+              }`}
+              onClick={() => handlePresetSelect(preset)}
+            >
+              {/* Indicateur de sélection */}
+              {isSelected && (
+                <div className="absolute top-2 right-2 w-6 h-6 bg-bolt-elements-item-contentAccent rounded-full flex items-center justify-center shadow-md">
+                  <span className="i-ph:check text-white text-sm" />
+                </div>
+              )}
+              
+              <div className="flex items-center gap-3 mb-3">
+                <h4 className={`font-semibold transition-colors ${
+                  isSelected ? 'text-bolt-elements-item-contentAccent' : 'text-bolt-elements-textPrimary'
+                }`}>
+                  {preset.name}
+                </h4>
+               
+              </div>
+              
+              <div className="flex gap-1 mb-2">
+                {Object.entries(preset.palette).slice(0, 6).map(([key, color]) => (
+                  <div
+                    key={key}
+                    className={`w-6 h-6 rounded-md shadow-sm transition-all duration-200 ${
+                      isSelected ? '' : ''
+                    }`}
+                    style={{ backgroundColor: color }}
+                    title={`${key}: ${color}`}
+                  />
+                ))}
+              </div>
+              
+              <div className={`text-xs transition-colors ${
+                isSelected ? 'text-bolt-elements-item-contentAccent' : 'text-bolt-elements-textSecondary'
+              }`}>
+                {Object.keys(preset.palette).length} couleurs
+                {isSelected && ' • Sélectionné'}
+              </div>
             </div>
-            <div className="flex gap-1 mb-2">
-              {Object.entries(preset.palette).slice(0, 6).map(([key, color]) => (
-                <div
-                  key={key}
-                  className="w-6 h-6 rounded-md shadow-sm"
-                  style={{ backgroundColor: color }}
-                  title={`${key}: ${color}`}
-                />
-              ))}
-            </div>
-            <div className="text-xs text-bolt-elements-textSecondary">
-              {Object.keys(preset.palette).length} couleurs
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -330,7 +364,7 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
           placeholder="Rechercher une couleur..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full px-4 py-2 pl-10 bg-bolt-elements-bg-depth-3 border border-bolt-elements-borderColor rounded-lg text-bolt-elements-textPrimary placeholder-bolt-elements-textSecondary focus:outline-none focus:ring-2 focus:ring-bolt-elements-borderColorActive"
+          className="w-full px-4 py-2 pl-10 bg-bolt-elements-background-depth-3 border border-bolt-elements-borderColor rounded-lg text-bolt-elements-textPrimary placeholder-bolt-elements-textSecondary focus:outline-none focus:ring-2 focus:ring-bolt-elements-borderColorActive"
         />
         <span className="absolute left-3 top-1/2 transform -translate-y-1/2 i-ph:magnifying-glass text-bolt-elements-textSecondary" />
       </div>
