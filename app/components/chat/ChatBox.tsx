@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { ClientOnly } from 'remix-utils/client-only';
 import { classNames } from '~/utils/classNames';
 import { PROVIDER_LIST } from '~/utils/constants';
@@ -185,7 +185,7 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
                   <APIKeyManager
                     provider={props.provider}
                     apiKey={props.apiKeys[props.provider.name] || ''}
-                    setApiKey={(key) => {
+                    setApiKey={(key: string) => {
                       props.onApiKeysChange(props.provider.name, key);
                     }}
                   />

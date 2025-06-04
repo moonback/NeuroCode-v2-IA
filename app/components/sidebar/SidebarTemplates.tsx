@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import type { Template } from '~/types/template';
 import { STARTER_TEMPLATES } from '~/utils/constants';
 

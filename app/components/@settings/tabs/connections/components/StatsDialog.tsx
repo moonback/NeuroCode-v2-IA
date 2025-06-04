@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { motion } from 'framer-motion';
 import type { RepositoryStats } from '~/types/GitHub';

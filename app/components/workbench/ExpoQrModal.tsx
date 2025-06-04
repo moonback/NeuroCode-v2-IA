@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { Dialog, DialogTitle, DialogDescription, DialogRoot } from '~/components/ui/Dialog';
 import { useStore } from '@nanostores/react';
 import { expoUrlAtom } from '~/lib/stores/qrCodeStore';

@@ -1,4 +1,4 @@
-import React from 'react';
+import { type UIEvent } from 'react';
 
 const EXAMPLE_PROMPTS = [
   { text: 'Create a mobile app about NeuroCode' },
@@ -9,7 +9,7 @@ const EXAMPLE_PROMPTS = [
   { text: 'Make a Tic Tac Toe game in html, css and js only' },
 ];
 
-export function ExamplePrompts(sendMessage?: { (event: React.UIEvent, messageInput?: string): void | undefined }) {
+export function ExamplePrompts(sendMessage?: { (event: UIEvent, messageInput?: string): void | undefined }) {
   return (
     <div id="examples" className="relative flex flex-col gap-9 w-full max-w-3xl mx-auto flex justify-center mt-6">
       <div

@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { Badge } from './Badge';
 import { classNames } from '~/utils/classNames';
 import { formatSize } from '~/utils/formatSize';
