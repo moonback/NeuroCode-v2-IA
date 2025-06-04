@@ -4,95 +4,32 @@ import { Button } from './Button';
 import { IconButton } from './IconButton';
 import type { DesignScheme } from '~/types/design-scheme';
 import { defaultDesignScheme, designFeatures, designFonts, paletteRoles } from '~/types/design-scheme';
-
+import { colorPresets } from '~/components/ui/Color-presets';
 export interface ColorSchemeDialogProps {
   designScheme?: DesignScheme;
   setDesignScheme?: (scheme: DesignScheme) => void;
 }
 
-// Préréglages de couleurs populaires
-const colorPresets = [
-  {
-    name: 'Dark Modern',
-    palette: {
-      primary: '#9E7FFF',
-      secondary: '#38bdf8',
-      accent: '#f472b6',
-      background: '#171717',
-      surface: '#262626',
-      text: '#FFFFFF',
-      textSecondary: '#A3A3A3',
-      border: '#2F2F2F',
-      success: '#10b981',
-      warning: '#f59e0b',
-      error: '#ef4444',
-    }
-  },
-  {
-    name: 'Light Clean',
-    palette: {
-      primary: '#3b82f6',
-      secondary: '#6366f1',
-      accent: '#ec4899',
-      background: '#ffffff',
-      surface: '#f8fafc',
-      text: '#1e293b',
-      textSecondary: '#64748b',
-      border: '#e2e8f0',
-      success: '#059669',
-      warning: '#d97706',
-      error: '#dc2626',
-    }
-  },
-  {
-    name: 'Ocean Blue',
-    palette: {
-      primary: '#0ea5e9',
-      secondary: '#06b6d4',
-      accent: '#8b5cf6',
-      background: '#0f172a',
-      surface: '#1e293b',
-      text: '#f1f5f9',
-      textSecondary: '#94a3b8',
-      border: '#334155',
-      success: '#22c55e',
-      warning: '#eab308',
-      error: '#f87171',
-    }
-  },
-  {
-    name: 'Warm Sunset',
-    palette: {
-      primary: '#f97316',
-      secondary: '#eab308',
-      accent: '#ef4444',
-      background: '#1c1917',
-      surface: '#292524',
-      text: '#fafaf9',
-      textSecondary: '#a8a29e',
-      border: '#44403c',
-      success: '#84cc16',
-      warning: '#f59e0b',
-      error: '#dc2626',
-    }
-  },
-  {
-    name: 'Forest Green',
-    palette: {
-      primary: '#059669',
-      secondary: '#0d9488',
-      accent: '#7c3aed',
-      background: '#0c0a09',
-      surface: '#1c1917',
-      text: '#fafaf9',
-      textSecondary: '#a8a29e',
-      border: '#292524',
-      success: '#22c55e',
-      warning: '#f59e0b',
-      error: '#ef4444',
-    }
-  }
-];
+interface ColorPreset {
+  name: string;
+  category: string;
+  description: string;
+  tags: string[];
+  palette: {
+    primary: string;
+    secondary: string;
+    accent: string;
+    background: string;
+    surface: string;
+    text: string;
+    textSecondary: string;
+    border: string;
+    success: string;
+    warning: string;
+    error: string;
+  };
+}
+
 
 // Utilitaires pour la validation des couleurs
 const isValidHexColor = (color: string): boolean => {
@@ -137,7 +74,8 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
   const [searchTerm, setSearchTerm] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
-
+  const [selectedCategory, setSelectedCategory] = useState<string>('Tous');
+  const [presetSearchTerm, setPresetSearchTerm] = useState('');
 
   useEffect(() => {
     if (designScheme) {
@@ -258,6 +196,33 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
     );
   };
 
+  // Filtrage des préréglages par catégorie et recherche
+  const filteredPresets = useMemo(() => {
+    let filtered = colorPresets;
+    
+    // Filtrage par catégorie
+    if (selectedCategory !== 'Tous') {
+      filtered = filtered.filter((preset: { category: string; }) => preset.category === selectedCategory);
+    }
+    
+    // Filtrage par recherche
+    if (presetSearchTerm) {
+      filtered = filtered.filter((preset: { name: string; description: string; tags: any[]; }) => 
+        preset.name.toLowerCase().includes(presetSearchTerm.toLowerCase()) ||
+        preset.description.toLowerCase().includes(presetSearchTerm.toLowerCase()) ||
+        preset.tags.some((tag: string) => tag.toLowerCase().includes(presetSearchTerm.toLowerCase()))
+      );
+    }
+    
+    return filtered;
+  }, [selectedCategory, presetSearchTerm]);
+
+  // Obtenir toutes les catégories uniques
+  const categories = useMemo(() => {
+    const cats = ['Tous', ...new Set(colorPresets.map((preset: { category: any; }) => preset.category))];
+    return cats;
+  }, []);
+
   const renderPresetsSection = () => (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -276,8 +241,50 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
-        {colorPresets.map((preset, index) => {
+      {/* Filtres et recherche */}
+      <div className="space-y-3">
+        {/* Barre de recherche pour les préréglages */}
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Rechercher un thème..."
+            value={presetSearchTerm}
+            onChange={(e) => setPresetSearchTerm(e.target.value)}
+            className="w-full px-4 py-2 pl-10 bg-bolt-elements-background-depth-3 border border-bolt-elements-borderColor rounded-lg text-bolt-elements-textPrimary placeholder-bolt-elements-textSecondary focus:outline-none focus:ring-2 focus:ring-bolt-elements-borderColorActive"
+          />
+          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 i-ph:magnifying-glass text-bolt-elements-textSecondary" />
+        </div>
+
+        {/* Filtres par catégorie */}
+        <div className="flex flex-wrap gap-2">
+          {categories.map((category) => (
+            <button
+              key={category as string}
+              onClick={() => setSelectedCategory(category as string)}
+              className={`px-3 py-1 text-sm rounded-full transition-all duration-200 ${
+                selectedCategory === category
+                  ? 'bg-bolt-elements-item-contentAccent text-white shadow-md'
+                  : 'bg-bolt-elements-bg-depth-3 text-bolt-elements-textSecondary hover:bg-bolt-elements-bg-depth-2 hover:text-bolt-elements-textPrimary'
+              }`}
+            >
+              {category as ReactNode}
+              {category !== 'Tous' && (
+                <span className="ml-1 text-xs opacity-75">
+                  ({colorPresets.filter((p: { category: unknown; }) => p.category === category).length})
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Affichage des résultats */}
+      <div className="text-sm text-bolt-elements-textSecondary mb-2">
+        {filteredPresets.length} thème{filteredPresets.length > 1 ? 's' : ''} trouvé{filteredPresets.length > 1 ? 's' : ''}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
+        {filteredPresets.map((preset: ColorPreset, index: number) => {
           const isSelected = isPresetSelected(preset);
           
           return (
@@ -292,43 +299,97 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
             >
               {/* Indicateur de sélection */}
               {isSelected && (
-                <div className="absolute top-2 right-2 w-6 h-6 bg-bolt-elements-item-contentAccent rounded-full flex items-center justify-center shadow-md">
+                <div className="absolute top-3 right-3 w-6 h-6 bg-bolt-elements-item-contentAccent rounded-full flex items-center justify-center shadow-md">
                   <span className="i-ph:check text-white text-sm" />
                 </div>
               )}
               
-              <div className="flex items-center gap-3 mb-3">
-                <h4 className={`font-semibold transition-colors ${
+              {/* Badge de catégorie */}
+              <div className="absolute top-3 left-3">
+                <span className={`px-2 py-1 text-xs rounded-full font-medium ${
+                  preset.category === 'Sombre' ? 'bg-gray-800 text-gray-200' :
+                  preset.category === 'Clair' ? 'bg-yellow-100 text-yellow-800' :
+                  preset.category === 'Coloré' ? 'bg-rainbow-100 text-rainbow-800' :
+                  preset.category === 'Pastel' ? 'bg-pink-100 text-pink-800' :
+                  'bg-bolt-elements-bg-depth-1 text-bolt-elements-textSecondary'
+                }`}>
+                  {preset.category}
+                </span>
+              </div>
+              
+              <div className="mt-8 mb-3">
+                <h4 className={`font-semibold text-lg mb-1 transition-colors ${
                   isSelected ? 'text-bolt-elements-item-contentAccent' : 'text-bolt-elements-textPrimary'
                 }`}>
                   {preset.name}
                 </h4>
-               
+                <p className="text-sm text-bolt-elements-textSecondary leading-relaxed">
+                  {preset.description}
+                </p>
               </div>
               
-              <div className="flex gap-1 mb-2">
-                {Object.entries(preset.palette).slice(0, 6).map(([key, color]) => (
+              {/* Palette de couleurs */}
+              <div className="flex gap-1 mb-3">
+                {Object.entries(preset.palette).slice(0, 8).map(([key, color]) => (
                   <div
                     key={key}
-                    className={`w-6 h-6 rounded-md shadow-sm transition-all duration-200 ${
-                      isSelected ? '' : ''
-                    }`}
-                    style={{ backgroundColor: color }}
+                    className="w-6 h-6 rounded-md shadow-sm transition-all duration-200 hover:scale-110"
+                    style={{ backgroundColor: color as string }}
                     title={`${key}: ${color}`}
                   />
                 ))}
+                {Object.keys(preset.palette).length > 8 && (
+                  <div className="w-6 h-6 rounded-md bg-bolt-elements-bg-depth-1 flex items-center justify-center text-xs text-bolt-elements-textSecondary">
+                    +{Object.keys(preset.palette).length - 8}
+                  </div>
+                )}
               </div>
               
-              <div className={`text-xs transition-colors ${
+              {/* Tags */}
+              <div className="flex flex-wrap gap-1 mb-2">
+                {preset.tags.slice(0, 3).map((tag: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined, tagIndex: Key | null | undefined) => (
+                  <span
+                    key={tagIndex}
+                    className="px-2 py-1 text-xs bg-bolt-elements-bg-depth-1 text-bolt-elements-textTertiary rounded-md"
+                  >
+                    #{tag}
+                  </span>
+                ))}
+                {preset.tags.length > 3 && (
+                  <span className="px-2 py-1 text-xs bg-bolt-elements-bg-depth-1 text-bolt-elements-textTertiary rounded-md">
+                    +{preset.tags.length - 3}
+                  </span>
+                )}
+              </div>
+              
+              <div className={`text-xs transition-colors flex items-center justify-between ${
                 isSelected ? 'text-bolt-elements-item-contentAccent' : 'text-bolt-elements-textSecondary'
               }`}>
-                {Object.keys(preset.palette).length} couleurs
-                {isSelected && ' • Sélectionné'}
+                <span>{Object.keys(preset.palette).length} couleurs</span>
+                {isSelected && (
+                  <span className="flex items-center gap-1">
+                    <span className="i-ph:check text-xs" />
+                    Sélectionné
+                  </span>
+                )}
               </div>
             </div>
           );
         })}
       </div>
+
+      {/* Message si aucun résultat */}
+      {filteredPresets.length === 0 && (
+        <div className="text-center py-8">
+          <div className="w-16 h-16 mx-auto mb-4 bg-bolt-elements-bg-depth-3 rounded-full flex items-center justify-center">
+            <span className="i-ph:palette text-2xl text-bolt-elements-textSecondary" />
+          </div>
+          <p className="text-bolt-elements-textSecondary mb-2">Aucun thème trouvé</p>
+          <p className="text-sm text-bolt-elements-textTertiary">
+            Essayez de modifier vos critères de recherche
+          </p>
+        </div>
+      )}
     </div>
   );
 
