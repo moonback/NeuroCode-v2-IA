@@ -6,7 +6,6 @@ import {
   selectedAgentStore,
   activeThreadStore,
   agentThreadsStore,
-  updateActiveThread,
   selectThread
 } from '~/lib/stores/agents';
 import { agentService } from '~/lib/services/agentService';
@@ -53,7 +52,17 @@ export function useAgentChatHistory() {
       };
 
       await agentService.saveAgentThread(updatedThread);
-      updateActiveThread(messages);
+      
+      // Update stores directly to avoid infinite loop
+      activeThreadStore.set({ ...activeThread, messages });
+      activeThreadStore.set({ ...activeThread, lastMessageAt: updatedThread.lastMessageAt });
+      
+      // Update the thread in the threads list
+      const currentThreads = agentThreadsStore.get();
+      const updatedThreads = currentThreads.map(thread => 
+        thread.id === updatedThread.id ? updatedThread : thread
+      );
+      agentThreadsStore.set(updatedThreads);
     } catch (error) {
       console.error('Erreur lors de la sauvegarde des messages:', error);
       toast.error('Erreur lors de la sauvegarde des messages');
