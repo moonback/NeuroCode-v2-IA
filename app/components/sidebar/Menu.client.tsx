@@ -454,8 +454,9 @@ export const Menu = () => {
     
     setLoadingAgentThreads(true);
     try {
+      const currentAgents = agentsListStore.get();
       const allThreads: AgentChatThread[] = [];
-      for (const agent of agents) {
+      for (const agent of currentAgents) {
         const threads = await agentService.getAgentThreads(agent.id);
         allThreads.push(...threads);
       }
@@ -467,7 +468,7 @@ export const Menu = () => {
     } finally {
       setLoadingAgentThreads(false);
     }
-  }, [viewMode, agents]);
+  }, [viewMode]);
 
   useEffect(() => {
     if (viewMode === 'agents') {
@@ -536,7 +537,8 @@ export const Menu = () => {
   }, [loadAgentThreads]);
 
   const formatAgentThreadForHistoryItem = useCallback((thread: AgentChatThread): ChatHistoryItem & { agentName?: string; agentColor?: string; agentAvatar?: string; url?: string } => {
-    const agent = agents.find(a => a.id === thread.agentId);
+    const currentAgents = agentsListStore.get();
+    const agent = currentAgents.find(a => a.id === thread.agentId);
     return {
       id: thread.id,
       description: thread.title || 'Conversation sans titre',
@@ -548,7 +550,7 @@ export const Menu = () => {
       agentAvatar: agent?.avatar || '🤖',
       url: `/agent/${thread.agentId}?threadId=${thread.id}`
     };
-  }, [agents]);
+  }, []);
 
   const handleSettingsClick = () => {
     setIsSettingsOpen(true);
