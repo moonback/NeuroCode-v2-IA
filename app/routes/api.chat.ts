@@ -212,8 +212,8 @@ project-root/
 - **Libraries & Frameworks:** Key dependencies
 - **Learning Resources:** Documentation and tutorials
 
-After outputting the \`PROJECT_PLAN.md\` artifact, ${requiresPlanning ? 'you can then proceed with the first implementation steps from your plan' : 'provide detailed guidance based on this structured approach'}, or await further user input.
-Your subsequent ${requiresPlanning ? 'code generation' : 'recommendations'} should align with this plan.
+After outputting the \`PROJECT_PLAN.md\` artifact, ${requiresPlanning ? 'you MUST immediately proceed with creating the initial project structure and core files as outlined in Phase 1 of your implementation roadmap. This includes:\n\n1. **Project Setup Files:**\n   - Create package.json with necessary dependencies\n   - Set up configuration files (tsconfig.json, .env.example, etc.)\n   - Initialize basic folder structure\n\n2. **Core Application Files:**\n   - Create main entry point files\n   - Set up basic routing structure\n   - Initialize core components\n   - Add essential utility files\n\n3. **Development Environment:**\n   - Create README.md with setup instructions\n   - Add basic scripts for development\n   - Set up initial styling structure\n\nDo NOT wait for additional user input - implement the foundation immediately after the plan. Your code generation should create a working, runnable project structure that the user can immediately start developing with.' : 'provide detailed guidance and create initial project structure based on this structured approach'}.
+Your subsequent ${requiresPlanning ? 'code generation' : 'recommendations'} should align with this plan and create tangible, functional project files.
 `;
 
     // Add system message at the beginning of the conversation
