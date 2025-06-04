@@ -9,7 +9,19 @@ import { FixedSizeList } from 'react-window';
 import { Checkbox } from './Checkbox';
 import { Label } from './Label';
 
-export { Close as DialogClose, Root as DialogRoot } from '@radix-ui/react-dialog';
+export { Close as DialogClose, Root as DialogRoot, Content as DialogContent, Trigger as DialogTrigger } from '@radix-ui/react-dialog';
+
+// DialogHeader component for consistent header styling
+export const DialogHeader = memo(({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) => {
+  return (
+    <div
+      className={classNames('flex flex-col space-y-1.5 text-center sm:text-left p-6 pb-0', className)}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+});
 
 interface DialogButtonProps {
   type: 'primary' | 'secondary' | 'danger';

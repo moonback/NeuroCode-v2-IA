@@ -19,6 +19,7 @@ import { chatStore } from '~/lib/stores/chat';
 import { supabaseConnection } from '~/lib/stores/supabase';
 import { netlifyConnection } from '~/lib/stores/netlify';
 import { vercelConnection } from '~/lib/stores/vercel';
+import { figmaConfigManager } from '~/lib/config/figmaConfig';
 import SidebarTemplates from './SidebarTemplates';
 
 const menuVariants = {
@@ -56,8 +57,12 @@ function ConnectionStatus() {
   const [githubConnected, setGithubConnected] = useState(false);
   const [githubUser, setGithubUser] = useState<string | null>(null);
   
+  // Check Figma connection from localStorage
+  const [figmaConnected, setFigmaConnected] = useState(false);
+  
   useEffect(() => {
-    const checkGithubConnection = () => {
+    const checkConnections = () => {
+      // Check GitHub connection
       const githubConnection = localStorage.getItem('github_connection');
       if (githubConnection) {
         try {
@@ -72,11 +77,14 @@ function ConnectionStatus() {
         setGithubConnected(false);
         setGithubUser(null);
       }
+      
+      // Check Figma connection
+      setFigmaConnected(figmaConfigManager.hasValidToken());
     };
     
-    checkGithubConnection();
+    checkConnections();
     // Check periodically for changes
-    const interval = setInterval(checkGithubConnection, 5000);
+    const interval = setInterval(checkConnections, 5000);
     return () => clearInterval(interval);
   }, []);
   
@@ -113,10 +121,18 @@ function ConnectionStatus() {
       bgColor: 'bg-orange-500',
       user: vercelConn.user?.username || vercelConn.user?.user?.username || null
     },
+    { 
+      name: 'Figma', 
+      connected: figmaConnected, 
+      icon: 'i-ph-figma-logo', 
+      color: 'from-pink-400 to-pink-600',
+      bgColor: 'bg-pink-500',
+      user: null
+    },
   ];
   
   const connectedCount = connections.filter(conn => conn.connected).length;
-  const allConnected = connectedCount === 4;
+  const allConnected = connectedCount === 5;
   
   return (
     <div className="px-4 py-3 border-b border-gray-200/50 dark:border-gray-700/50 bg-gray-50/30 dark:bg-gray-800/30">
@@ -159,7 +175,7 @@ function ConnectionStatus() {
                   ? 'text-orange-600 dark:text-orange-400'
                   : 'text-gray-500 dark:text-gray-400'
             }`}>
-              {connectedCount}/4 services connectés
+              {connectedCount}/5 services connectés
             </span>
           </div>
         </div>

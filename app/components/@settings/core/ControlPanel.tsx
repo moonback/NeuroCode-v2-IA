@@ -39,6 +39,7 @@ import CloudProvidersTab from '~/components/@settings/tabs/providers/cloud/Cloud
 import ServiceStatusTab from '~/components/@settings/tabs/providers/status/ServiceStatusTab';
 import LocalProvidersTab from '~/components/@settings/tabs/providers/local/LocalProvidersTab';
 import TaskManagerTab from '~/components/@settings/tabs/task-manager/TaskManagerTab';
+import { FigmaSettings } from '~/components/settings/FigmaSettings';
 
 interface ControlPanelProps {
   open: boolean;
@@ -320,6 +321,8 @@ export const ControlPanel = ({ open, onClose }: ControlPanelProps) => {
         return <ServiceStatusTab />;
       case 'custom-prompts':
         return <CustomPromptsTab />;
+      case 'figma':
+        return <FigmaSettings />;
       default:
         return null;
     }

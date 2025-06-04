@@ -16,6 +16,7 @@ export const TAB_ICONS: Record<TabType, string> = {
   'task-manager': 'i-ph:chart-line',
   'tab-management': 'i-ph:sliders-horizontal',
   'custom-prompts': 'i-ph:chat-text',
+  figma: 'i-ph:figma-logo',
 };
 
 // Define which tabs are beta
@@ -31,6 +32,7 @@ export const DEFAULT_USER_TABS: TabType[] = [
   'notifications',
   'event-logs',
   'custom-prompts',
+  'figma',
 ];
 
 // Define which tabs can be added to user mode
@@ -56,6 +58,7 @@ export const TAB_LABELS: Record<TabType, string> = {
   'task-manager': 'Gestionnaire de Tâches',
   'tab-management': 'Gestion des Onglets',
   'custom-prompts': 'Prompts Personnalisés',
+  figma: 'Figma',
 };
 
 export const TAB_DESCRIPTIONS: Record<TabType, string> = {
@@ -74,6 +77,7 @@ export const TAB_DESCRIPTIONS: Record<TabType, string> = {
   'task-manager': 'Surveiller les ressources système et processus',
   'tab-management': 'Configurer les onglets visibles et leur ordre',
   'custom-prompts': 'Créer et gérer vos prompts personnalisés',
+  figma: 'Configurer l\'intégration Figma et token d\'accès',
 };
 
 export const DEFAULT_TAB_CONFIG = [
@@ -86,9 +90,10 @@ export const DEFAULT_TAB_CONFIG = [
   { id: 'notifications', visible: true, window: 'user' as const, order: 5 },
   { id: 'event-logs', visible: true, window: 'user' as const, order: 6 },
   { id: 'custom-prompts', visible: true, window: 'user' as const, order: 7 },
+  { id: 'figma', visible: true, window: 'user' as const, order: 8 },
 
   // User Window Tabs (In dropdown, initially hidden)
-  { id: 'profile', visible: false, window: 'user' as const, order: 7 },
+  { id: 'profile', visible: false, window: 'user' as const, order: 9 },
   { id: 'settings', visible: false, window: 'user' as const, order: 8 },
   { id: 'task-manager', visible: false, window: 'user' as const, order: 9 },
   { id: 'service-status', visible: false, window: 'user' as const, order: 10 },
