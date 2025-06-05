@@ -129,13 +129,13 @@ export const AssistantMessage = memo(
             
             <div className="flex w-full items-center justify-between">
               {usage && (
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20">
-                  <div className="w-2 h-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 animate-pulse" />
-                  <span className="text-bolt-elements-textSecondary font-medium whitespace-nowrap">
-                    {usage.totalTokens.toLocaleString()} tokens
-                  </span>
-                </div>
+                <div className="flex items-center min-w-0 flex-1">
+                  <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20">
+                    <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 animate-pulse" />
+                    <span className="text-xs text-bolt-elements-textSecondary font-medium whitespace-nowrap">
+                      {usage.totalTokens.toLocaleString()} tokens
+                    </span>
+                  </div>
                 
                 {/* Détails des tokens avec style moderne */}
                 <div className="hidden sm:flex items-center gap-2 text-xs text-bolt-elements-textTertiary">
