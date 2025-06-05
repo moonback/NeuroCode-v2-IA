@@ -50,14 +50,14 @@ const sliderOptions: SliderOptions<WorkbenchViewType> = {
     value: 'code',
     text: 'Code',
   },
+  middle2: {
+    value: 'diff',
+    text: 'Diff',
+  },
   middle: {
     value: 'context',
     text: 'Context',
-  },
-  middle2: {
     
-    value: 'diff',
-    text: 'Diff',
   },
   right: {
     value: 'preview',
