@@ -2,6 +2,14 @@ import { Fragment, memo, useState, useMemo } from 'react';
 import { Markdown } from '~/components/chat/Markdown';
 import { workbenchStore } from '~/lib/stores/workbench';
 import { WORK_DIR } from '~/utils/constants';
+import { Card, CardContent, CardHeader } from '~/components/ui/Card';
+import { Button } from '~/components/ui/Button';
+import { Badge } from '~/components/ui/Badge';
+import { SearchInput } from '~/components/ui/SearchInput';
+import { ScrollArea } from '~/components/ui/ScrollArea';
+import { Separator } from '~/components/ui/Separator';
+import { EmptyState } from '~/components/ui/EmptyState';
+import { classNames } from '~/utils/classNames';
 
 interface ContextViewProps {
   chatSummary?: string;
@@ -36,6 +44,7 @@ export const ContextView = memo(({ chatSummary, codeContext }: ContextViewProps)
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFileType, setSelectedFileType] = useState<string>('all');
   const [isExpanded, setIsExpanded] = useState(false);
+  const [currentView, setCurrentView] = useState<'summary' | 'files'>('summary');
 
   // Calcul des statistiques des fichiers
   const fileStats: FileStats = useMemo(() => {
@@ -76,275 +85,341 @@ export const ContextView = memo(({ chatSummary, codeContext }: ContextViewProps)
     return Object.keys(fileStats.fileTypes).sort();
   }, [fileStats]);
 
+  // Fonction pour obtenir l'icône du fichier
+  const getFileIcon = (ext: string) => {
+    switch (ext) {
+      case 'js': case 'jsx': return 'i-ph:file-js';
+      case 'ts': case 'tsx': return 'i-ph:file-ts';
+      case 'css': case 'scss': return 'i-ph:file-css';
+      case 'html': return 'i-ph:file-html';
+      case 'json': return 'i-ph:file-json';
+      case 'md': return 'i-ph:file-md';
+      case 'py': return 'i-ph:file-py';
+      case 'vue': return 'i-ph:file-vue';
+      case 'svg': return 'i-ph:file-image';
+      case 'png': case 'jpg': case 'jpeg': case 'gif': return 'i-ph:image';
+      default: return 'i-ph:file-code';
+    }
+  };
+
+  // Fonction pour obtenir la couleur du type de fichier
+  const getFileTypeColor = (ext: string) => {
+    switch (ext) {
+      case 'js': case 'jsx': return 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20';
+      case 'ts': case 'tsx': return 'bg-blue-500/10 text-blue-600 border-blue-500/20';
+      case 'css': case 'scss': return 'bg-pink-500/10 text-pink-600 border-pink-500/20';
+      case 'html': return 'bg-orange-500/10 text-orange-600 border-orange-500/20';
+      case 'json': return 'bg-green-500/10 text-green-600 border-green-500/20';
+      case 'md': return 'bg-gray-500/10 text-gray-600 border-gray-500/20';
+      case 'py': return 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20';
+      case 'vue': return 'bg-teal-500/10 text-teal-600 border-teal-500/20';
+      default: return 'bg-bolt-elements-item-backgroundAccent text-bolt-elements-item-contentAccent border-bolt-elements-borderColor';
+    }
+  };
+
   return (
-    <div className="h-full flex flex-col bg-gradient-to-br from-bolt-elements-background-depth-1 to-bolt-elements-background-depth-2/50">
-      <div className="flex-1 overflow-y-auto p-6 space-y-8">
-        {chatSummary && (
-          <div className="group animate-in slide-in-from-top-4 duration-500">
-            <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-bolt-elements-background-depth-2/80 to-bolt-elements-background-depth-3/60 backdrop-blur-sm border border-bolt-elements-borderColor/50 shadow-lg hover:shadow-xl transition-all duration-300">
-              {/* Header avec effet glassmorphism */}
-              <div className="relative px-6 py-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-b border-bolt-elements-borderColor/30">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="relative flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
-                  <div className="i-ph:chat-circle-text text-white text-lg" />
-                </div>
-                <h2 className="text-xl font-bold bg-gradient-to-r from-bolt-elements-textPrimary to-bolt-elements-textSecondary bg-clip-text text-transparent">
-                  Résumé de la Conversation
-                </h2>
-                <div className="ml-auto flex items-center gap-2">
-                  <button
-                    onClick={() => setIsExpanded(!isExpanded)}
-                    className="p-2 rounded-lg bg-bolt-elements-background-depth-3/50 hover:bg-bolt-elements-background-depth-3/70 transition-colors duration-200"
-                    title={isExpanded ? 'Réduire' : 'Développer'}
-                  >
-                    <div className={`i-ph:${isExpanded ? 'minus' : 'plus'} text-bolt-elements-textSecondary`} />
-                  </button>
-                </div>
-              </div>
-              </div>
-              
-              {/* Contenu avec scroll personnalisé */}
-              <div className={`relative overflow-y-auto p-6 custom-scrollbar transition-all duration-300 ${isExpanded ? 'max-h-96' : 'max-h-80'}`}>
-                <div 
-                  style={{ zoom: 0.95 }} 
-                  className="prose prose-sm dark:prose-invert max-w-none"
-                >
-                  <Markdown>{chatSummary}</Markdown>
-                </div>
-              </div>
-            </div>
+    <div className="h-full flex flex-col bg-bolt-elements-background-depth-1">
+      {/* Header avec navigation */}
+      <div className="flex items-center justify-between p-4 border-b border-bolt-elements-borderColor">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-bolt-elements-item-backgroundAccent flex items-center justify-center">
+            <div className={`${currentView === 'summary' ? 'i-ph:chat-circle-text' : 'i-ph:file-code'} text-bolt-elements-item-contentAccent text-lg`} />
           </div>
-        )}
+          <h1 className="text-xl font-semibold text-bolt-elements-textPrimary">
+            {currentView === 'summary' ? 'Résumé de Contexte' : 'Fichiers de Contexte'}
+          </h1>
+        </div>
         
-        {codeContext && codeContext.length > 0 && (
-          <div className="group animate-in slide-in-from-bottom-4 duration-500 delay-200">
-            <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-bolt-elements-background-depth-2/80 to-bolt-elements-background-depth-3/60 backdrop-blur-sm border border-bolt-elements-borderColor/50 shadow-lg hover:shadow-xl transition-all duration-300">
-              {/* Header avec icône animée */}
-              <div className="relative px-6 py-4 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border-b border-bolt-elements-borderColor/30">
-                <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="relative space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                      <div className="i-ph:file-code text-white text-lg" />
-                    </div>
-                    <h2 className="text-xl font-bold bg-gradient-to-r from-bolt-elements-textPrimary to-bolt-elements-textSecondary bg-clip-text text-transparent">
-                      Fichiers de Contexte
-                    </h2>
-                    <div className="ml-auto px-3 py-1 rounded-full bg-bolt-elements-background-depth-3/50 border border-bolt-elements-borderColor/30">
-                      <span className="text-xs font-medium text-bolt-elements-textTertiary">
-                        {filteredFiles.length} / {codeContext.length} fichier{codeContext.length > 1 ? 's' : ''}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  {/* Statistiques des types de fichiers */}
-                  <div className="flex flex-wrap gap-2">
-                    {Object.entries(fileStats.fileTypes).map(([type, count]) => (
-                      <div key={type} className="px-2 py-1 rounded-md bg-bolt-elements-background-depth-3/30 border border-bolt-elements-borderColor/20">
-                        <span className="text-xs text-bolt-elements-textTertiary">
-                          .{type}: {count}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {/* Barre de recherche et filtres */}
-                  <div className="flex gap-3">
-                    <div className="flex-1 relative">
-                      <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                        <div className="i-ph:magnifying-glass text-bolt-elements-textTertiary" />
-                      </div>
-                      <input
-                        type="text"
-                        placeholder="Rechercher des fichiers..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 rounded-lg bg-bolt-elements-background-depth-3/50 border border-bolt-elements-borderColor/30 text-bolt-elements-textPrimary placeholder-bolt-elements-textTertiary focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all duration-200"
-                      />
-                    </div>
-                    <select
-                      value={selectedFileType}
-                      onChange={(e) => setSelectedFileType(e.target.value)}
-                      className="px-3 py-2 rounded-lg bg-bolt-elements-background-depth-3/50 border border-bolt-elements-borderColor/30 text-bolt-elements-textPrimary focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all duration-200"
-                    >
-                      <option value="all">Tous les types</option>
-                      {uniqueFileTypes.map(type => (
-                        <option key={type} value={type}>.{type}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Liste des fichiers avec animations décalées */}
-              <div className="p-6 space-y-3">
-                {filteredFiles.length === 0 && (searchTerm || selectedFileType !== 'all') && (
-                  <div className="text-center py-8">
-                    <div className="i-ph:file-x text-4xl text-bolt-elements-textTertiary mb-3" />
-                    <p className="text-bolt-elements-textTertiary">
-                      Aucun fichier trouvé pour les critères de recherche.
-                    </p>
-                    <button
-                      onClick={() => {
-                        setSearchTerm('');
-                        setSelectedFileType('all');
-                      }}
-                      className="mt-3 px-4 py-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 transition-colors duration-200"
-                    >
-                      Réinitialiser les filtres
-                    </button>
-                  </div>
-                )}
-                {filteredFiles.map((filePath, index) => {
-                  let normalizedPath = filePath;
-                  
-                  if (normalizedPath.startsWith(WORK_DIR)) {
-                    normalizedPath = filePath.replace(WORK_DIR, '');
-                  }
-                  
-                  if (normalizedPath.startsWith('/')) {
-                    normalizedPath = normalizedPath.slice(1);
-                  }
-                  
-                  const fileExtension = normalizedPath.split('.').pop()?.toLowerCase() || '';
-                  const getFileIcon = (ext: string) => {
-                    switch (ext) {
-                      case 'js': case 'jsx': return 'i-ph:file-js';
-                      case 'ts': case 'tsx': return 'i-ph:file-ts';
-                      case 'css': case 'scss': return 'i-ph:file-css';
-                      case 'html': return 'i-ph:file-html';
-                      case 'json': return 'i-ph:file-json';
-                      case 'md': return 'i-ph:file-md';
-                      default: return 'i-ph:file-code';
-                    }
-                  };
-                  
-                  return (
-                    <Fragment key={normalizedPath}>
-                      <button
-                        className={`
-                          w-full text-left p-4 rounded-lg
-                          bg-gradient-to-r from-bolt-elements-background-depth-2/60 to-bolt-elements-background-depth-3/40
-                          border border-bolt-elements-borderColor/40
-                          hover:from-bolt-elements-background-depth-3/80 hover:to-bolt-elements-background-depth-2/60
-                          hover:border-bolt-elements-borderColor/60 hover:shadow-md
-                          transform hover:scale-[1.02] hover:-translate-y-0.5
-                          transition-all duration-300 ease-out
-                          group/file animate-in slide-in-from-left-2 duration-300
-                          relative overflow-hidden
-                        `}
-                        style={{ animationDelay: `${index * 100}ms` }}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          openArtifactInWorkbench(normalizedPath);
-                        }}
-                        title={`Ouvrir ${normalizedPath} dans l'éditeur`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={`
-                            w-8 h-8 rounded-lg flex items-center justify-center
-                            bg-gradient-to-br from-bolt-elements-item-contentAccent/20 to-bolt-elements-item-contentAccent/10
-                            group-hover/file:from-bolt-elements-item-contentAccent/30 group-hover/file:to-bolt-elements-item-contentAccent/20
-                            transition-all duration-300 shadow-sm
-                          `}>
-                            <div className={`${getFileIcon(fileExtension)} text-bolt-elements-item-contentAccent text-base`} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <code className="block text-bolt-elements-item-contentAccent group-hover/file:text-bolt-elements-textPrimary text-sm font-mono transition-colors duration-300 truncate">
-                              {normalizedPath}
-                            </code>
-                            <div className="text-xs text-bolt-elements-textTertiary mt-1">
-                              Type: .{fileExtension || 'unknown'}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="opacity-0 group-hover/file:opacity-100 transition-opacity duration-300">
-                              <div className="i-ph:external-link text-bolt-elements-textTertiary text-sm" />
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* Effet de survol */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 to-teal-500/5 opacity-0 group-hover/file:opacity-100 transition-opacity duration-300 pointer-events-none" />
-                      </button>
-                    </Fragment>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {!chatSummary && (!codeContext || codeContext.length === 0) && (
-          <div className="flex flex-col items-center justify-center h-full text-center animate-in fade-in-0 duration-1000">
-            <div className="relative mb-8">
-              {/* Cercles d'arrière-plan animés */}
-              <div className="absolute inset-0 animate-pulse">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 blur-xl" />
-              </div>
-              <div className="absolute inset-2 animate-ping animation-delay-1000">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-r from-emerald-500/20 to-teal-500/20 blur-lg" />
-              </div>
-              
-              {/* Icône principale */}
-              <div className="relative w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-bolt-elements-background-depth-2 to-bolt-elements-background-depth-3 border border-bolt-elements-borderColor/50 flex items-center justify-center shadow-xl">
-                <div className="i-ph:chat-circle-dots text-3xl text-bolt-elements-textTertiary animate-bounce animation-delay-500" />
-              </div>
-            </div>
-            
-            <div className="space-y-4 max-w-lg">
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-bolt-elements-textPrimary to-bolt-elements-textSecondary bg-clip-text text-transparent">
-                Aucun Contexte Disponible
-              </h3>
-              <p className="text-bolt-elements-textTertiary leading-relaxed">
-                Les informations de contexte apparaîtront ici lorsqu'elles seront disponibles dans les messages de chat.
-                <span className="block mt-3 text-sm opacity-70">
-                  Commencez une conversation pour voir les résumés et les fichiers pertinents.
-                </span>
-              </p>
-              
-              {/* Conseils d'utilisation */}
-              <div className="mt-6 p-4 rounded-lg bg-bolt-elements-background-depth-2/50 border border-bolt-elements-borderColor/30">
-                <h4 className="text-sm font-semibold text-bolt-elements-textSecondary mb-2">
-                  💡 Conseils d'utilisation :
-                </h4>
-                <ul className="text-xs text-bolt-elements-textTertiary space-y-1 text-left">
-                  <li>• Posez des questions sur votre code</li>
-                  <li>• Demandez des explications sur des fichiers</li>
-                  <li>• Explorez l'architecture de votre projet</li>
-                  <li>• Obtenez des suggestions d'amélioration</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          <Button
+            variant={currentView === 'summary' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setCurrentView('summary')}
+            disabled={!chatSummary}
+            className={`
+              flex items-center gap-2 px-4 py-2 rounded-lg
+              transition-all bg-bolt-elements-background-depth-2 text-white duration-200 ease-in-out
+              ${currentView === 'summary' 
+                ? 'bg-bolt-elements-item-backgroundAccent text-bolt-elements-textPrimary shadow-sm' 
+                : 'hover:bg-bolt-elements-background-depth-2'
+              }
+              ${!chatSummary && 'opacity-50 cursor-not-allowed'}
+            `}
+          >
+            <div className="i-ph:chat-circle-text text-lg" />
+            <span className="font-medium">Résumé</span>
+          </Button>
+
+          <Button
+            variant={currentView === 'files' ? 'default' : 'ghost'}
+            size="sm" 
+            onClick={() => setCurrentView('files')}
+            disabled={!codeContext || codeContext.length === 0}
+            className={`
+              flex items-center gap-2 px-4 py-2 rounded-lg
+              transition-all bg-bolt-elements-background-depth-2 text-white duration-200 ease-in-out
+              ${currentView === 'files'
+                ? 'bg-bolt-elements-item-backgroundAccent text-bolt-elements-textPrimary shadow-sm'
+                : 'hover:bg-bolt-elements-background-depth-2'
+              }
+              ${(!codeContext || codeContext.length === 0) && 'opacity-50  cursor-not-allowed'}
+            `}
+          >
+            <div className="i-ph:file-code text-lg" />
+            <span className="font-medium">Fichiers ({codeContext?.length || 0})</span>
+          </Button>
+        </div>
       </div>
+
+      <ScrollArea className="flex-1 p-4">
+        <div className="space-y-6">
+          {/* Vue Résumé */}
+          {currentView === 'summary' && chatSummary && (
+            <Card className="animate-in slide-in-from-top-4 duration-500">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-bolt-elements-item-backgroundAccent flex items-center justify-center">
+                      <div className="i-ph:chat-circle-text text-bolt-elements-item-contentAccent text-lg" />
+                    </div>
+                    <h2 className="text-lg font-semibold text-bolt-elements-textPrimary">
+                      Résumé Complet de la Conversation
+                    </h2>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className="h-8 w-8 p-0"
+                  >
+                    <div className={`i-ph:${isExpanded ? 'caret-up' : 'caret-down'} text-bolt-elements-textSecondary`} />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className={classNames(
+                  "transition-all duration-300 overflow-hidden",
+                  isExpanded ? "max-h-none" : "max-h-96"
+                )}>
+                  <ScrollArea className={isExpanded ? "max-h-[70vh]" : "h-full"}>
+                    <div className="prose prose-sm dark:prose-invert max-w-none text-bolt-elements-textPrimary">
+                      <Markdown>{chatSummary}</Markdown>
+                    </div>
+                  </ScrollArea>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        
+          {/* Vue Fichiers */}
+          {currentView === 'files' && codeContext && codeContext.length > 0 && (
+            <Card className="animate-in slide-in-from-bottom-4 duration-500 delay-200">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-bolt-elements-item-backgroundAccent flex items-center justify-center">
+                      <div className="i-ph:file-code text-bolt-elements-item-contentAccent text-lg" />
+                    </div>
+                    <h2 className="text-lg font-semibold text-bolt-elements-textPrimary">
+                      Liste des Fichiers de Contexte
+                    </h2>
+                  </div>
+                  <Badge variant="secondary" className="text-xs">
+                    {filteredFiles.length} / {codeContext.length} fichier{codeContext.length > 1 ? 's' : ''}
+                  </Badge>
+                </div>
+                  
+                 
+                 {/* Statistiques des types de fichiers */}
+                 <div className="flex flex-wrap gap-2 mt-3">
+                   {Object.entries(fileStats.fileTypes).map(([ext, count]) => (
+                     <Badge 
+                       key={ext}
+                       variant="outline" 
+                       className="text-xs"
+                     >
+                       <div className={`w-2 h-2 rounded-full mr-1 ${getFileTypeColor(ext)}`} />
+                       {ext || 'sans ext'} ({count})
+                     </Badge>
+                   ))}
+                 </div>
+                 
+                 {/* Filtres et recherche */}
+                 <div className="mt-4 space-y-3">
+                   <SearchInput
+                     placeholder="Rechercher dans les fichiers..."
+                     value={searchTerm}
+                     onChange={(e) => setSearchTerm(e.target.value)}
+                     className="w-full"
+                   />
+                   
+                   {/* Filtre par type de fichier */}
+                   <div className="flex flex-wrap gap-2">
+                     <Button
+                       variant={selectedFileType === 'all' ? 'default' : 'outline'}
+                       size="sm"
+                       onClick={() => setSelectedFileType('all')}
+                       className="text-xs"
+                     >
+                       Tous ({codeContext.length})
+                     </Button>
+                     {uniqueFileTypes.map(ext => (
+                       <Button
+                         key={ext}
+                         variant={selectedFileType === ext ? 'default' : 'outline'}
+                         size="sm"
+                         onClick={() => setSelectedFileType(ext)}
+                         className="text-xs"
+                       >
+                         .{ext} ({fileStats.fileTypes[ext]})
+                       </Button>
+                     ))}
+                   </div>
+                 </div>
+               </CardHeader>
+              
+              <CardContent className="pt-0">
+                <ScrollArea className="max-h-96">
+                  {filteredFiles.length === 0 ? (
+                    <EmptyState
+                      icon="i-ph:file-x"
+                      title={searchTerm ? 'Aucun fichier trouvé' : 'Aucun fichier dans le contexte'}
+                      description={searchTerm ? 'Essayez un autre terme de recherche' : 'Les fichiers apparaîtront ici quand ils seront ajoutés'}
+                    />
+                  ) : (
+                    <div className="space-y-3">
+                      {filteredFiles.map((filePath, index) => {
+                        let normalizedPath = filePath;
+                        
+                        if (normalizedPath.startsWith(WORK_DIR)) {
+                          normalizedPath = filePath.replace(WORK_DIR, '');
+                        }
+                        
+                        if (normalizedPath.startsWith('/')) {
+                          normalizedPath = normalizedPath.slice(1);
+                        }
+                        
+                        const fileExtension = normalizedPath.split('.').pop()?.toLowerCase() || '';
+                        const fileName = normalizedPath.split('/').pop() || normalizedPath;
+                        const directory = normalizedPath.substring(0, normalizedPath.lastIndexOf('/'));
+                        
+                        return (
+                          <Card
+                            key={normalizedPath}
+                            className="group animate-in slide-in-from-left-4 hover:shadow-md transition-all duration-300 cursor-pointer"
+                            style={{ animationDelay: `${index * 50}ms` }}
+                            onClick={() => openArtifactInWorkbench(normalizedPath)}
+                          >
+                            <CardContent className="p-4">
+                              <div className="flex items-start gap-3">
+                                {/* Icône de fichier */}
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${getFileTypeColor(fileExtension)} bg-opacity-20`}>
+                                  <div className={`${getFileIcon(fileExtension)} text-lg`} />
+                                </div>
+                                
+                                <div className="flex-1 min-w-0">
+                                  {/* Nom du fichier */}
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <h3 className="font-medium text-bolt-elements-textPrimary truncate">
+                                      {fileName}
+                                    </h3>
+                                    <Badge variant="outline" className="text-xs">
+                                      .{fileExtension}
+                                    </Badge>
+                                  </div>
+                                  
+                                  {/* Chemin du répertoire */}
+                                  {directory && (
+                                    <p className="text-sm text-bolt-elements-textSecondary truncate mb-2">
+                                      {directory}
+                                    </p>
+                                  )}
+                                  
+                                  {/* Type de fichier */}
+                                  <div className="text-xs text-bolt-elements-textSecondary">
+                                    Type: .{fileExtension || 'unknown'}
+                                  </div>
+                                </div>
+                                
+                                {/* Actions */}
+                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                    <div className="i-ph:external-link text-bolt-elements-textSecondary" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  )}
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          )}
+        
+          {/* États vides */}
+          {currentView === 'summary' && !chatSummary && (
+            <div className="flex flex-col items-center justify-center h-full">
+              <EmptyState
+                icon="i-ph:chat-circle-dots"
+                title="Aucun Résumé Disponible"
+                description="Le résumé de la conversation apparaîtra ici lorsqu'il sera généré."
+              />
+            </div>
+          )}
+          
+          {currentView === 'files' && (!codeContext || codeContext.length === 0) && (
+            <div className="flex flex-col items-center justify-center h-full">
+              <EmptyState
+                icon="i-ph:file-x"
+                title="Aucun Fichier de Contexte"
+                description="Les fichiers de contexte apparaîtront ici lorsqu'ils seront ajoutés à la conversation."
+              />
+              
+              <Card className="mt-6 max-w-lg">
+                <CardContent className="p-4">
+                  <h4 className="text-sm font-semibold text-bolt-elements-textPrimary mb-3">
+                    💡 Conseils d'utilisation :
+                  </h4>
+                  <ul className="text-sm text-bolt-elements-textSecondary space-y-2">
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-bolt-elements-item-contentAccent" />
+                      Posez des questions sur votre code
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-bolt-elements-item-contentAccent" />
+                      Demandez des explications sur des fichiers
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-bolt-elements-item-contentAccent" />
+                      Explorez l'architecture de votre projet
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-bolt-elements-item-contentAccent" />
+                      Obtenez des suggestions d'amélioration
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+          
+          {/* État vide global */}
+          {!chatSummary && (!codeContext || codeContext.length === 0) && (
+            <div className="flex flex-col items-center justify-center h-full">
+              <EmptyState
+                icon="i-ph:chat-circle-dots"
+                title="Aucun Contexte Disponible"
+                description="Les informations de contexte apparaîtront ici lorsqu'elles seront disponibles dans les messages de chat."
+              />
+            </div>
+          )}
+      </div>
+      </ScrollArea>
       
-      {/* Style personnalisé pour la scrollbar */}
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(255, 255, 255, 0.05);
-          border-radius: 3px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: linear-gradient(to bottom, rgba(59, 130, 246, 0.5), rgba(147, 51, 234, 0.5));
-          border-radius: 3px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(to bottom, rgba(59, 130, 246, 0.7), rgba(147, 51, 234, 0.7));
-        }
-        .animation-delay-500 {
-          animation-delay: 0.5s;
-        }
-        .animation-delay-1000 {
-          animation-delay: 1s;
-        }
-      `}</style>
+
     </div>
   );
 });
