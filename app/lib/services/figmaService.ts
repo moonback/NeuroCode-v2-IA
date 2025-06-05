@@ -10,6 +10,52 @@ export interface FigmaFile {
   };
   components: Record<string, FigmaComponent>;
   styles: Record<string, FigmaStyle>;
+  componentSets?: Record<string, FigmaComponentSet>;
+  schemaVersion?: number;
+  lastModified?: string;
+}
+
+export interface FigmaComponentSet {
+  key: string;
+  name: string;
+  description: string;
+  documentationLinks: any[];
+}
+
+export interface FigmaDesignTokens {
+  colors: Record<string, string>;
+  typography: Record<string, FigmaTypeStyle>;
+  spacing: Record<string, number>;
+  borderRadius: Record<string, number>;
+  shadows: Record<string, string>;
+}
+
+export interface FigmaComponentAnalysis {
+  name: string;
+  type: 'button' | 'input' | 'card' | 'modal' | 'navigation' | 'layout' | 'text' | 'icon' | 'image' | 'other';
+  props: Record<string, any>;
+  variants?: string[];
+  states?: string[];
+  children?: FigmaComponentAnalysis[];
+}
+
+export interface FigmaProjectStructure {
+  components: FigmaComponentAnalysis[];
+  pages: string[];
+  designTokens: FigmaDesignTokens;
+  assets: string[];
+  interactions: FigmaInteraction[];
+}
+
+export interface FigmaInteraction {
+  trigger: string;
+  action: string;
+  destination?: string;
+  transition?: {
+    type: string;
+    duration: number;
+    easing: string;
+  };
 }
 
 export interface FigmaNode {
@@ -564,7 +610,300 @@ body {
   }
 
   /**
-   * Convert Figma file to React/Vite project structure
+   * Analyze Figma file structure and extract design tokens
+   */
+  static async analyzeDesignStructure(fileId: string): Promise<FigmaProjectStructure | null> {
+    const file = await this.getFile(fileId);
+    if (!file) {
+      return null;
+    }
+
+    try {
+      const designTokens = this.extractDesignTokens(file);
+      const components = this.analyzeComponents(file);
+      const pages = file.document.children.map(child => child.name);
+      const assets = await this.extractAssets(fileId, file);
+      const interactions = this.extractInteractions(file);
+
+      return {
+        components,
+        pages,
+        designTokens,
+        assets,
+        interactions
+      };
+    } catch (error) {
+      console.error('Error analyzing Figma design structure:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Extract design tokens from Figma file
+   */
+  static extractDesignTokens(file: FigmaFile): FigmaDesignTokens {
+    const tokens: FigmaDesignTokens = {
+      colors: {},
+      typography: {},
+      spacing: {},
+      borderRadius: {},
+      shadows: {}
+    };
+
+    // Extract colors from styles
+    Object.values(file.styles).forEach(style => {
+      if (style.styleType === 'FILL') {
+        tokens.colors[style.name] = style.name; // Placeholder - would need actual color value
+      }
+    });
+
+    // Extract typography from styles
+    Object.values(file.styles).forEach(style => {
+      if (style.styleType === 'TEXT') {
+        tokens.typography[style.name] = {
+          fontFamily: 'Inter', // Default - would extract from actual style
+          fontWeight: 400,
+          fontSize: 16,
+          lineHeightPx: 24,
+          letterSpacing: 0,
+          textAlignHorizontal: 'LEFT',
+          textAlignVertical: 'TOP'
+        };
+      }
+    });
+
+    // Extract spacing and other tokens from components
+    this.extractTokensFromNodes(file.document.children, tokens);
+
+    return tokens;
+  }
+
+  /**
+   * Extract tokens from nodes recursively
+   */
+  private static extractTokensFromNodes(nodes: FigmaNode[], tokens: FigmaDesignTokens): void {
+    nodes.forEach(node => {
+      // Extract spacing
+      if (node.absoluteBoundingBox) {
+        const width = Math.round(node.absoluteBoundingBox.width);
+        const height = Math.round(node.absoluteBoundingBox.height);
+        if (width > 0 && width <= 100) tokens.spacing[`w-${width}`] = width;
+        if (height > 0 && height <= 100) tokens.spacing[`h-${height}`] = height;
+      }
+
+      // Extract border radius
+      if (node.cornerRadius !== undefined) {
+        tokens.borderRadius[`radius-${node.cornerRadius}`] = node.cornerRadius;
+      }
+
+      // Recursively process children
+      if (node.children) {
+        this.extractTokensFromNodes(node.children, tokens);
+      }
+    });
+  }
+
+  /**
+   * Analyze components and their structure
+   */
+  static analyzeComponents(file: FigmaFile): FigmaComponentAnalysis[] {
+    const components: FigmaComponentAnalysis[] = [];
+
+    // Analyze main components
+    Object.values(file.components).forEach(component => {
+      const analysis = this.analyzeComponentStructure(component, file);
+      if (analysis) {
+        components.push(analysis);
+      }
+    });
+
+    // Analyze frames as potential components
+    file.document.children.forEach(page => {
+      if (page.children) {
+        page.children.forEach(frame => {
+          if (frame.type === 'FRAME' && this.isLikelyComponent(frame)) {
+            const analysis = this.analyzeNodeAsComponent(frame);
+            if (analysis) {
+              components.push(analysis);
+            }
+          }
+        });
+      }
+    });
+
+    return components;
+  }
+
+  /**
+   * Analyze a component's structure
+   */
+  private static analyzeComponentStructure(component: FigmaComponent, file: FigmaFile): FigmaComponentAnalysis | null {
+    // Find the component node in the document
+    const componentNode = this.findNodeById(file.document.children, component.key);
+    if (!componentNode) return null;
+
+    return this.analyzeNodeAsComponent(componentNode);
+  }
+
+  /**
+   * Analyze a node as a component
+   */
+  private static analyzeNodeAsComponent(node: FigmaNode): FigmaComponentAnalysis {
+    const type = this.determineComponentType(node);
+    const props = this.extractComponentProps(node);
+    const variants = this.extractVariants(node);
+    const states = this.extractStates(node);
+    const children = node.children ? node.children.map(child => this.analyzeNodeAsComponent(child)) : undefined;
+
+    return {
+      name: node.name,
+      type,
+      props,
+      variants,
+      states,
+      children
+    };
+  }
+
+  /**
+   * Determine component type based on node characteristics
+   */
+  private static determineComponentType(node: FigmaNode): FigmaComponentAnalysis['type'] {
+    const name = node.name.toLowerCase();
+    
+    if (name.includes('button') || name.includes('btn')) return 'button';
+    if (name.includes('input') || name.includes('field') || name.includes('textbox')) return 'input';
+    if (name.includes('card') || name.includes('tile')) return 'card';
+    if (name.includes('modal') || name.includes('dialog') || name.includes('popup')) return 'modal';
+    if (name.includes('nav') || name.includes('menu') || name.includes('header') || name.includes('footer')) return 'navigation';
+    if (name.includes('layout') || name.includes('container') || name.includes('wrapper')) return 'layout';
+    if (node.type === 'TEXT') return 'text';
+    if (name.includes('icon') || node.type === 'VECTOR') return 'icon';
+    if (name.includes('image') || name.includes('img') || name.includes('photo')) return 'image';
+    
+    return 'other';
+  }
+
+  /**
+   * Extract component props from node
+   */
+  private static extractComponentProps(node: FigmaNode): Record<string, any> {
+    const props: Record<string, any> = {};
+
+    if (node.characters) props.text = node.characters;
+    if (node.absoluteBoundingBox) {
+      props.width = node.absoluteBoundingBox.width;
+      props.height = node.absoluteBoundingBox.height;
+    }
+    if (node.cornerRadius !== undefined) props.borderRadius = node.cornerRadius;
+    if (node.backgroundColor) props.backgroundColor = this.figmaColorToCss(node.backgroundColor);
+    if (node.fills && node.fills.length > 0) {
+      const fill = node.fills[0];
+      if (fill.color) props.color = this.figmaColorToCss(fill.color);
+    }
+
+    return props;
+  }
+
+  /**
+   * Extract variants from component
+   */
+  private static extractVariants(node: FigmaNode): string[] | undefined {
+    // This would analyze component variants in Figma
+    // For now, return undefined as it requires more complex analysis
+    return undefined;
+  }
+
+  /**
+   * Extract states from component
+   */
+  private static extractStates(node: FigmaNode): string[] | undefined {
+    const states: string[] = [];
+    const name = node.name.toLowerCase();
+    
+    if (name.includes('hover')) states.push('hover');
+    if (name.includes('active')) states.push('active');
+    if (name.includes('disabled')) states.push('disabled');
+    if (name.includes('focus')) states.push('focus');
+    
+    return states.length > 0 ? states : undefined;
+  }
+
+  /**
+   * Check if a frame is likely a component
+   */
+  private static isLikelyComponent(frame: FigmaNode): boolean {
+    const name = frame.name.toLowerCase();
+    const componentKeywords = ['component', 'button', 'card', 'modal', 'input', 'nav', 'header', 'footer'];
+    return componentKeywords.some(keyword => name.includes(keyword));
+  }
+
+  /**
+   * Find node by ID in the document tree
+   */
+  private static findNodeById(nodes: FigmaNode[], id: string): FigmaNode | null {
+    for (const node of nodes) {
+      if (node.id === id) return node;
+      if (node.children) {
+        const found = this.findNodeById(node.children, id);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Extract assets from Figma file
+   */
+  private static async extractAssets(fileId: string, file: FigmaFile): Promise<string[]> {
+    const assets: string[] = [];
+    
+    // Find all image nodes
+    const imageNodes = this.findImageNodes(file.document.children);
+    
+    if (imageNodes.length > 0) {
+      try {
+        const images = await this.getFileImages(fileId, imageNodes.map(node => node.id));
+        if (images) {
+          assets.push(...Object.values(images));
+        }
+      } catch (error) {
+        console.warn('Could not extract images:', error);
+      }
+    }
+    
+    return assets;
+  }
+
+  /**
+   * Find all image nodes in the document
+   */
+  private static findImageNodes(nodes: FigmaNode[]): FigmaNode[] {
+    const imageNodes: FigmaNode[] = [];
+    
+    nodes.forEach(node => {
+      if (node.fills && node.fills.some(fill => fill.type === 'IMAGE')) {
+        imageNodes.push(node);
+      }
+      if (node.children) {
+        imageNodes.push(...this.findImageNodes(node.children));
+      }
+    });
+    
+    return imageNodes;
+  }
+
+  /**
+   * Extract interactions from Figma file
+   */
+  private static extractInteractions(file: FigmaFile): FigmaInteraction[] {
+    // This would extract prototyping interactions
+    // For now, return empty array as it requires access to prototype data
+    return [];
+  }
+
+  /**
+   * Convert Figma file to React/Vite project structure with enhanced analysis
    */
   static async convertToReactProject(fileId: string): Promise<{
     component: string;
@@ -573,6 +912,9 @@ body {
     viteConfig: string;
     indexHtml: string;
     mainTsx: string;
+    designTokens?: string;
+    componentLibrary?: string;
+    storybook?: string;
   } | null> {
     const file = await this.getFile(fileId);
     if (!file) {
@@ -593,29 +935,31 @@ body {
       const mainFrame = canvas.children[0];
       console.log('Main frame found:', mainFrame.name);
 
-      // Generate React component
+      // Analyze design structure
+      const projectStructure = await this.analyzeDesignStructure(fileId);
+      if (!projectStructure) {
+        console.warn('Could not analyze design structure, using basic conversion');
+      }
+
+      // Generate React component with enhanced structure
       const componentName = mainFrame.name.replace(/[^a-zA-Z0-9]/g, '') || 'FigmaDesign';
-      const component = `import React from 'react';
-import './FigmaDesign.css';
+      const component = this.generateReactComponent(componentName, mainFrame, projectStructure || undefined);
 
-interface ${componentName}Props {
-  className?: string;
-}
+      // Generate enhanced CSS with design tokens
+      const css = projectStructure 
+        ? this.generateEnhancedCSS(projectStructure.designTokens, [mainFrame])
+        : this.generateCSS([mainFrame]);
 
-const ${componentName}: React.FC<${componentName}Props> = ({ className }) => {
-  return (
-    <div className={\`figma-design-container \${className || ''\}\`}>
-      ${this.nodeToReactComponent(mainFrame, 3).trim()}
-    </div>
-  );
-};
+      // Generate design tokens file
+      const designTokens = projectStructure ? this.generateDesignTokensFile(projectStructure.designTokens) : undefined;
 
-export default ${componentName};`;
+      // Generate component library
+      const componentLibrary = projectStructure ? this.generateComponentLibrary(projectStructure.components) : undefined;
 
-      // Generate enhanced CSS with CSS modules support
-      const css = this.generateCSS([mainFrame]);
+      // Generate Storybook configuration
+      const storybook = projectStructure ? this.generateStorybookConfig(componentName, projectStructure.components) : undefined;
 
-      // Generate package.json for React + Vite
+      // Generate package.json for React + Vite with enhanced dependencies
       const packageJson = `{
   "name": "figma-design-${fileId.toLowerCase()}",
   "private": true,
@@ -625,21 +969,34 @@ export default ${componentName};`;
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview"\${projectStructure ? ',
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"' : ''}
   },
   "dependencies": {
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0"\${projectStructure ? ',
+    "styled-components": "^6.1.1",
+    "framer-motion": "^10.16.5"' : ''}
   },
   "devDependencies": {
-    "@types/react": "^18.2.43",
+    \${projectStructure ? '"@storybook/addon-essentials": "^7.5.3",
+    "@storybook/addon-interactions": "^7.5.3",
+    "@storybook/addon-links": "^7.5.3",
+    "@storybook/blocks": "^7.5.3",
+    "@storybook/react": "^7.5.3",
+    "@storybook/react-vite": "^7.5.3",
+    "@storybook/testing-library": "^0.2.2",
+    ' : ''}"@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
     "@typescript-eslint/eslint-plugin": "^6.14.0",
     "@typescript-eslint/parser": "^6.14.0",
     "@vitejs/plugin-react": "^4.2.1",
     "eslint": "^8.55.0",
     "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.5",
+    "eslint-plugin-react-refresh": "^0.4.5",\${projectStructure ? '
+    "eslint-plugin-storybook": "^0.6.15",
+    "storybook": "^7.5.3",' : ''}
     "typescript": "^5.2.2",
     "vite": "^5.0.8"
   }
@@ -689,11 +1046,161 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   </React.StrictMode>,
 )`;
 
-      return { component, css, packageJson, viteConfig, indexHtml, mainTsx };
+      return { 
+        component, 
+        css, 
+        packageJson, 
+        viteConfig, 
+        indexHtml, 
+        mainTsx,
+        designTokens,
+        componentLibrary,
+        storybook
+      };
     } catch (error) {
       console.error('Error converting Figma file to React project:', error);
       return null;
     }
+  }
+
+  /**
+   * Generate React component with enhanced structure
+   */
+  private static generateReactComponent(
+    componentName: string, 
+    mainFrame: FigmaNode, 
+    projectStructure?: FigmaProjectStructure
+  ): string {
+    const hasTokens = projectStructure?.designTokens;
+    const imports = [
+      "import React from 'react';",
+      "import './FigmaDesign.css';"
+    ];
+
+    if (hasTokens) {
+      imports.push("import { designTokens } from './tokens/designTokens';");
+    }
+
+    if (projectStructure?.components && projectStructure.components.length > 0) {
+      imports.push("import * as Components from './components';");
+    }
+
+    const componentJSX = this.nodeToReactComponent(mainFrame, 3).trim();
+
+    return `${imports.join('\n')}
+
+interface ${componentName}Props {
+  className?: string;
+}
+
+const ${componentName}: React.FC<${componentName}Props> = ({ className }) => {
+  return (
+    <div className={\`figma-design-container \${className || ''}\`}>
+      ${componentJSX}
+    </div>
+  );
+};
+
+export default ${componentName};`;
+  }
+
+  /**
+   * Generate enhanced CSS with design tokens
+   */
+  private static generateEnhancedCSS(designTokens: FigmaDesignTokens, nodes: FigmaNode[]): string {
+    const tokenCSS = this.generateTokenCSS(designTokens);
+    const componentCSS = this.generateCSS(nodes);
+    
+    return `/* Design Tokens */\n${tokenCSS}\n\n/* Component Styles */\n${componentCSS}`;
+  }
+
+  /**
+   * Generate CSS from design tokens
+   */
+  private static generateTokenCSS(tokens: FigmaDesignTokens): string {
+    let css = ':root {\n';
+    
+    // Colors
+    Object.entries(tokens.colors).forEach(([name, value]) => {
+      css += `  --color-${name.toLowerCase().replace(/\s+/g, '-')}: ${value};\n`;
+    });
+    
+    // Typography
+    Object.entries(tokens.typography).forEach(([name, typo]) => {
+      const tokenName = name.toLowerCase().replace(/\s+/g, '-');
+      css += `  --font-${tokenName}-family: ${typo.fontFamily};\n`;
+      css += `  --font-${tokenName}-size: ${typo.fontSize}px;\n`;
+      css += `  --font-${tokenName}-weight: ${typo.fontWeight};\n`;
+      css += `  --font-${tokenName}-line-height: ${typo.lineHeightPx}px;\n`;
+    });
+    
+    // Spacing
+    Object.entries(tokens.spacing).forEach(([name, value]) => {
+      css += `  --spacing-${name.toLowerCase()}: ${value}px;\n`;
+    });
+    
+    // Border radius
+    Object.entries(tokens.borderRadius).forEach(([name, value]) => {
+      css += `  --radius-${name.toLowerCase()}: ${value}px;\n`;
+    });
+    
+    // Shadows
+    Object.entries(tokens.shadows).forEach(([name, value]) => {
+      css += `  --shadow-${name.toLowerCase().replace(/\s+/g, '-')}: ${value};\n`;
+    });
+    
+    css += '}\n';
+    return css;
+  }
+
+  /**
+   * Generate design tokens file
+   */
+  private static generateDesignTokensFile(tokens: FigmaDesignTokens): string {
+    return `export const designTokens = ${JSON.stringify(tokens, null, 2)};\n\nexport default designTokens;`;
+  }
+
+  /**
+   * Generate component library
+   */
+  private static generateComponentLibrary(components: FigmaComponentAnalysis[]): string {
+    const componentExports = components.map(comp => {
+      const componentName = comp.name.replace(/[^a-zA-Z0-9]/g, '');
+      return `export { default as ${componentName} } from './${componentName}';`;
+    }).join('\n');
+
+    const componentFiles = components.map(comp => {
+      const componentName = comp.name.replace(/[^a-zA-Z0-9]/g, '');
+      const props = Object.entries(comp.props).map(([name, value]) => `  ${name}?: any;`).join('\n');
+      
+      return {
+        name: `${componentName}.tsx`,
+        content: `import React from 'react';\n\ninterface ${componentName}Props {\n${props}\n}\n\nconst ${componentName}: React.FC<${componentName}Props> = (props) => {\n  return (\n    <div className="${componentName.toLowerCase()}">\n      {/* Component implementation */}\n    </div>\n  );\n};\n\nexport default ${componentName};`
+      };
+    });
+
+    return JSON.stringify({ index: componentExports, files: componentFiles }, null, 2);
+  }
+
+  /**
+   * Generate Storybook configuration
+   */
+  private static generateStorybookConfig(mainComponentName: string, components: FigmaComponentAnalysis[]): string {
+    const stories = components.map(comp => {
+      const componentName = comp.name.replace(/[^a-zA-Z0-9]/g, '');
+      return {
+        name: `${componentName}.stories.tsx`,
+        content: `import type { Meta, StoryObj } from '@storybook/react';\nimport ${componentName} from '../components/${componentName}';\n\nconst meta: Meta<typeof ${componentName}> = {\n  title: 'Components/${componentName}',\n  component: ${componentName},\n  parameters: {\n    layout: 'centered',\n  },\n  tags: ['autodocs'],\n};\n\nexport default meta;\ntype Story = StoryObj<typeof meta>;\n\nexport const Default: Story = {\n  args: {},\n};`
+      };
+    });
+
+    const mainConfig = `import type { StorybookConfig } from '@storybook/react-vite';\n\nconst config: StorybookConfig = {\n  stories: ['../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],\n  addons: [\n    '@storybook/addon-links',\n    '@storybook/addon-essentials',\n    '@storybook/addon-interactions',\n  ],\n  framework: {\n    name: '@storybook/react-vite',\n    options: {},\n  },\n  docs: {\n    autodocs: 'tag',\n  },\n};\n\nexport default config;`;
+
+    return JSON.stringify({ 
+      mainConfig, 
+      stories,
+      preview: `export const parameters = {\n  actions: { argTypesRegex: '^on[A-Z].*' },\n  controls: {\n    matchers: {\n      color: /(background|color)$/i,\n      date: /Date$/,\n    },\n  },\n};`
+    }, null, 2);
   }
 
   /**

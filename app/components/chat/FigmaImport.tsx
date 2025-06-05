@@ -86,8 +86,10 @@ export function FigmaImport({ onImport, className }: FigmaImportProps) {
       const reactProject = await FigmaService.convertToReactProject(fileId);
       
       if (reactProject) {
+        const { component, css, packageJson, viteConfig, indexHtml, mainTsx, designTokens, componentLibrary, storybook } = reactProject;
+        
         // Create an artifact with boltActions for the React/Vite project
-        const artifactContent = `<boltArtifact id="figma-react-${fileId}" title="Figma React Project - ${fileId}">
+        let artifactContent = `<boltArtifact id="figma-react-${fileId}" title="Figma React Project - ${fileId}">
 <boltAction type="shell">
 npm create vite@latest figma-design-${fileId} -- --template react-ts
 cd figma-design-${fileId}
@@ -95,27 +97,27 @@ npm install
 </boltAction>
 
 <boltAction type="file" filePath="package.json">
-${reactProject.packageJson}
+${packageJson}
 </boltAction>
 
 <boltAction type="file" filePath="vite.config.ts">
-${reactProject.viteConfig}
+${viteConfig}
 </boltAction>
 
 <boltAction type="file" filePath="index.html">
-${reactProject.indexHtml}
+${indexHtml}
 </boltAction>
 
 <boltAction type="file" filePath="src/main.tsx">
-${reactProject.mainTsx}
+${mainTsx}
 </boltAction>
 
 <boltAction type="file" filePath="src/components/FigmaDesign.tsx">
-${reactProject.component}
+${component}
 </boltAction>
 
 <boltAction type="file" filePath="src/components/FigmaDesign.css">
-${reactProject.css}
+${css}
 </boltAction>
 
 <boltAction type="file" filePath="src/index.css">
@@ -192,7 +194,60 @@ body {
   },
   "include": ["vite.config.ts"]
 }
-</boltAction>
+</boltAction>`;
+
+        // Add design tokens if available
+        if (designTokens) {
+          artifactContent += `
+
+<boltAction type="file" filePath="src/tokens/designTokens.ts">
+${designTokens}
+</boltAction>`;
+        }
+
+        // Add component library if available
+        if (componentLibrary) {
+          const libData = JSON.parse(componentLibrary);
+          artifactContent += `
+
+<boltAction type="file" filePath="src/components/index.ts">
+${libData.index}
+</boltAction>`;
+          
+          libData.files.forEach((file: any) => {
+            artifactContent += `
+
+<boltAction type="file" filePath="src/components/${file.name}">
+${file.content}
+</boltAction>`;
+          });
+        }
+
+        // Add Storybook configuration if available
+        if (storybook) {
+          const storybookData = JSON.parse(storybook);
+          artifactContent += `
+
+<boltAction type="file" filePath=".storybook/main.ts">
+${storybookData.mainConfig}
+</boltAction>`;
+          
+          artifactContent += `
+
+<boltAction type="file" filePath=".storybook/preview.ts">
+${storybookData.preview}
+</boltAction>`;
+          
+          storybookData.stories.forEach((story: any) => {
+            artifactContent += `
+
+<boltAction type="file" filePath="src/stories/${story.name}">
+${story.content}
+</boltAction>`;
+          });
+        }
+
+        artifactContent += `
 
 <boltAction type="shell">
 npm run dev
