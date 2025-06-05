@@ -35,7 +35,8 @@ function openArtifactInWorkbench(filePath: string) {
 export const ContextView = memo(({ chatSummary, codeContext }: ContextViewProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFileType, setSelectedFileType] = useState<string>('all');
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
+  const [currentView, setCurrentView] = useState<'summary' | 'files'>('summary'); // Nouvel état pour gérer la vue
 
   // Calcul des statistiques des fichiers
   const fileStats: FileStats = useMemo(() => {
@@ -78,29 +79,55 @@ export const ContextView = memo(({ chatSummary, codeContext }: ContextViewProps)
 
   return (
     <div className="h-full flex flex-col bg-gradient-to-br from-bolt-elements-background-depth-1 to-bolt-elements-background-depth-2/50">
+      {/* Barre de navigation pour basculer entre les vues */}
+      {chatSummary && codeContext && codeContext.length > 0 && (
+        <div className="px-6 pt-6 pb-2">
+          <div className="flex gap-2 p-1 bg-bolt-elements-background-depth-3 rounded-lg border border-bolt-elements-borderColor">
+            <button
+              onClick={() => setCurrentView('summary')}
+              className={`flex-1 bg-bolt-elements-background-depth-3 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                currentView === 'summary'
+                  ? 'bg-bolt-elements-button-primary-background text-bolt-elements-button-primary-text shadow-sm'
+                  : 'text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary hover:bg-bolt-elements-background-depth-2'
+              }`}
+            >
+              <div className="flex items-center gap-2 justify-center">
+                <div className="i-ph:chat-circle-text text-base" />
+                Résumé
+              </div>
+            </button>
+            <button
+              onClick={() => setCurrentView('files')}
+              className={`flex-1 bg-bolt-elements-background-depth-3 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                currentView === 'files'
+                  ? 'bg-bolt-elements-button-primary-background text-bolt-elements-button-primary-text shadow-sm'
+                  : 'text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary hover:bg-bolt-elements-background-depth-2'
+              }`}
+            >
+              <div className="flex items-center gap-2 justify-center">
+                <div className="i-ph:file-code text-base" />
+                Fichiers ({codeContext.length})
+              </div>
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 overflow-y-auto p-6 space-y-8">
-        {chatSummary && (
+        {/* Affichage conditionnel basé sur la vue sélectionnée */}
+        {chatSummary && (currentView === 'summary' || !codeContext || codeContext.length === 0) && (
           <div className="group animate-in slide-in-from-top-4 duration-500">
             <div className="relative overflow-hidden rounded-xl bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor shadow-lg hover:shadow-xl transition-all duration-300">
               {/* Header unifié */}
               <div className="relative px-6 py-4 bg-bolt-elements-background-depth-3 border-b border-bolt-elements-borderColor">
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="relative flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-sm">
-                    <div className="i-ph:chat-circle-text text-white text-lg" />
+                <div className="relative flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-md bg-gradient-to-br from-blue-500/90 to-purple-600/90 flex items-center justify-center shadow-sm ring-1 ring-white/10">
+                    <div className="i-ph:chat-circle-text text-white text-base" />
                   </div>
-                  <h2 className="text-xl font-semibold text-bolt-elements-textPrimary">
+                  <h2 className="text-lg font-medium text-bolt-elements-textPrimary">
                     Résumé de la Conversation
                   </h2>
-                  <div className="ml-auto flex items-center gap-2">
-                    <button
-                      onClick={() => setIsExpanded(!isExpanded)}
-                      className="p-2 rounded-lg bg-bolt-elements-background-depth-2 hover:bg-bolt-elements-background-depth-1 border border-bolt-elements-borderColor hover:border-bolt-elements-borderColor-focus transition-all duration-200"
-                      title={isExpanded ? 'Réduire' : 'Développer'}
-                    >
-                      <div className={`i-ph:${isExpanded ? 'minus' : 'plus'} text-bolt-elements-textSecondary`} />
-                    </button>
-                  </div>
                 </div>
               </div>
               
@@ -114,7 +141,7 @@ export const ContextView = memo(({ chatSummary, codeContext }: ContextViewProps)
           </div>
         )}
         
-        {codeContext && codeContext.length > 0 && (
+        {codeContext && codeContext.length > 0 && (currentView === 'files' || !chatSummary) && (
           <div className="group animate-in slide-in-from-bottom-4 duration-500 delay-200">
             <div className="relative overflow-hidden rounded-xl bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor shadow-lg hover:shadow-xl transition-all duration-300">
               {/* Header cohérent avec le premier bloc */}
@@ -128,10 +155,21 @@ export const ContextView = memo(({ chatSummary, codeContext }: ContextViewProps)
                     <h2 className="text-xl font-semibold text-bolt-elements-textPrimary">
                       Fichiers de Contexte
                     </h2>
-                    <div className="ml-auto px-3 py-1 rounded-full bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor">
-                      <span className="text-xs font-medium text-bolt-elements-textSecondary">
-                        {filteredFiles.length} / {codeContext.length} fichier{codeContext.length > 1 ? 's' : ''}
-                      </span>
+                    <div className="ml-auto flex items-center gap-2">
+                      {chatSummary && (
+                        <button
+                          onClick={() => setCurrentView('summary')}
+                          className="p-2 rounded-lg bg-bolt-elements-background-depth-2 hover:bg-bolt-elements-background-depth-1 border border-bolt-elements-borderColor hover:border-bolt-elements-borderColor-focus transition-all duration-200"
+                          title="Voir le résumé"
+                        >
+                          <div className="i-ph:chat-circle-text text-bolt-elements-textSecondary" />
+                        </button>
+                      )}
+                      <div className="px-3 py-1 rounded-full bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor">
+                        <span className="text-xs font-medium text-bolt-elements-textSecondary">
+                          {filteredFiles.length} / {codeContext.length} fichier{codeContext.length > 1 ? 's' : ''}
+                        </span>
+                      </div>
                     </div>
                   </div>
                   
