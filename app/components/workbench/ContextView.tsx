@@ -81,35 +81,32 @@ export const ContextView = memo(({ chatSummary, codeContext }: ContextViewProps)
       <div className="flex-1 overflow-y-auto p-6 space-y-8">
         {chatSummary && (
           <div className="group animate-in slide-in-from-top-4 duration-500">
-            <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-bolt-elements-background-depth-2/80 to-bolt-elements-background-depth-3/60 backdrop-blur-sm border border-bolt-elements-borderColor/50 shadow-lg hover:shadow-xl transition-all duration-300">
-              {/* Header avec effet glassmorphism */}
-              <div className="relative px-6 py-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-b border-bolt-elements-borderColor/30">
+            <div className="relative overflow-hidden rounded-xl bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor shadow-lg hover:shadow-xl transition-all duration-300">
+              {/* Header unifié */}
+              <div className="relative px-6 py-4 bg-bolt-elements-background-depth-3 border-b border-bolt-elements-borderColor">
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <div className="relative flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
-                  <div className="i-ph:chat-circle-text text-white text-lg" />
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-sm">
+                    <div className="i-ph:chat-circle-text text-white text-lg" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-bolt-elements-textPrimary">
+                    Résumé de la Conversation
+                  </h2>
+                  <div className="ml-auto flex items-center gap-2">
+                    <button
+                      onClick={() => setIsExpanded(!isExpanded)}
+                      className="p-2 rounded-lg bg-bolt-elements-background-depth-2 hover:bg-bolt-elements-background-depth-1 border border-bolt-elements-borderColor hover:border-bolt-elements-borderColor-focus transition-all duration-200"
+                      title={isExpanded ? 'Réduire' : 'Développer'}
+                    >
+                      <div className={`i-ph:${isExpanded ? 'minus' : 'plus'} text-bolt-elements-textSecondary`} />
+                    </button>
+                  </div>
                 </div>
-                <h2 className="text-xl font-bold bg-gradient-to-r from-bolt-elements-textPrimary to-bolt-elements-textSecondary bg-clip-text text-transparent">
-                  Résumé de la Conversation
-                </h2>
-                <div className="ml-auto flex items-center gap-2">
-                  <button
-                    onClick={() => setIsExpanded(!isExpanded)}
-                    className="p-2 rounded-lg bg-bolt-elements-background-depth-3/50 hover:bg-bolt-elements-background-depth-3/70 transition-colors duration-200"
-                    title={isExpanded ? 'Réduire' : 'Développer'}
-                  >
-                    <div className={`i-ph:${isExpanded ? 'minus' : 'plus'} text-bolt-elements-textSecondary`} />
-                  </button>
-                </div>
-              </div>
               </div>
               
-              {/* Contenu avec scroll personnalisé */}
+              {/* Contenu avec scroll cohérent */}
               <div className={`relative overflow-y-auto p-6 custom-scrollbar transition-all duration-300 ${isExpanded ? 'max-h-96' : 'max-h-80'}`}>
-                <div 
-                  style={{ zoom: 0.95 }} 
-                  className="prose prose-sm dark:prose-invert max-w-none"
-                >
+                <div className="prose prose-sm dark:prose-invert max-w-none text-bolt-elements-textPrimary">
                   <Markdown>{chatSummary}</Markdown>
                 </div>
               </div>
@@ -119,37 +116,35 @@ export const ContextView = memo(({ chatSummary, codeContext }: ContextViewProps)
         
         {codeContext && codeContext.length > 0 && (
           <div className="group animate-in slide-in-from-bottom-4 duration-500 delay-200">
-            <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-bolt-elements-background-depth-2/80 to-bolt-elements-background-depth-3/60 backdrop-blur-sm border border-bolt-elements-borderColor/50 shadow-lg hover:shadow-xl transition-all duration-300">
-              {/* Header avec icône animée */}
-              <div className="relative px-6 py-4 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border-b border-bolt-elements-borderColor/30">
+            <div className="relative overflow-hidden rounded-xl bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor shadow-lg hover:shadow-xl transition-all duration-300">
+              {/* Header cohérent avec le premier bloc */}
+              <div className="relative px-6 py-4 bg-bolt-elements-background-depth-3 border-b border-bolt-elements-borderColor">
                 <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <div className="relative space-y-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform duration-300">
                       <div className="i-ph:file-code text-white text-lg" />
                     </div>
-                    <h2 className="text-xl font-bold bg-gradient-to-r from-bolt-elements-textPrimary to-bolt-elements-textSecondary bg-clip-text text-transparent">
+                    <h2 className="text-xl font-semibold text-bolt-elements-textPrimary">
                       Fichiers de Contexte
                     </h2>
-                    <div className="ml-auto px-3 py-1 rounded-full bg-bolt-elements-background-depth-3/50 border border-bolt-elements-borderColor/30">
-                      <span className="text-xs font-medium text-bolt-elements-textTertiary">
+                    <div className="ml-auto px-3 py-1 rounded-full bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor">
+                      <span className="text-xs font-medium text-bolt-elements-textSecondary">
                         {filteredFiles.length} / {codeContext.length} fichier{codeContext.length > 1 ? 's' : ''}
                       </span>
                     </div>
                   </div>
                   
-                  {/* Statistiques des types de fichiers */}
+                  {/* Statistiques avec design cohérent */}
                   <div className="flex flex-wrap gap-2">
                     {Object.entries(fileStats.fileTypes).map(([type, count]) => (
-                      <div key={type} className="px-2 py-1 rounded-md bg-bolt-elements-background-depth-3/30 border border-bolt-elements-borderColor/20">
-                        <span className="text-xs text-bolt-elements-textTertiary">
-                          .{type}: {count}
-                        </span>
+                      <div key={type} className="px-3 py-1 rounded-md bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor text-xs text-bolt-elements-textSecondary">
+                        .{type}: {count}
                       </div>
                     ))}
                   </div>
                   
-                  {/* Barre de recherche et filtres */}
+                  {/* Contrôles de recherche unifiés */}
                   <div className="flex gap-3">
                     <div className="flex-1 relative">
                       <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
@@ -160,13 +155,13 @@ export const ContextView = memo(({ chatSummary, codeContext }: ContextViewProps)
                         placeholder="Rechercher des fichiers..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 rounded-lg bg-bolt-elements-background-depth-3/50 border border-bolt-elements-borderColor/30 text-bolt-elements-textPrimary placeholder-bolt-elements-textTertiary focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all duration-200"
+                        className="w-full pl-10 pr-4 py-2 rounded-lg bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor text-bolt-elements-textPrimary placeholder-bolt-elements-textTertiary focus:outline-none focus:ring-2 focus:ring-bolt-elements-focus focus:border-bolt-elements-borderColor-focus transition-all duration-200"
                       />
                     </div>
                     <select
                       value={selectedFileType}
                       onChange={(e) => setSelectedFileType(e.target.value)}
-                      className="px-3 py-2 rounded-lg bg-bolt-elements-background-depth-3/50 border border-bolt-elements-borderColor/30 text-bolt-elements-textPrimary focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all duration-200"
+                      className="px-3 py-2 rounded-lg bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor text-bolt-elements-textPrimary focus:outline-none focus:ring-2 focus:ring-bolt-elements-focus focus:border-bolt-elements-borderColor-focus transition-all duration-200"
                     >
                       <option value="all">Tous les types</option>
                       {uniqueFileTypes.map(type => (
@@ -177,12 +172,14 @@ export const ContextView = memo(({ chatSummary, codeContext }: ContextViewProps)
                 </div>
               </div>
               
-              {/* Liste des fichiers avec animations décalées */}
+              {/* Liste des fichiers avec design cohérent */}
               <div className="p-6 space-y-3">
                 {filteredFiles.length === 0 && (searchTerm || selectedFileType !== 'all') && (
                   <div className="text-center py-8">
-                    <div className="i-ph:file-x text-4xl text-bolt-elements-textTertiary mb-3" />
-                    <p className="text-bolt-elements-textTertiary">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-xl bg-bolt-elements-background-depth-3 border border-bolt-elements-borderColor flex items-center justify-center">
+                      <div className="i-ph:file-x text-2xl text-bolt-elements-textTertiary" />
+                    </div>
+                    <p className="text-bolt-elements-textSecondary mb-4">
                       Aucun fichier trouvé pour les critères de recherche.
                     </p>
                     <button
@@ -190,7 +187,7 @@ export const ContextView = memo(({ chatSummary, codeContext }: ContextViewProps)
                         setSearchTerm('');
                         setSelectedFileType('all');
                       }}
-                      className="mt-3 px-4 py-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 transition-colors duration-200"
+                      className="px-4 py-2 rounded-lg bg-bolt-elements-button-primary-background hover:bg-bolt-elements-button-primary-backgroundHover text-bolt-elements-button-primary-text transition-colors duration-200"
                     >
                       Réinitialiser les filtres
                     </button>
