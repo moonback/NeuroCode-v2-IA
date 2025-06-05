@@ -22,6 +22,7 @@ import { cubicEasingFn } from '~/utils/easings';
 import { renderLogger } from '~/utils/logger';
 import { EditorPanel } from './EditorPanel';
 import { Preview } from './Preview';
+import { ContextView } from './ContextView';
 import useViewport from '~/lib/hooks';
 import { PushToGitHubDialog } from '~/components/@settings/tabs/connections/components/PushToGitHubDialog';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
@@ -38,6 +39,8 @@ interface WorkspaceProps {
   };
   updateChatMestaData?: (metadata: any) => void;
   setSelectedElement?: (element: ElementInfo | null) => void;
+  chatSummary?: string;
+  codeContext?: string[];
 }
 
 const viewTransition = { ease: cubicEasingFn };
@@ -47,9 +50,14 @@ const sliderOptions: SliderOptions<WorkbenchViewType> = {
     value: 'code',
     text: 'Code',
   },
-  middle: {
+  middle2: {
     value: 'diff',
     text: 'Diff',
+  },
+  middle: {
+    value: 'context',
+    text: 'Context',
+    
   },
   right: {
     value: 'preview',
@@ -281,7 +289,7 @@ const FileModifiedDropdown = memo(
 );
 
 export const Workbench = memo(
-  ({ chatStarted, isStreaming, actionRunner, metadata, updateChatMestaData, setSelectedElement }: WorkspaceProps) => {
+  ({ chatStarted, isStreaming, actionRunner, metadata, updateChatMestaData, setSelectedElement, chatSummary, codeContext }: WorkspaceProps) => {
     renderLogger.trace('Workbench');
 
     const [isSyncing, setIsSyncing] = useState(false);
@@ -487,6 +495,12 @@ export const Workbench = memo(
                     animate={{ x: selectedView === 'diff' ? '0%' : selectedView === 'code' ? '100%' : '-100%' }}
                   >
                     <DiffView fileHistory={fileHistory} setFileHistory={setFileHistory} actionRunner={actionRunner} />
+                  </View>
+                  <View
+                    initial={{ x: '100%' }}
+                    animate={{ x: selectedView === 'context' ? '0%' : selectedView === 'diff' || selectedView === 'code' ? '100%' : '-100%' }}
+                  >
+                    <ContextView chatSummary={chatSummary} codeContext={codeContext} />
                   </View>
                   <View initial={{ x: '100%' }} animate={{ x: selectedView === 'preview' ? '0%' : '100%' }}>
                     <Preview setSelectedElement={setSelectedElement} />

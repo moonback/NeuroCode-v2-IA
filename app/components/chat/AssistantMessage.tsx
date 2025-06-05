@@ -125,50 +125,30 @@ export const AssistantMessage = memo(
       <div className="overflow-hidden w-full">
         <>
           <div className=" flex gap-2 items-center text-sm text-bolt-elements-textSecondary mb-2">
-            {(codeContext || chatSummary) && (
-              <Popover side="right" align="start" trigger={<div className="i-ph:info" />}>
-                {chatSummary && (
-                  <div className="max-w-chat">
-                    <div className="summary max-h-96 flex flex-col">
-                      <h2 className="border border-bolt-elements-borderColor rounded-md p4">Summary</h2>
-                      <div style={{ zoom: 0.7 }} className="overflow-y-auto m4">
-                        <Markdown>{chatSummary}</Markdown>
-                      </div>
-                    </div>
-                    {codeContext && (
-                      <div className="code-context flex flex-col p4 border border-bolt-elements-borderColor rounded-md">
-                        <h2>Context</h2>
-                        <div className="flex gap-4 mt-4 bolt" style={{ zoom: 0.6 }}>
-                          {codeContext.map((x) => {
-                            const normalized = normalizedFilePath(x);
-                            return (
-                              <Fragment key={normalized}>
-                                <code
-                                  className="bg-bolt-elements-artifacts-inlineCode-background text-bolt-elements-artifacts-inlineCode-text px-1.5 py-1 rounded-md text-bolt-elements-item-contentAccent hover:underline cursor-pointer"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    openArtifactInWorkbench(normalized);
-                                  }}
-                                >
-                                  {normalized}
-                                </code>
-                              </Fragment>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-                <div className="context"></div>
-              </Popover>
-            )}
+            
+            
             <div className="flex w-full items-center justify-between">
               {usage && (
-                <div>
-                  Tokens: {usage.totalTokens} (prompt: {usage.promptTokens}, completion: {usage.completionTokens})
+                <div className="flex items-center min-w-0 flex-1">
+                  <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20">
+                    <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 animate-pulse" />
+                    <span className="text-xs text-bolt-elements-textSecondary font-medium whitespace-nowrap">
+                      {usage.totalTokens.toLocaleString()} tokens
+                    </span>
+                  </div>
+                
+                {/* Détails des tokens avec style moderne */}
+                <div className="hidden sm:flex items-center gap-2 text-xs text-bolt-elements-textTertiary">
+                  <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-bolt-elements-background-depth-2/50 border border-bolt-elements-borderColor/20">
+                    <div className="i-ph:arrow-right text-emerald-500 text-xs" />
+                    <span>{usage.promptTokens.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-bolt-elements-background-depth-2/50 border border-bolt-elements-borderColor/20">
+                    <div className="i-ph:arrow-left text-blue-500 text-xs" />
+                    <span>{usage.completionTokens.toLocaleString()}</span>
+                  </div>
                 </div>
+              </div>
               )}
               {(onRewind || onFork) && messageId && (
                 <div className="flex gap-2 flex-col lg:flex-row ml-auto">

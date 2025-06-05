@@ -143,6 +143,24 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
     const expoUrl = useStore(expoUrlAtom);
     const [qrModalOpen, setQrModalOpen] = useState(false);
 
+    // Extract context data from the latest assistant message
+    const latestAssistantMessage = messages?.filter(m => m.role === 'assistant').pop();
+    const contextData = React.useMemo(() => {
+      if (!latestAssistantMessage?.annotations) {
+        return { chatSummary: undefined, codeContext: undefined };
+      }
+
+      const filteredAnnotations = (latestAssistantMessage.annotations.filter(
+        (annotation: JSONValue) =>
+          annotation && typeof annotation === 'object' && Object.keys(annotation).includes('type'),
+      ) || []) as { type: string; value: any } & { [key: string]: any }[];
+
+      const chatSummary = filteredAnnotations.find((annotation) => annotation.type === 'chatSummary')?.summary;
+      const codeContext = filteredAnnotations.find((annotation) => annotation.type === 'codeContext')?.files;
+
+      return { chatSummary, codeContext };
+    }, [latestAssistantMessage]);
+
     useEffect(() => {
       if (expoUrl) {
         setQrModalOpen(true);
@@ -514,6 +532,8 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                 isStreaming={isStreaming}
                 // sendMessage={sendMessage}
                 setSelectedElement={setSelectedElement}
+                chatSummary={contextData.chatSummary}
+                codeContext={contextData.codeContext}
               />
             )}
           </ClientOnly>
