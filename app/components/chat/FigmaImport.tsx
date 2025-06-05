@@ -8,7 +8,6 @@ import { classNames } from '~/utils/classNames';
 import { FigmaService } from '~/lib/services/figmaService';
 import { figmaConfigManager } from '~/lib/config/figmaConfig';
 
-
 interface FigmaImportProps {
   onImport?: (description: string, messages: Message[]) => Promise<void>;
   className?: string;
@@ -19,6 +18,330 @@ interface FigmaDesign {
   name: string;
   thumbnail?: string;
   lastModified: string;
+}
+
+interface FigmaProjectConfig {
+  fileId: string;
+  packageJson: string;
+  viteConfig: string;
+  indexHtml: string;
+  mainTsx: string;
+  component: string;
+  css: string;
+  designTokens?: string;
+  componentLibrary?: string;
+  storybook?: string;
+  projectName?: string;
+  typescript?: boolean;
+  includeTests?: boolean;
+}
+
+interface ComponentLibraryData {
+  index: string;
+  files: Array<{
+    name: string;
+    content: string;
+  }>;
+}
+
+interface StorybookData {
+  mainConfig: string;
+  preview: string;
+  stories: Array<{
+    name: string;
+    content: string;
+  }>;
+}
+
+class FigmaArtifactGenerator {
+  private config: FigmaProjectConfig;
+  
+  constructor(config: FigmaProjectConfig) {
+    this.config = config;
+  }
+
+  private generateProjectName(): string {
+    const shortId = this.config.fileId.substring(0, 8);
+    return this.config.projectName || `figma-${shortId}`;
+  }
+
+  private generateGlobalStyles(): string {
+    return `/* Global styles */
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+  width: 100%;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+}
+
+@media (max-width: 768px) {
+  #root {
+    padding: 1rem;
+  }
+}`;
+  }
+
+  private generateTsConfig(): string {
+    return JSON.stringify({
+      compilerOptions: {
+        target: "ES2020",
+        useDefineForClassFields: true,
+        lib: ["ES2020", "DOM", "DOM.Iterable"],
+        module: "ESNext",
+        skipLibCheck: true,
+        moduleResolution: "bundler",
+        allowImportingTsExtensions: true,
+        resolveJsonModule: true,
+        isolatedModules: true,
+        noEmit: true,
+        jsx: "react-jsx",
+        strict: true,
+        noUnusedLocals: true,
+        noUnusedParameters: true,
+        noFallthroughCasesInSwitch: true,
+        baseUrl: ".",
+        paths: {
+          "@/*": ["src/*"],
+          "@/components/*": ["src/components/*"],
+          "@/tokens/*": ["src/tokens/*"],
+          "@/utils/*": ["src/utils/*"]
+        }
+      },
+      include: ["src"],
+      references: [{ path: "./tsconfig.node.json" }]
+    }, null, 2);
+  }
+
+  private generateNodeTsConfig(): string {
+    return JSON.stringify({
+      compilerOptions: {
+        composite: true,
+        skipLibCheck: true,
+        module: "ESNext",
+        moduleResolution: "bundler",
+        allowSyntheticDefaultImports: true
+      },
+      include: ["vite.config.ts"]
+    }, null, 2);
+  }
+
+  private generateTestSetup(): string {
+    if (!this.config.includeTests) return '';
+    
+    return `
+<boltAction type="file" filePath="src/tests/setup.ts">
+import '@testing-library/jest-dom';
+</boltAction>
+
+<boltAction type="file" filePath="vitest.config.ts">
+import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['./src/tests/setup.ts'],
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+});
+</boltAction>
+
+<boltAction type="file" filePath="src/components/__tests__/FigmaDesign.test.tsx">
+import { render, screen } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
+import FigmaDesign from '../FigmaDesign';
+
+describe('FigmaDesign Component', () => {
+  it('renders without crashing', () => {
+    render(<FigmaDesign />);
+    expect(screen.getByRole('main')).toBeInTheDocument();
+  });
+
+  it('has proper accessibility attributes', () => {
+    render(<FigmaDesign />);
+    const main = screen.getByRole('main');
+    expect(main).toHaveAttribute('aria-label');
+  });
+});
+</boltAction>`;
+  }
+
+  private addDesignTokens(): string {
+    if (!this.config.designTokens) return '';
+    
+    return `
+<boltAction type="file" filePath="src/tokens/designTokens.ts">
+${this.config.designTokens}
+</boltAction>
+
+<boltAction type="file" filePath="src/tokens/index.ts">
+export * from './designTokens';
+</boltAction>`;
+  }
+
+  private addComponentLibrary(): string {
+    if (!this.config.componentLibrary) return '';
+    
+    try {
+      const libData: ComponentLibraryData = JSON.parse(this.config.componentLibrary);
+      let content = `
+<boltAction type="file" filePath="src/components/index.ts">
+${libData.index}
+</boltAction>`;
+      
+      libData.files.forEach((file) => {
+        content += `
+<boltAction type="file" filePath="src/components/${file.name}">
+${file.content}
+</boltAction>`;
+      });
+      
+      return content;
+    } catch (error) {
+      console.warn('Invalid component library data:', error);
+      return '';
+    }
+  }
+
+  private addStorybook(): string {
+    if (!this.config.storybook) return '';
+    
+    try {
+      const storybookData: StorybookData = JSON.parse(this.config.storybook);
+      let content = `
+<boltAction type="file" filePath=".storybook/main.ts">
+${storybookData.mainConfig}
+</boltAction>
+
+<boltAction type="file" filePath=".storybook/preview.ts">
+${storybookData.preview}
+</boltAction>`;
+      
+      storybookData.stories.forEach((story) => {
+        content += `
+<boltAction type="file" filePath="src/stories/${story.name}">
+${story.content}
+</boltAction>`;
+      });
+      
+      return content;
+    } catch (error) {
+      console.warn('Invalid storybook data:', error);
+      return '';
+    }
+  }
+
+  generateArtifact(): string {
+    const projectName = this.generateProjectName();
+    const globalStyles = this.generateGlobalStyles();
+    const tsConfig = this.generateTsConfig();
+    const nodeTsConfig = this.generateNodeTsConfig();
+    
+    let artifactContent = `<boltArtifact id="figma-react-${this.config.fileId}" title="Figma React Project - ${this.config.fileId}">
+<boltAction type="shell">
+npm create vite@latest ${projectName} -- --template react-ts
+</boltAction>
+
+<boltAction type="shell">
+cd ${projectName}
+</boltAction>
+
+<boltAction type="shell">
+npm install
+</boltAction>
+
+<boltAction type="file" filePath="package.json">
+${this.config.packageJson}
+</boltAction>
+
+<boltAction type="file" filePath="vite.config.ts">
+${this.config.viteConfig}
+</boltAction>
+
+<boltAction type="file" filePath="index.html">
+${this.config.indexHtml}
+</boltAction>
+
+<boltAction type="file" filePath="src/main.tsx">
+${this.config.mainTsx}
+</boltAction>
+
+<boltAction type="file" filePath="src/components/FigmaDesign.tsx">
+${this.config.component}
+</boltAction>
+
+<boltAction type="file" filePath="src/components/FigmaDesign.css">
+${this.config.css}
+</boltAction>
+
+<boltAction type="file" filePath="src/index.css">
+${globalStyles}
+</boltAction>
+
+<boltAction type="file" filePath="tsconfig.json">
+${tsConfig}
+</boltAction>
+
+<boltAction type="file" filePath="tsconfig.node.json">
+${nodeTsConfig}
+</boltAction>`;
+
+    // Add optional features
+    artifactContent += this.addDesignTokens();
+    artifactContent += this.addComponentLibrary();
+    artifactContent += this.addStorybook();
+    artifactContent += this.generateTestSetup();
+
+    artifactContent += `
+
+<boltAction type="shell">
+npm run dev
+</boltAction>
+</boltArtifact>`;
+
+    return artifactContent;
+  }
 }
 
 export function FigmaImport({ onImport, className }: FigmaImportProps) {
@@ -54,7 +377,7 @@ export function FigmaImport({ onImport, className }: FigmaImportProps) {
       }
 
       // Check if access token is configured
-      const hasToken = FigmaService.getAccessToken();
+      const hasToken = figmaConfigManager.getAccessToken();
       if (!hasToken) {
         // Create messages for setting up Figma integration
         const setupMessages: Message[] = [
@@ -88,171 +411,25 @@ export function FigmaImport({ onImport, className }: FigmaImportProps) {
       if (reactProject) {
         const { component, css, packageJson, viteConfig, indexHtml, mainTsx, designTokens, componentLibrary, storybook } = reactProject;
         
-        // Create an artifact with boltActions for the React/Vite project
-        let artifactContent = `<boltArtifact id="figma-react-${fileId}" title="Figma React Project - ${fileId}">
-<boltAction type="shell">
-npm create vite@latest figma-design-${fileId} -- --template react-ts
-cd figma-design-${fileId}
-npm install
-</boltAction>
-
-<boltAction type="file" filePath="package.json">
-${packageJson}
-</boltAction>
-
-<boltAction type="file" filePath="vite.config.ts">
-${viteConfig}
-</boltAction>
-
-<boltAction type="file" filePath="index.html">
-${indexHtml}
-</boltAction>
-
-<boltAction type="file" filePath="src/main.tsx">
-${mainTsx}
-</boltAction>
-
-<boltAction type="file" filePath="src/components/FigmaDesign.tsx">
-${component}
-</boltAction>
-
-<boltAction type="file" filePath="src/components/FigmaDesign.css">
-${css}
-</boltAction>
-
-<boltAction type="file" filePath="src/index.css">
-/* Global styles */
-:root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-}
-</boltAction>
-
-<boltAction type="file" filePath="tsconfig.json">
-{
-  "compilerOptions": {
-    "target": "ES2020",
-    "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "skipLibCheck": true,
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx",
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
-  },
-  "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
-}
-</boltAction>
-
-<boltAction type="file" filePath="tsconfig.node.json">
-{
-  "compilerOptions": {
-    "composite": true,
-    "skipLibCheck": true,
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "allowSyntheticDefaultImports": true
-  },
-  "include": ["vite.config.ts"]
-}
-</boltAction>`;
-
-        // Add design tokens if available
-        if (designTokens) {
-          artifactContent += `
-
-<boltAction type="file" filePath="src/tokens/designTokens.ts">
-${designTokens}
-</boltAction>`;
-        }
-
-        // Add component library if available
-        if (componentLibrary) {
-          const libData = JSON.parse(componentLibrary);
-          artifactContent += `
-
-<boltAction type="file" filePath="src/components/index.ts">
-${libData.index}
-</boltAction>`;
-          
-          libData.files.forEach((file: any) => {
-            artifactContent += `
-
-<boltAction type="file" filePath="src/components/${file.name}">
-${file.content}
-</boltAction>`;
-          });
-        }
-
-        // Add Storybook configuration if available
-        if (storybook) {
-          const storybookData = JSON.parse(storybook);
-          artifactContent += `
-
-<boltAction type="file" filePath=".storybook/main.ts">
-${storybookData.mainConfig}
-</boltAction>`;
-          
-          artifactContent += `
-
-<boltAction type="file" filePath=".storybook/preview.ts">
-${storybookData.preview}
-</boltAction>`;
-          
-          storybookData.stories.forEach((story: any) => {
-            artifactContent += `
-
-<boltAction type="file" filePath="src/stories/${story.name}">
-${story.content}
-</boltAction>`;
-          });
-        }
-
-        artifactContent += `
-
-<boltAction type="shell">
-npm run dev
-</boltAction>
-</boltArtifact>`;
+        // Create project configuration for the artifact generator
+        const projectConfig: FigmaProjectConfig = {
+          fileId,
+          packageJson,
+          viteConfig,
+          indexHtml,
+          mainTsx,
+          component,
+          css,
+          designTokens,
+          componentLibrary,
+          storybook,
+          typescript: true,
+          includeTests: true
+        };
+        
+        // Generate artifact using the new generator
+        const generator = new FigmaArtifactGenerator(projectConfig);
+        const artifactContent = generator.generateArtifact();
 
         // Create messages with the artifact
         const codeMessages: Message[] = [

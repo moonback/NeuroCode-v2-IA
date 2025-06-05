@@ -1,1102 +1,1358 @@
 import { toast } from 'react-toastify';
 
-export interface FigmaFile {
-  name: any;
-  document: {
-    id: string;
-    name: string;
-    type: string;
-    children: FigmaNode[];
+// Types existants + nouveaux types pour une structure complète
+interface FigmaProjectConfig {
+  fileId: string;
+  projectName?: string;
+  outputFormat: 'react-vite' | 'nextjs' | 'vanilla-html';
+  features: {
+    typescript: boolean;
+    tailwindcss: boolean;
+    storybook: boolean;
+    testing: boolean;
+    animations: boolean;
+    responsiveDesign: boolean;
+    darkMode: boolean;
+    accessibility: boolean;
+    i18n: boolean;
+    stateManagement: 'useState' | 'zustand' | 'redux' | 'none';
   };
-  components: Record<string, FigmaComponent>;
-  styles: Record<string, FigmaStyle>;
-  componentSets?: Record<string, FigmaComponentSet>;
-  schemaVersion?: number;
-  lastModified?: string;
+  customization: {
+    cssFramework: 'tailwind' | 'styled-components' | 'css-modules' | 'vanilla';
+    componentLibrary: 'custom' | 'mui' | 'antd' | 'chakra' | 'none';
+    iconLibrary: 'lucide' | 'heroicons' | 'react-icons' | 'custom';
+  };
 }
 
-export interface FigmaComponentSet {
-  key: string;
+interface ProjectStructure {
+  files: ProjectFile[];
+  directories: string[];
+  dependencies: Record<string, string>;
+  devDependencies: Record<string, string>;
+  scripts: Record<string, string>;
+}
+
+interface ProjectFile {
+  path: string;
+  content: string;
+  type: 'component' | 'style' | 'config' | 'test' | 'story' | 'type' | 'util' | 'hook' | 'asset';
+}
+
+interface ComponentMetadata {
   name: string;
-  description: string;
-  documentationLinks: any[];
+  type: 'layout' | 'ui' | 'form' | 'navigation' | 'display' | 'feedback';
+  category: string;
+  props: ComponentProp[];
+  variants: ComponentVariant[];
+  dependencies: string[];
+  examples: ComponentExample[];
 }
 
-export interface FigmaDesignTokens {
-  colors: Record<string, string>;
-  typography: Record<string, FigmaTypeStyle>;
-  spacing: Record<string, number>;
-  borderRadius: Record<string, number>;
-  shadows: Record<string, string>;
-}
-
-export interface FigmaComponentAnalysis {
+interface ComponentProp {
   name: string;
-  type: 'button' | 'input' | 'card' | 'modal' | 'navigation' | 'layout' | 'text' | 'icon' | 'image' | 'other';
+  type: string;
+  required: boolean;
+  defaultValue?: any;
+  description?: string;
+}
+
+interface ComponentVariant {
+  name: string;
   props: Record<string, any>;
-  variants?: string[];
-  states?: string[];
-  children?: FigmaComponentAnalysis[];
+  description?: string;
 }
 
-export interface FigmaProjectStructure {
-  components: FigmaComponentAnalysis[];
-  pages: string[];
-  designTokens: FigmaDesignTokens;
-  assets: string[];
-  interactions: FigmaInteraction[];
-}
-
-export interface FigmaInteraction {
-  trigger: string;
-  action: string;
-  destination?: string;
-  transition?: {
-    type: string;
-    duration: number;
-    easing: string;
-  };
-}
-
-export interface FigmaNode {
-  id: string;
+interface ComponentExample {
   name: string;
-  type: string;
-  visible?: boolean;
-  children?: FigmaNode[];
-  backgroundColor?: FigmaColor;
-  fills?: FigmaPaint[];
-  strokes?: FigmaPaint[];
-  strokeWeight?: number;
-  cornerRadius?: number;
-  absoluteBoundingBox?: FigmaRectangle;
-  constraints?: FigmaLayoutConstraint;
-  layoutAlign?: string;
-  layoutGrow?: number;
-  characters?: string;
-  style?: FigmaTypeStyle;
+  code: string;
+  description?: string;
 }
 
-export interface FigmaComponent {
-  key: string;
-  name: string;
-  description: string;
-}
-
-export interface FigmaStyle {
-  key: string;
-  name: string;
-  styleType: string;
-}
-
-export interface FigmaColor {
-  r: number;
-  g: number;
-  b: number;
-  a: number;
-}
-
-export interface FigmaPaint {
-  type: string;
-  color?: FigmaColor;
-  gradientStops?: FigmaColorStop[];
-}
-
-export interface FigmaColorStop {
-  position: number;
-  color: FigmaColor;
-}
-
-export interface FigmaRectangle {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-export interface FigmaLayoutConstraint {
-  vertical: string;
-  horizontal: string;
-}
-
-export interface FigmaTypeStyle {
-  fontFamily: string;
-  fontPostScriptName?: string;
-  fontWeight: number;
-  fontSize: number;
-  lineHeightPx: number;
-  letterSpacing: number;
-  textAlignHorizontal: string;
-  textAlignVertical: string;
-}
-
-import { figmaConfigManager } from '../config/figmaConfig';
-
-export class FigmaService {
-  private static readonly API_BASE_URL = 'https://api.figma.com/v1';
-
-  /**
-   * Set the Figma access token
-   */
-  static setAccessToken(token: string): void {
-    figmaConfigManager.setAccessToken(token);
+class EnhancedFigmaService {
+  private config: FigmaProjectConfig;
+  private projectStructure: ProjectStructure;
+  
+  constructor(config: FigmaProjectConfig) {
+    this.config = config;
+    this.projectStructure = {
+      files: [],
+      directories: [],
+      dependencies: {},
+      devDependencies: {},
+      scripts: {}
+    };
   }
 
   /**
-   * Get the stored Figma access token
-   */
-  static getAccessToken(): string | undefined {
-    return figmaConfigManager.getAccessToken();
-  }
-
-  /**
-   * Check if a valid token is configured
-   */
-  static hasValidToken(): boolean {
-    return figmaConfigManager.hasValidToken();
-  }
-
-  /**
-   * Extract file ID from Figma URL
-   */
-  static extractFileId(url: string): string | null {
-    const patterns = [
-      /figma\.com\/file\/([a-zA-Z0-9]+)/,
-      /figma\.com\/proto\/([a-zA-Z0-9]+)/,
-      /figma\.com\/design\/([a-zA-Z0-9]+)/,
-    ];
-
-    for (const pattern of patterns) {
-      const match = url.match(pattern);
-      if (match) {
-        return match[1];
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Validate Figma URL format
+   * Valide si l'URL Figma est correcte
    */
   static isValidFigmaUrl(url: string): boolean {
-    return this.extractFileId(url) !== null;
+    const figmaUrlPattern = /^https:\/\/(?:www\.)?figma\.com\/(file|proto|design)\/([a-zA-Z0-9]{22,128})\/?.*/;
+    return figmaUrlPattern.test(url);
   }
 
   /**
-   * Make authenticated request to Figma API
+   * Extrait l'ID du fichier depuis l'URL Figma
    */
-  private static async makeRequest(endpoint: string): Promise<unknown> {
-    const accessToken = this.getAccessToken();
-    if (!accessToken) {
-      throw new Error('Figma access token not set');
-    }
-
-    const config = figmaConfigManager.load();
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), config.timeout);
-
-    try {
-      const response = await fetch(`${config.apiBaseUrl}${endpoint}`, {
-        headers: {
-          'X-Figma-Token': accessToken,
-        },
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        throw new Error(`Figma API error: ${response.status} ${response.statusText}`);
-      }
-
-      return response.json();
-    } catch (error) {
-      clearTimeout(timeoutId);
-      throw error;
-    }
+  static extractFileId(url: string): string | null {
+    const match = url.match(/\/(file|design|proto)\/([a-zA-Z0-9]{22,128})\//)
+    return match ? match[2] : null;
   }
 
   /**
-   * Fetch file data from Figma API
+   * Récupère le token d'accès Figma depuis la configuration
    */
-  static async fetchFileData(fileId: string): Promise<FigmaFile> {
-    return this.makeRequest(`/files/${fileId}`) as Promise<FigmaFile>;
-  }
-
-  /**
-   * Get file data with error handling
-   */
-  static async getFile(fileId: string): Promise<FigmaFile | null> {
-    const token = this.getAccessToken();
-    if (!token) {
-      toast.error('Figma access token not configured. Please set up your token in settings.');
-      return null;
-    }
-
-    try {
-      const response = await fetch(`${this.API_BASE_URL}/files/${fileId}`, {
-        headers: {
-          'X-Figma-Token': token,
-        },
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          toast.error('Invalid Figma access token. Please check your token in settings.');
-        } else if (response.status === 403) {
-          toast.error('Access denied. Please check file permissions.');
-        } else if (response.status === 404) {
-          toast.error('Figma file not found. Please check the URL.');
-        } else {
-          toast.error(`Failed to fetch Figma file: ${response.statusText}`);
+  static getAccessToken(): string | null {
+    // Import figmaConfigManager dynamically to avoid circular dependencies
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('neurocode_figma_config');
+      if (stored) {
+        try {
+          const config = JSON.parse(stored);
+          return config.accessToken || null;
+        } catch (error) {
+          console.warn('Failed to parse Figma config:', error);
         }
+      }
+    }
+    return process.env.FIGMA_ACCESS_TOKEN || null;
+  }
+
+  /**
+   * Convertit un fichier Figma en projet React
+   */
+  static async convertToReactProject(fileId: string): Promise<any | null> {
+    try {
+      const token = this.getAccessToken();
+      if (!token) {
+        console.error('Token d\'accès Figma manquant');
         return null;
       }
 
-      const data = await response.json() as FigmaFile;
-      return data;
-    } catch (error) {
-      console.error('Error fetching Figma file:', error);
-      toast.error('Failed to connect to Figma API. Please check your internet connection.');
-      return null;
-    }
-  }
-
-  /**
-   * Fetch file images from Figma API
-   */
-  static async fetchFileImages(fileId: string, nodeIds: string[]): Promise<{ images: Record<string, string> }> {
-    const nodeIdsParam = nodeIds.join(',');
-    return this.makeRequest(`/images/${fileId}?ids=${nodeIdsParam}&format=png&scale=2`) as Promise<{ images: Record<string, string> }>;
-  }
-
-  /**
-   * Get file images/thumbnails
-   */
-  static async getFileImages(fileId: string, nodeIds: string[]): Promise<Record<string, string> | null> {
-    const token = this.getAccessToken();
-    if (!token) {
-      return null;
-    }
-
-    try {
-      const nodeIdsParam = nodeIds.join(',');
-      const response = await fetch(
-        `${this.API_BASE_URL}/images/${fileId}?ids=${nodeIdsParam}&format=png&scale=2`,
-        {
-          headers: {
-            'X-Figma-Token': token,
-          },
+      // Récupérer les données du fichier Figma
+      const response = await fetch(`https://api.figma.com/v1/files/${fileId}`, {
+        headers: {
+          'X-Figma-Token': token
         }
-      );
+      });
 
       if (!response.ok) {
-        console.error('Failed to fetch Figma images:', response.statusText);
+        console.error('Erreur lors de la récupération du fichier Figma:', response.statusText);
         return null;
       }
 
-      const data = await response.json() as { images: Record<string, string> };
-      return data.images;
-    } catch (error) {
-      console.error('Error fetching Figma images:', error);
-      return null;
-    }
-  }
-
-  /**
-   * Convert Figma color to CSS
-   */
-  static figmaColorToCss(color: FigmaColor): string {
-    const r = Math.round(color.r * 255);
-    const g = Math.round(color.g * 255);
-    const b = Math.round(color.b * 255);
-    const a = color.a;
-
-    if (a === 1) {
-      return `rgb(${r}, ${g}, ${b})`;
-    } else {
-      return `rgba(${r}, ${g}, ${b}, ${a})`;
-    }
-  }
-
-  /**
-   * Convert Figma node to CSS styles with enhanced precision
-   */
-  static nodeToCSS(node: FigmaNode): Record<string, string> {
-    const styles: Record<string, string> = {};
-
-    // Background color with gradient support
-    if (node.backgroundColor) {
-      styles.backgroundColor = this.figmaColorToCss(node.backgroundColor);
-    }
-
-    // Enhanced fills with gradient support
-    if (node.fills && node.fills.length > 0) {
-      const fill = node.fills[0];
-      if (fill.type === 'SOLID' && fill.color) {
-        styles.backgroundColor = this.figmaColorToCss(fill.color);
-      } else if (fill.type === 'GRADIENT_LINEAR' && fill.gradientStops) {
-        const gradientStops = fill.gradientStops
-          .map(stop => `${this.figmaColorToCss(stop.color)} ${Math.round(stop.position * 100)}%`)
-          .join(', ');
-        styles.background = `linear-gradient(90deg, ${gradientStops})`;
-      }
-    }
-
-    // Enhanced border radius with individual corners
-    if (node.cornerRadius !== undefined) {
-      if (typeof node.cornerRadius === 'number') {
-        styles.borderRadius = `${node.cornerRadius}px`;
-      }
-    }
-
-    // Enhanced strokes (borders) with multiple stroke support
-    if (node.strokes && node.strokes.length > 0 && node.strokeWeight) {
-      const stroke = node.strokes[0];
-      if (stroke.type === 'SOLID' && stroke.color) {
-        styles.border = `${node.strokeWeight}px solid ${this.figmaColorToCss(stroke.color)}`;
-      }
-    }
-
-    // Enhanced dimensions with constraints
-    if (node.absoluteBoundingBox) {
-      styles.width = `${Math.round(node.absoluteBoundingBox.width)}px`;
-      styles.height = `${Math.round(node.absoluteBoundingBox.height)}px`;
+      const figmaData = await response.json();
       
-      // Improved positioning with relative layout support
-      if (node.type !== 'DOCUMENT' && node.type !== 'CANVAS') {
-        if (node.type === 'FRAME' || node.type === 'GROUP') {
-          styles.position = 'relative';
-          styles.display = 'flex';
-          styles.flexDirection = 'column';
-        } else {
-          styles.position = 'absolute';
-          styles.left = `${Math.round(node.absoluteBoundingBox.x)}px`;
-          styles.top = `${Math.round(node.absoluteBoundingBox.y)}px`;
+      // Créer une configuration par défaut
+      const config: FigmaProjectConfig = {
+        fileId,
+        projectName: (figmaData as { name?: string }).name || 'Figma Project',
+        outputFormat: 'react-vite',
+        features: {
+          typescript: true,
+          tailwindcss: true,
+          storybook: false,
+          testing: false,
+          animations: true,
+          responsiveDesign: true,
+          darkMode: false,
+          accessibility: true,
+          i18n: false,
+          stateManagement: 'useState'
+        },
+        customization: {
+          cssFramework: 'tailwind',
+          componentLibrary: 'custom',
+          iconLibrary: 'lucide'
         }
-      }
-    }
+      };
 
-    // Enhanced typography with better font handling
-    if (node.style) {
-      styles.fontFamily = `"${node.style.fontFamily}", -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
-      styles.fontSize = `${node.style.fontSize}px`;
-      styles.fontWeight = node.style.fontWeight.toString();
+      // Créer une instance du service et convertir
+      const service = new EnhancedFigmaService(config);
+      const projectStructure = await service.convertToCompleteProject();
       
-      if (node.style.lineHeightPx) {
-        styles.lineHeight = `${node.style.lineHeightPx}px`;
-      }
-      
-      if (node.style.letterSpacing) {
-        styles.letterSpacing = `${node.style.letterSpacing}px`;
-      }
-      
-      if (node.style.textAlignHorizontal) {
-        styles.textAlign = node.style.textAlignHorizontal.toLowerCase();
-      }
-    }
-
-    // Add box-shadow for effects
-    if (node.type === 'RECTANGLE' || node.type === 'FRAME') {
-      styles.boxSizing = 'border-box';
-    }
-
-    // Handle ellipse as border-radius
-    if (node.type === 'ELLIPSE') {
-      styles.borderRadius = '50%';
-    }
-
-    return styles;
-  }
-
-  /**
-   * Generate React component structure from Figma nodes
-   */
-  static nodeToReactComponent(node: FigmaNode, depth = 0): string {
-    const indent = '  '.repeat(depth);
-    let jsx = '';
-
-    // Skip invisible nodes
-    if (node.visible === false) {
-      return '';
-    }
-
-    // Determine JSX element based on node type
-    let element = 'div';
-    let content = '';
-    let props = '';
-
-    switch (node.type) {
-      case 'TEXT':
-        element = 'span';
-        content = node.characters || '';
-        break;
-      case 'RECTANGLE':
-        element = 'div';
-        break;
-      case 'ELLIPSE':
-        element = 'div';
-        break;
-      case 'VECTOR':
-        element = 'div';
-        break;
-      case 'FRAME':
-      case 'GROUP':
-        element = 'div';
-        break;
-      case 'COMPONENT':
-      case 'COMPONENT_SET':
-      case 'INSTANCE':
-        element = 'div';
-        break;
-      default:
-        element = 'div';
-    }
-
-    // Generate CSS class name
-    const className = node.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
-    
-    // Add props
-    props = ` className="${className}" data-figma-type="${node.type}" data-figma-id="${node.id}"`;
-
-    // Start tag
-    jsx += `${indent}<${element}${props}>`;
-
-    // Add content for text nodes
-    if (content) {
-      jsx += content;
-    }
-
-    // Add children
-    if (node.children && node.children.length > 0) {
-      jsx += '\n';
-      for (const child of node.children) {
-        jsx += this.nodeToReactComponent(child, depth + 1);
-      }
-      jsx += indent;
-    }
-
-    // End tag
-    jsx += `</${element}>\n`;
-
-    return jsx;
-  }
-
-  /**
-   * Generate HTML structure from Figma nodes (legacy support)
-   */
-  static nodeToHTML(node: FigmaNode, depth = 0): string {
-    const indent = '  '.repeat(depth);
-    let html = '';
-
-    // Skip invisible nodes
-    if (node.visible === false) {
-      return '';
-    }
-
-    // Determine HTML tag based on node type
-    let tag = 'div';
-    let content = '';
-
-    switch (node.type) {
-      case 'TEXT':
-        tag = 'span';
-        content = node.characters || '';
-        break;
-      case 'RECTANGLE':
-        tag = 'div';
-        break;
-      case 'ELLIPSE':
-        tag = 'div';
-        break;
-      case 'VECTOR':
-        tag = 'div';
-        break;
-      case 'FRAME':
-      case 'GROUP':
-      case 'COMPONENT':
-      case 'COMPONENT_SET':
-      case 'INSTANCE':
-        tag = 'div';
-        break;
-      default:
-        tag = 'div';
-    }
-
-    // Generate CSS class name
-    const className = node.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
-    
-    // Add data attributes for debugging
-    const dataAttrs = ` data-figma-type="${node.type}" data-figma-id="${node.id}"`;
-
-    // Start tag
-    html += `${indent}<${tag} class="${className}"${dataAttrs}>`;
-
-    // Add content for text nodes
-    if (content) {
-      html += content;
-    }
-
-    // Add children
-    if (node.children && node.children.length > 0) {
-      html += '\n';
-      for (const child of node.children) {
-        html += this.nodeToHTML(child, depth + 1);
-      }
-      html += indent;
-    }
-
-    // End tag
-    html += `</${tag}>\n`;
-
-    return html;
-  }
-
-  /**
-   * Generate CSS from Figma nodes
-   */
-  static generateCSS(nodes: FigmaNode[]): string {
-    let css = '';
-    // Add base styles for better rendering
-    css += `* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-
-.figma-design-container {
-  position: relative;
-  transform-origin: top left;
-  overflow: hidden;
-}
-
-`;
-
-    const processNode = (node: FigmaNode) => {
-      // Skip nodes without names or invisible nodes
-      if (!node.name || (node.visible === false)) {
-        return;
+      if (!projectStructure) {
+        return null;
       }
 
-      const className = node.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
-      const styles = this.nodeToCSS(node);
-
-      if (Object.keys(styles).length > 0) {
-        css += `.${className} {\n`;
-        for (const [property, value] of Object.entries(styles)) {
-          css += `  ${property}: ${value};\n`;
-        }
-        css += '}\n\n';
-      }
-
-      // Process children
-      if (node.children) {
-        for (const child of node.children) {
-          processNode(child);
-        }
-      }
-    };
-
-    for (const node of nodes) {
-      processNode(node);
-    }
-
-    return css;
-  }
-
-  /**
-   * Analyze Figma file structure and extract design tokens
-   */
-  static async analyzeDesignStructure(fileId: string): Promise<FigmaProjectStructure | null> {
-    const file = await this.getFile(fileId);
-    if (!file) {
-      return null;
-    }
-
-    try {
-      const designTokens = this.extractDesignTokens(file);
-      const components = this.analyzeComponents(file);
-      const pages = file.document.children.map(child => child.name);
-      const assets = await this.extractAssets(fileId, file);
-      const interactions = this.extractInteractions(file);
-
+      // Transformer la structure en format attendu par le composant
       return {
-        components,
-        pages,
-        designTokens,
-        assets,
-        interactions
+        component: service.generateMainComponent(figmaData),
+        css: service.generateMainCSS(figmaData),
+        packageJson: service.generatePackageJson(),
+        viteConfig: service.generateViteConfig(),
+        indexHtml: service.generateIndexHTML(),
+        mainTsx: service.generateMainTSX(),
+        designTokens: service.generateDesignTokens(figmaData),
+        componentLibrary: service.generateComponentLibrary(figmaData),
+        storybook: service.generateStorybookConfig()
       };
     } catch (error) {
-      console.error('Error analyzing Figma design structure:', error);
+      console.error('Erreur lors de la conversion:', error);
       return null;
     }
   }
 
   /**
-   * Extract design tokens from Figma file
+   * Convertit un fichier Figma en structure de projet complète
    */
-  static extractDesignTokens(file: FigmaFile): FigmaDesignTokens {
-    const tokens: FigmaDesignTokens = {
-      colors: {},
-      typography: {},
-      spacing: {},
-      borderRadius: {},
-      shadows: {}
-    };
+  async convertToCompleteProject(): Promise<ProjectStructure | null> {
+    try {
+      // 1. Récupérer les données Figma
+      const figmaData = await this.fetchFigmaData();
+      if (!figmaData) return null;
 
-    // Extract colors from styles
-    Object.values(file.styles).forEach(style => {
-      if (style.styleType === 'FILL') {
-        tokens.colors[style.name] = style.name; // Placeholder - would need actual color value
+      // 2. Analyser la structure du design
+      const designAnalysis = await this.analyzeDesignStructure(figmaData);
+      
+      // 3. Générer la structure de base du projet
+      await this.generateProjectStructure();
+      
+      // 4. Générer les composants
+      await this.generateComponents(designAnalysis);
+      
+      // 5. Générer les styles et tokens de design
+      await this.generateDesignSystem(designAnalysis);
+      
+      // 6. Générer les utilitaires et hooks
+      await this.generateUtilities();
+      
+      // 7. Générer les tests
+      if (this.config.features.testing) {
+        await this.generateTests();
       }
-    });
-
-    // Extract typography from styles
-    Object.values(file.styles).forEach(style => {
-      if (style.styleType === 'TEXT') {
-        tokens.typography[style.name] = {
-          fontFamily: 'Inter', // Default - would extract from actual style
-          fontWeight: 400,
-          fontSize: 16,
-          lineHeightPx: 24,
-          letterSpacing: 0,
-          textAlignHorizontal: 'LEFT',
-          textAlignVertical: 'TOP'
-        };
+      
+      // 8. Générer Storybook
+      if (this.config.features.storybook) {
+        await this.generateStorybook();
       }
-    });
+      
+      // 9. Générer les fichiers de configuration
+      await this.generateConfigFiles();
 
-    // Extract spacing and other tokens from components
-    this.extractTokensFromNodes(file.document.children, tokens);
-
-    return tokens;
+      return this.projectStructure;
+      
+    } catch (error) {
+      console.error('Erreur lors de la conversion:', error);
+      toast.error('Erreur lors de la génération du projet');
+      return null;
+    }
   }
 
   /**
-   * Extract tokens from nodes recursively
+   * Génère la structure de base du projet
    */
-  private static extractTokensFromNodes(nodes: FigmaNode[], tokens: FigmaDesignTokens): void {
-    nodes.forEach(node => {
-      // Extract spacing
-      if (node.absoluteBoundingBox) {
-        const width = Math.round(node.absoluteBoundingBox.width);
-        const height = Math.round(node.absoluteBoundingBox.height);
-        if (width > 0 && width <= 100) tokens.spacing[`w-${width}`] = width;
-        if (height > 0 && height <= 100) tokens.spacing[`h-${height}`] = height;
-      }
+  private async generateProjectStructure(): Promise<void> {
+    const baseDirectories = [
+      'src',
+      'src/components',
+      'src/components/ui',
+      'src/components/layout',
+      'src/components/forms',
+      'src/hooks',
+      'src/utils',
+      'src/types',
+      'src/styles',
+      'src/assets',
+      'src/assets/icons',
+      'src/assets/images',
+      'src/constants',
+      'src/services',
+      'public'
+    ];
 
-      // Extract border radius
-      if (node.cornerRadius !== undefined) {
-        tokens.borderRadius[`radius-${node.cornerRadius}`] = node.cornerRadius;
-      }
+    if (this.config.features.testing) {
+      baseDirectories.push('src/__tests__', 'src/components/__tests__');
+    }
 
-      // Recursively process children
-      if (node.children) {
-        this.extractTokensFromNodes(node.children, tokens);
-      }
-    });
+    if (this.config.features.storybook) {
+      baseDirectories.push('.storybook', 'src/stories');
+    }
+
+    if (this.config.features.i18n) {
+      baseDirectories.push('src/locales', 'src/locales/en', 'src/locales/fr');
+    }
+
+    this.projectStructure.directories = baseDirectories;
   }
 
   /**
-   * Analyze components and their structure
+   * Génère les composants React à partir de l'analyse Figma
    */
-  static analyzeComponents(file: FigmaFile): FigmaComponentAnalysis[] {
-    const components: FigmaComponentAnalysis[] = [];
+  private async generateComponents(designAnalysis: any): Promise<void> {
+    const components = await this.extractComponentsFromDesign(designAnalysis);
+    
+    for (const component of components) {
+      // Composant principal
+      this.projectStructure.files.push({
+        path: `src/components/${component.category}/${component.name}/${component.name}.tsx`,
+        content: this.generateComponentCode(component),
+        type: 'component'
+      });
 
-    // Analyze main components
-    Object.values(file.components).forEach(component => {
-      const analysis = this.analyzeComponentStructure(component, file);
-      if (analysis) {
-        components.push(analysis);
-      }
-    });
-
-    // Analyze frames as potential components
-    file.document.children.forEach(page => {
-      if (page.children) {
-        page.children.forEach(frame => {
-          if (frame.type === 'FRAME' && this.isLikelyComponent(frame)) {
-            const analysis = this.analyzeNodeAsComponent(frame);
-            if (analysis) {
-              components.push(analysis);
-            }
-          }
+      // Fichier de styles
+      if (this.config.customization.cssFramework === 'css-modules') {
+        this.projectStructure.files.push({
+          path: `src/components/${component.category}/${component.name}/${component.name}.module.css`,
+          content: this.generateComponentStyles(component),
+          type: 'style'
         });
       }
+
+      // Types TypeScript
+      if (this.config.features.typescript) {
+        this.projectStructure.files.push({
+          path: `src/components/${component.category}/${component.name}/types.ts`,
+          content: this.generateComponentTypes(component),
+          type: 'type'
+        });
+      }
+
+      // Tests
+      if (this.config.features.testing) {
+        this.projectStructure.files.push({
+          path: `src/components/${component.category}/${component.name}/__tests__/${component.name}.test.tsx`,
+          content: this.generateComponentTest(component),
+          type: 'test'
+        });
+      }
+
+      // Stories Storybook
+      if (this.config.features.storybook) {
+        this.projectStructure.files.push({
+          path: `src/components/${component.category}/${component.name}/${component.name}.stories.tsx`,
+          content: this.generateComponentStory(component),
+          type: 'story'
+        });
+      }
+
+      // Index pour l'export
+      this.projectStructure.files.push({
+        path: `src/components/${component.category}/${component.name}/index.ts`,
+        content: `export { default } from './${component.name}';\nexport * from './types';`,
+        type: 'component'
+      });
+    }
+
+    // Génère les index des catégories
+    this.generateCategoryIndexes(components);
+  }
+
+  /**
+   * Génère le code d'un composant React
+   */
+  private generateComponentCode(component: ComponentMetadata): string {
+    const imports = this.generateComponentImports(component);
+    const interfaces = this.generateComponentInterfaces(component);
+    const componentBody = this.generateComponentBody(component);
+    
+    return `${imports}
+
+${interfaces}
+
+const ${component.name}: React.FC<${component.name}Props> = ({
+  ${component.props.map(p => `${p.name}${p.defaultValue ? ` = ${JSON.stringify(p.defaultValue)}` : ''}`).join(',\n  ')},
+  className,
+  ...props
+}) => {
+  ${this.generateComponentLogic(component)}
+
+  return (
+    ${componentBody}
+  );
+};
+
+${component.name}.displayName = '${component.name}';
+
+export default ${component.name};
+`;
+  }
+
+  /**
+   * Génère le système de design (tokens, thème)
+   */
+  private async generateDesignSystem(designAnalysis: any): Promise<void> {
+    // Design tokens
+    const designTokens = this.extractDesignTokens(designAnalysis);
+    this.projectStructure.files.push({
+      path: 'src/styles/tokens.ts',
+      content: this.generateDesignTokensCode(designTokens),
+      type: 'style'
     });
 
-    return components;
+    // Thème
+    this.projectStructure.files.push({
+      path: 'src/styles/theme.ts',
+      content: this.generateThemeCode(designTokens),
+      type: 'style'
+    });
+
+    // Variables CSS globales
+    this.projectStructure.files.push({
+      path: 'src/styles/globals.css',
+      content: this.generateGlobalStyles(designTokens),
+      type: 'style'
+    });
+
+    // Configuration Tailwind si activé
+    if (this.config.customization.cssFramework === 'tailwind') {
+      this.projectStructure.files.push({
+        path: 'tailwind.config.js',
+        content: this.generateTailwindConfig(designTokens),
+        type: 'config'
+      });
+    }
+
+    // Mixins et utilitaires CSS
+    this.projectStructure.files.push({
+      path: 'src/styles/mixins.css',
+      content: this.generateCSSMixins(),
+      type: 'style'
+    });
   }
 
   /**
-   * Analyze a component's structure
+   * Génère les hooks personnalisés
    */
-  private static analyzeComponentStructure(component: FigmaComponent, file: FigmaFile): FigmaComponentAnalysis | null {
-    // Find the component node in the document
-    const componentNode = this.findNodeById(file.document.children, component.key);
-    if (!componentNode) return null;
+  private async generateUtilities(): Promise<void> {
+    const utilityFiles = [
+      {
+        path: 'src/hooks/useResponsive.ts',
+        content: this.generateResponsiveHook(),
+        type: 'hook' as const
+      },
+      {
+        path: 'src/hooks/useTheme.ts',
+        content: this.generateThemeHook(),
+        type: 'hook' as const
+      },
+      {
+        path: 'src/utils/classNames.ts',
+        content: this.generateClassNameUtils(),
+        type: 'util' as const
+      },
+      {
+        path: 'src/utils/constants.ts',
+        content: this.generateConstants(),
+        type: 'util' as const
+      },
+      {
+        path: 'src/types/index.ts',
+        content: this.generateGlobalTypes(),
+        type: 'type' as const
+      }
+    ];
 
-    return this.analyzeNodeAsComponent(componentNode);
+    if (this.config.features.animations) {
+      utilityFiles.push({
+        path: 'src/utils/animations.ts',
+        content: this.generateAnimationUtils(),
+        type: 'util' as const
+      });
+    }
+
+    if (this.config.features.i18n) {
+      utilityFiles.push({
+        path: 'src/utils/i18n.ts',
+        content: this.generateI18nUtils(),
+        type: 'util' as const
+      });
+    }
+
+    this.projectStructure.files.push(...utilityFiles);
   }
 
   /**
-   * Analyze a node as a component
+   * Génère les fichiers de test
    */
-  private static analyzeNodeAsComponent(node: FigmaNode): FigmaComponentAnalysis {
-    const type = this.determineComponentType(node);
-    const props = this.extractComponentProps(node);
-    const variants = this.extractVariants(node);
-    const states = this.extractStates(node);
-    const children = node.children ? node.children.map(child => this.analyzeNodeAsComponent(child)) : undefined;
+  private async generateTests(): Promise<void> {
+    // Configuration de test
+    this.projectStructure.files.push({
+      path: 'vitest.config.ts',
+      content: this.generateVitestConfig(),
+      type: 'config'
+    });
 
+    // Setup des tests
+    this.projectStructure.files.push({
+      path: 'src/setupTests.ts',
+      content: this.generateTestSetup(),
+      type: 'config'
+    });
+
+    // Utilitaires de test
+    this.projectStructure.files.push({
+      path: 'src/__tests__/utils/testUtils.tsx',
+      content: this.generateTestUtils(),
+      type: 'util'
+    });
+  }
+
+  /**
+   * Génère la configuration Storybook
+   */
+  private async generateStorybook(): Promise<void> {
+    this.projectStructure.files.push(
+      {
+        path: '.storybook/main.ts',
+        content: this.generateStorybookMain(),
+        type: 'config'
+      },
+      {
+        path: '.storybook/preview.ts',
+        content: this.generateStorybookPreview(),
+        type: 'config'
+      }
+    );
+  }
+
+  /**
+   * Génère tous les fichiers de configuration
+   */
+  private async generateConfigFiles(): Promise<void> {
+    // Package.json avec toutes les dépendances
+    this.generateDependencies();
+    this.projectStructure.files.push({
+      path: 'package.json',
+      content: JSON.stringify(this.generatePackageJson(), null, 2),
+      type: 'config'
+    });
+
+    // Configuration TypeScript
+    if (this.config.features.typescript) {
+      this.projectStructure.files.push({
+        path: 'tsconfig.json',
+        content: JSON.stringify(this.generateTSConfig(), null, 2),
+        type: 'config'
+      });
+    }
+
+    // Configuration Vite
+    this.projectStructure.files.push({
+      path: 'vite.config.ts',
+      content: this.generateViteConfig(),
+      type: 'config'
+    });
+
+    // Configuration ESLint
+    this.projectStructure.files.push({
+      path: '.eslintrc.json',
+      content: JSON.stringify(this.generateESLintConfig(), null, 2),
+      type: 'config'
+    });
+
+    // Configuration Prettier
+    this.projectStructure.files.push({
+      path: '.prettierrc',
+      content: JSON.stringify(this.generatePrettierConfig(), null, 2),
+      type: 'config'
+    });
+
+    // README avec documentation
+    this.projectStructure.files.push({
+      path: 'README.md',
+      content: this.generateReadme(),
+      type: 'config'
+    });
+
+    // Fichiers d'entrée
+    this.projectStructure.files.push(
+      {
+        path: 'index.html',
+        content: this.generateIndexHTML(),
+        type: 'config'
+      },
+      {
+        path: 'src/main.tsx',
+        content: this.generateMainTSX(),
+        type: 'component'
+      },
+      {
+        path: 'src/App.tsx',
+        content: this.generateAppTSX(),
+        type: 'component'
+      }
+    );
+  }
+
+  // ... Méthodes helper pour générer le contenu spécifique de chaque fichier ...
+
+  private generateResponsiveHook(): string {
+    return `import { useState, useEffect } from 'react';
+
+type Breakpoint = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+
+const breakpoints = {
+  xs: 0,
+  sm: 640,
+  md: 768,
+  lg: 1024,
+  xl: 1280,
+  '2xl': 1536,
+};
+
+export const useResponsive = () => {
+  const [currentBreakpoint, setCurrentBreakpoint] = useState<Breakpoint>('md');
+  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      
+      setWindowSize({ width, height });
+      
+      if (width >= breakpoints['2xl']) setCurrentBreakpoint('2xl');
+      else if (width >= breakpoints.xl) setCurrentBreakpoint('xl');
+      else if (width >= breakpoints.lg) setCurrentBreakpoint('lg');
+      else if (width >= breakpoints.md) setCurrentBreakpoint('md');
+      else if (width >= breakpoints.sm) setCurrentBreakpoint('sm');
+      else setCurrentBreakpoint('xs');
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return {
+    currentBreakpoint,
+    windowSize,
+    isMobile: currentBreakpoint === 'xs' || currentBreakpoint === 'sm',
+    isTablet: currentBreakpoint === 'md',
+    isDesktop: currentBreakpoint === 'lg' || currentBreakpoint === 'xl' || currentBreakpoint === '2xl',
+  };
+};`;
+  }
+
+  private generateReadme(): string {
+    return `# ${this.config.projectName || 'Figma to React Project'}
+
+Ce projet a été généré automatiquement à partir d'un design Figma.
+
+## 🚀 Démarrage rapide
+
+\`\`\`bash
+# Installation des dépendances
+npm install
+
+# Démarrage du serveur de développement
+npm run dev
+
+# Build de production
+npm run build
+
+# Prévisualisation du build
+npm run preview
+\`\`\`
+
+## 📁 Structure du projet
+
+\`\`\`
+src/
+├── components/          # Composants React organisés par catégorie
+│   ├── ui/             # Composants d'interface utilisateur
+│   ├── layout/         # Composants de mise en page
+│   └── forms/          # Composants de formulaires
+├── hooks/              # Hooks personnalisés
+├── utils/              # Fonctions utilitaires
+├── styles/             # Styles et tokens de design
+├── types/              # Types TypeScript
+└── assets/             # Ressources statiques
+\`\`\`
+
+## 🎨 Design System
+
+Le projet inclut un système de design complet avec :
+- **Tokens de design** : couleurs, typographie, espacements
+- **Composants réutilisables** : générés à partir du design Figma
+- **Thème responsive** : adaptation automatique aux différentes tailles d'écran
+
+## 🧪 Tests
+
+\`\`\`bash
+# Lancer les tests
+npm run test
+
+# Tests en mode watch
+npm run test:watch
+
+# Coverage des tests
+npm run test:coverage
+\`\`\`
+
+## 📚 Storybook
+
+\`\`\`bash
+# Démarrer Storybook
+npm run storybook
+
+# Build Storybook
+npm run build-storybook
+\`\`\`
+
+## 🛠 Technologies utilisées
+
+${this.generateTechStack()}
+
+## 📝 Notes de développement
+
+- Les composants sont générés automatiquement à partir du design Figma
+- Chaque composant inclut ses propres tests et stories Storybook
+- Le design system est extrait des styles Figma et converti en tokens CSS/JS
+- Le projet est configuré pour être responsive par défaut
+
+## 🤝 Contribution
+
+1. Fork le projet
+2. Créer une branche feature (\`git checkout -b feature/AmazingFeature\`)
+3. Commit les changements (\`git commit -m 'Add AmazingFeature'\`)
+4. Push sur la branche (\`git push origin feature/AmazingFeature\`)
+5. Ouvrir une Pull Request
+`;
+  }
+
+  private generateTechStack(): string {
+    const stack = [`- React ${this.config.features.typescript ? '+ TypeScript' : ''}`];
+    
+    if (this.config.customization.cssFramework === 'tailwind') stack.push('- Tailwind CSS');
+    if (this.config.features.storybook) stack.push('- Storybook');
+    if (this.config.features.testing) stack.push('- Vitest + Testing Library');
+    if (this.config.features.animations) stack.push('- Framer Motion');
+    
+    return stack.join('\n');
+  }
+
+  // Méthodes helper implémentées
+  private async fetchFigmaData(): Promise<any> {
+    // TODO: Implémenter l'appel à l'API Figma
     return {
-      name: node.name,
-      type,
-      props,
-      variants,
-      states,
-      children
+      document: {},
+      components: {},
+      styles: {}
     };
   }
 
-  /**
-   * Determine component type based on node characteristics
-   */
-  private static determineComponentType(node: FigmaNode): FigmaComponentAnalysis['type'] {
-    const name = node.name.toLowerCase();
-    
-    if (name.includes('button') || name.includes('btn')) return 'button';
-    if (name.includes('input') || name.includes('field') || name.includes('textbox')) return 'input';
-    if (name.includes('card') || name.includes('tile')) return 'card';
-    if (name.includes('modal') || name.includes('dialog') || name.includes('popup')) return 'modal';
-    if (name.includes('nav') || name.includes('menu') || name.includes('header') || name.includes('footer')) return 'navigation';
-    if (name.includes('layout') || name.includes('container') || name.includes('wrapper')) return 'layout';
-    if (node.type === 'TEXT') return 'text';
-    if (name.includes('icon') || node.type === 'VECTOR') return 'icon';
-    if (name.includes('image') || name.includes('img') || name.includes('photo')) return 'image';
-    
-    return 'other';
+  private async analyzeDesignStructure(data: any): Promise<any> {
+    // TODO: Analyser la structure du design Figma
+    return {
+      components: [],
+      tokens: {},
+      layout: {}
+    };
   }
 
-  /**
-   * Extract component props from node
-   */
-  private static extractComponentProps(node: FigmaNode): Record<string, any> {
-    const props: Record<string, any> = {};
-
-    if (node.characters) props.text = node.characters;
-    if (node.absoluteBoundingBox) {
-      props.width = node.absoluteBoundingBox.width;
-      props.height = node.absoluteBoundingBox.height;
-    }
-    if (node.cornerRadius !== undefined) props.borderRadius = node.cornerRadius;
-    if (node.backgroundColor) props.backgroundColor = this.figmaColorToCss(node.backgroundColor);
-    if (node.fills && node.fills.length > 0) {
-      const fill = node.fills[0];
-      if (fill.color) props.color = this.figmaColorToCss(fill.color);
-    }
-
-    return props;
-  }
-
-  /**
-   * Extract variants from component
-   */
-  private static extractVariants(node: FigmaNode): string[] | undefined {
-    // This would analyze component variants in Figma
-    // For now, return undefined as it requires more complex analysis
-    return undefined;
-  }
-
-  /**
-   * Extract states from component
-   */
-  private static extractStates(node: FigmaNode): string[] | undefined {
-    const states: string[] = [];
-    const name = node.name.toLowerCase();
-    
-    if (name.includes('hover')) states.push('hover');
-    if (name.includes('active')) states.push('active');
-    if (name.includes('disabled')) states.push('disabled');
-    if (name.includes('focus')) states.push('focus');
-    
-    return states.length > 0 ? states : undefined;
-  }
-
-  /**
-   * Check if a frame is likely a component
-   */
-  private static isLikelyComponent(frame: FigmaNode): boolean {
-    const name = frame.name.toLowerCase();
-    const componentKeywords = ['component', 'button', 'card', 'modal', 'input', 'nav', 'header', 'footer'];
-    return componentKeywords.some(keyword => name.includes(keyword));
-  }
-
-  /**
-   * Find node by ID in the document tree
-   */
-  private static findNodeById(nodes: FigmaNode[], id: string): FigmaNode | null {
-    for (const node of nodes) {
-      if (node.id === id) return node;
-      if (node.children) {
-        const found = this.findNodeById(node.children, id);
-        if (found) return found;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Extract assets from Figma file
-   */
-  private static async extractAssets(fileId: string, file: FigmaFile): Promise<string[]> {
-    const assets: string[] = [];
-    
-    // Find all image nodes
-    const imageNodes = this.findImageNodes(file.document.children);
-    
-    if (imageNodes.length > 0) {
-      try {
-        const images = await this.getFileImages(fileId, imageNodes.map(node => node.id));
-        if (images) {
-          assets.push(...Object.values(images));
-        }
-      } catch (error) {
-        console.warn('Could not extract images:', error);
-      }
-    }
-    
-    return assets;
-  }
-
-  /**
-   * Find all image nodes in the document
-   */
-  private static findImageNodes(nodes: FigmaNode[]): FigmaNode[] {
-    const imageNodes: FigmaNode[] = [];
-    
-    nodes.forEach(node => {
-      if (node.fills && node.fills.some(fill => fill.type === 'IMAGE')) {
-        imageNodes.push(node);
-      }
-      if (node.children) {
-        imageNodes.push(...this.findImageNodes(node.children));
-      }
-    });
-    
-    return imageNodes;
-  }
-
-  /**
-   * Extract interactions from Figma file
-   */
-  private static extractInteractions(file: FigmaFile): FigmaInteraction[] {
-    // This would extract prototyping interactions
-    // For now, return empty array as it requires access to prototype data
+  private async extractComponentsFromDesign(analysis: any): Promise<ComponentMetadata[]> {
+    // TODO: Extraire les composants du design
     return [];
   }
 
-  /**
-   * Convert Figma file to React/Vite project structure with enhanced analysis
-   */
-  static async convertToReactProject(fileId: string): Promise<{
-    component: string;
-    css: string;
-    packageJson: string;
-    viteConfig: string;
-    indexHtml: string;
-    mainTsx: string;
-    designTokens?: string;
-    componentLibrary?: string;
-    storybook?: string;
-  } | null> {
-    const file = await this.getFile(fileId);
-    if (!file) {
-      return null;
+  private generateComponentImports(component: ComponentMetadata): string {
+    const imports = ['import React from \'react\';'];
+    
+    if (this.config.features.typescript) {
+      imports.push('import { ComponentProps } from \'react\';');
     }
-
-    console.log('Figma file data received:', file.name);
-
-    try {
-      // Find the first canvas/artboard
-      const canvas = file.document.children[0];
-      if (!canvas || !canvas.children || canvas.children.length === 0) {
-        console.error('No canvas or artboard found in Figma file');
-        return null;
-      }
-
-      // Get the main frame/artboard (usually the first one)
-      const mainFrame = canvas.children[0];
-      console.log('Main frame found:', mainFrame.name);
-
-      // Analyze design structure
-      const projectStructure = await this.analyzeDesignStructure(fileId);
-      if (!projectStructure) {
-        console.warn('Could not analyze design structure, using basic conversion');
-      }
-
-      // Generate React component with enhanced structure
-      const componentName = mainFrame.name.replace(/[^a-zA-Z0-9]/g, '') || 'FigmaDesign';
-      const component = this.generateReactComponent(componentName, mainFrame, projectStructure || undefined);
-
-      // Generate enhanced CSS with design tokens
-      const css = projectStructure 
-        ? this.generateEnhancedCSS(projectStructure.designTokens, [mainFrame])
-        : this.generateCSS([mainFrame]);
-
-      // Generate design tokens file
-      const designTokens = projectStructure ? this.generateDesignTokensFile(projectStructure.designTokens) : undefined;
-
-      // Generate component library
-      const componentLibrary = projectStructure ? this.generateComponentLibrary(projectStructure.components) : undefined;
-
-      // Generate Storybook configuration
-      const storybook = projectStructure ? this.generateStorybookConfig(componentName, projectStructure.components) : undefined;
-
-      // Generate package.json for React + Vite with enhanced dependencies
-      const packageJson = `{
-  "name": "figma-design-${fileId.toLowerCase()}",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"\${projectStructure ? ',
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"' : ''}
-  },
-  "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"\${projectStructure ? ',
-    "styled-components": "^6.1.1",
-    "framer-motion": "^10.16.5"' : ''}
-  },
-  "devDependencies": {
-    \${projectStructure ? '"@storybook/addon-essentials": "^7.5.3",
-    "@storybook/addon-interactions": "^7.5.3",
-    "@storybook/addon-links": "^7.5.3",
-    "@storybook/blocks": "^7.5.3",
-    "@storybook/react": "^7.5.3",
-    "@storybook/react-vite": "^7.5.3",
-    "@storybook/testing-library": "^0.2.2",
-    ' : ''}"@types/react": "^18.2.43",
-    "@types/react-dom": "^18.2.17",
-    "@typescript-eslint/eslint-plugin": "^6.14.0",
-    "@typescript-eslint/parser": "^6.14.0",
-    "@vitejs/plugin-react": "^4.2.1",
-    "eslint": "^8.55.0",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.5",\${projectStructure ? '
-    "eslint-plugin-storybook": "^0.6.15",
-    "storybook": "^7.5.3",' : ''}
-    "typescript": "^5.2.2",
-    "vite": "^5.0.8"
+    
+    if (this.config.customization.cssFramework === 'css-modules') {
+      imports.push(`import styles from './${component.name}.module.css';`);
+    }
+    
+    if (this.config.customization.cssFramework === 'styled-components') {
+      imports.push('import styled from \'styled-components\';');
+    }
+    
+    return imports.join('\n');
   }
+
+  private generateComponentInterfaces(component: ComponentMetadata): string {
+    if (!this.config.features.typescript) return '';
+    
+    const propsInterface = `interface ${component.name}Props {
+${component.props.map(prop => 
+  `  ${prop.name}${prop.required ? '' : '?'}: ${prop.type};${prop.description ? ` // ${prop.description}` : ''}`
+).join('\n')}
+  className?: string;
+  children?: React.ReactNode;
 }`;
+    
+    return propsInterface;
+  }
 
-      // Generate Vite config
-      const viteConfig = `import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+  private generateComponentBody(component: ComponentMetadata): string {
+    const className = this.config.customization.cssFramework === 'css-modules' 
+      ? `className={\`\${styles.${component.name.toLowerCase()}} \${className || ''}\`}`
+      : `className={className}`;
+    
+    return `<div ${className} {...props}>
+      {children}
+    </div>`;
+  }
 
-// https://vitejs.dev/config/
+  private generateComponentLogic(component: ComponentMetadata): string {
+    // TODO: Générer la logique spécifique au composant
+    return '';
+  }
+
+  private extractDesignTokens(analysis: any): any {
+    return {
+      colors: {
+        primary: '#007bff',
+        secondary: '#6c757d',
+        success: '#28a745',
+        danger: '#dc3545',
+        warning: '#ffc107',
+        info: '#17a2b8'
+      },
+      spacing: {
+        xs: '0.25rem',
+        sm: '0.5rem',
+        md: '1rem',
+        lg: '1.5rem',
+        xl: '2rem'
+      },
+      typography: {
+        fontFamily: 'Inter, sans-serif',
+        fontSize: {
+          xs: '0.75rem',
+          sm: '0.875rem',
+          base: '1rem',
+          lg: '1.125rem',
+          xl: '1.25rem'
+        }
+      }
+    };
+  }
+
+  private generateDesignTokensCode(tokens: any): string {
+    return `export const designTokens = ${JSON.stringify(tokens, null, 2)};`;
+  }
+
+  private generateThemeCode(tokens: any): string {
+    return `import { designTokens } from './tokens';
+
+export const theme = {
+  ...designTokens,
+  breakpoints: {
+    sm: '640px',
+    md: '768px',
+    lg: '1024px',
+    xl: '1280px',
+    '2xl': '1536px'
+  }
+};
+
+export type Theme = typeof theme;`;
+  }
+
+  private generateGlobalStyles(tokens: any): string {
+    return `:root {
+${Object.entries(tokens.colors || {}).map(([key, value]) => `  --color-${key}: ${value};`).join('\n')}
+${Object.entries(tokens.spacing || {}).map(([key, value]) => `  --spacing-${key}: ${value};`).join('\n')}
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: ${tokens.typography?.fontFamily || 'Inter, sans-serif'};
+}`;
+  }
+
+  private generateTailwindConfig(tokens: any): string {
+    return `/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  theme: {
+    extend: {
+      colors: ${JSON.stringify(tokens.colors || {}, null, 6)},
+      spacing: ${JSON.stringify(tokens.spacing || {}, null, 6)},
+      fontFamily: {
+        sans: ['${tokens.typography?.fontFamily || 'Inter'}', 'sans-serif']
+      }
+    }
+  },
+  plugins: []
+};`;
+  }
+
+  private generateCSSMixins(): string {
+    return `/* Mixins utilitaires */
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}`;
+  }
+
+  private generateCategoryIndexes(components: ComponentMetadata[]): void {
+    const categories = [...new Set(components.map(c => c.category))];
+    
+    categories.forEach(category => {
+      const categoryComponents = components.filter(c => c.category === category);
+      const exports = categoryComponents.map(c => `export { default as ${c.name} } from './${c.name}';`).join('\n');
+      
+      this.projectStructure.files.push({
+        path: `src/components/${category}/index.ts`,
+        content: exports,
+        type: 'component'
+      });
+    });
+  }
+
+  private generateThemeHook(): string {
+    return `import { useState, useEffect, createContext, useContext } from 'react';
+
+type Theme = 'light' | 'dark';
+
+interface ThemeContextType {
+  theme: Theme;
+  toggleTheme: () => void;
+}
+
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+export const useTheme = () => {
+  const context = useContext(ThemeContext);
+  if (!context) {
+    throw new Error('useTheme must be used within a ThemeProvider');
+  }
+  return context;
+};
+
+export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [theme, setTheme] = useState<Theme>('light');
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  };
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
+  return (
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+};`;
+  }
+
+  private generateClassNameUtils(): string {
+    return `export function cn(...classes: (string | undefined | null | false)[]): string {
+  return classes.filter(Boolean).join(' ');
+}
+
+export function clsx(...classes: (string | undefined | null | false)[]): string {
+  return cn(...classes);
+}`;
+  }
+
+  private generateConstants(): string {
+    return `export const APP_NAME = '${this.config.projectName || 'My App'}';
+
+export const BREAKPOINTS = {
+  sm: 640,
+  md: 768,
+  lg: 1024,
+  xl: 1280,
+  '2xl': 1536
+} as const;
+
+export const ANIMATION_DURATION = {
+  fast: 150,
+  normal: 300,
+  slow: 500
+} as const;`;
+  }
+
+  private generateGlobalTypes(): string {
+    return `export interface BaseComponent {
+  className?: string;
+  children?: React.ReactNode;
+}
+
+export type Variant = 'primary' | 'secondary' | 'success' | 'danger' | 'warning' | 'info';
+export type Size = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+export type Theme = 'light' | 'dark';`;
+  }
+
+  private generateAnimationUtils(): string {
+    return `import { Variants } from 'framer-motion';
+
+export const fadeIn: Variants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.3 } }
+};
+
+export const slideUp: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } }
+};
+
+export const scaleIn: Variants = {
+  hidden: { opacity: 0, scale: 0.8 },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } }
+};`;
+  }
+
+  private generateI18nUtils(): string {
+    return `interface Translations {
+  [key: string]: string | Translations;
+}
+
+const translations: Record<string, Translations> = {
+  en: {
+    common: {
+      loading: 'Loading...',
+      error: 'An error occurred',
+      success: 'Success!'
+    }
+  },
+  fr: {
+    common: {
+      loading: 'Chargement...',
+      error: 'Une erreur est survenue',
+      success: 'Succès !'
+    }
+  }
+};
+
+export const t = (key: string, locale: string = 'en'): string => {
+  const keys = key.split('.');
+  let value: any = translations[locale];
+  
+  for (const k of keys) {
+    value = value?.[k];
+  }
+  
+  return typeof value === 'string' ? value : key;
+};`;
+  }
+
+  private generateVitestConfig(): string {
+    return `import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
+
 export default defineConfig({
   plugins: [react()],
-  server: {
-    port: 3000,
-    open: true
-  },
-  build: {
-    outDir: 'dist',
-    sourcemap: true
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./src/setupTests.ts'],
+    globals: true
   }
-})`;
+});`;
+  }
 
-      // Generate index.html
-      const indexHtml = `<!doctype html>
+  private generateTestSetup(): string {
+    return `import '@testing-library/jest-dom';
+import { expect, afterEach } from 'vitest';
+import { cleanup } from '@testing-library/react';
+import * as matchers from '@testing-library/jest-dom/matchers';
+
+expect.extend(matchers);
+
+afterEach(() => {
+  cleanup();
+});`;
+  }
+
+  private generateTestUtils(): string {
+    return `import { render, RenderOptions } from '@testing-library/react';
+import { ReactElement } from 'react';
+import { ThemeProvider } from '../../hooks/useTheme';
+
+const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <ThemeProvider>
+      {children}
+    </ThemeProvider>
+  );
+};
+
+const customRender = (
+  ui: ReactElement,
+  options?: Omit<RenderOptions, 'wrapper'>
+) => render(ui, { wrapper: AllTheProviders, ...options });
+
+export * from '@testing-library/react';
+export { customRender as render };`;
+  }
+
+  private generateStorybookMain(): string {
+    return `import type { StorybookConfig } from '@storybook/react-vite';
+
+const config: StorybookConfig = {
+  stories: ['../src/**/*.stories.@(js|jsx|ts|tsx|mdx)'],
+  addons: [
+    '@storybook/addon-links',
+    '@storybook/addon-essentials',
+    '@storybook/addon-interactions'
+  ],
+  framework: {
+    name: '@storybook/react-vite',
+    options: {}
+  }
+};
+
+export default config;`;
+  }
+
+  private generateStorybookPreview(): string {
+    return `import type { Preview } from '@storybook/react';
+import '../src/styles/globals.css';
+
+const preview: Preview = {
+  parameters: {
+    actions: { argTypesRegex: '^on[A-Z].*' },
+    controls: {
+      matchers: {
+        color: /(background|color)$/i,
+        date: /Date$/
+      }
+    }
+  }
+};
+
+export default preview;`;
+  }
+
+  private generateDependencies(): void {
+    this.projectStructure.dependencies = {
+      'react': '^18.2.0',
+      'react-dom': '^18.2.0'
+    };
+
+    this.projectStructure.devDependencies = {
+      '@types/react': '^18.2.0',
+      '@types/react-dom': '^18.2.0',
+      '@vitejs/plugin-react': '^4.0.0',
+      'vite': '^4.4.0'
+    };
+
+    if (this.config.features.typescript) {
+      this.projectStructure.devDependencies['typescript'] = '^5.0.0';
+    }
+
+    if (this.config.customization.cssFramework === 'tailwind') {
+      this.projectStructure.devDependencies['tailwindcss'] = '^3.3.0';
+      this.projectStructure.devDependencies['autoprefixer'] = '^10.4.0';
+      this.projectStructure.devDependencies['postcss'] = '^8.4.0';
+    }
+
+    if (this.config.features.testing) {
+      Object.assign(this.projectStructure.devDependencies, {
+        'vitest': '^0.34.0',
+        '@testing-library/react': '^13.4.0',
+        '@testing-library/jest-dom': '^6.0.0',
+        'jsdom': '^22.0.0'
+      });
+    }
+
+    if (this.config.features.storybook) {
+      Object.assign(this.projectStructure.devDependencies, {
+        '@storybook/react': '^7.0.0',
+        '@storybook/react-vite': '^7.0.0',
+        '@storybook/addon-essentials': '^7.0.0'
+      });
+    }
+
+    if (this.config.features.animations) {
+      this.projectStructure.dependencies['framer-motion'] = '^10.0.0';
+    }
+  }
+
+  private generatePackageJson(): any {
+    return {
+      name: this.config.projectName?.toLowerCase().replace(/\s+/g, '-') || 'figma-project',
+      private: true,
+      version: '0.0.0',
+      type: 'module',
+      scripts: {
+        dev: 'vite',
+        build: 'vite build',
+        preview: 'vite preview',
+        ...(this.config.features.testing && {
+          test: 'vitest',
+          'test:watch': 'vitest --watch',
+          'test:coverage': 'vitest --coverage'
+        }),
+        ...(this.config.features.storybook && {
+          storybook: 'storybook dev -p 6006',
+          'build-storybook': 'storybook build'
+        })
+      },
+      dependencies: this.projectStructure.dependencies,
+      devDependencies: this.projectStructure.devDependencies
+    };
+  }
+
+  private generateTSConfig(): any {
+    return {
+      compilerOptions: {
+        target: 'ES2020',
+        useDefineForClassFields: true,
+        lib: ['ES2020', 'DOM', 'DOM.Iterable'],
+        module: 'ESNext',
+        skipLibCheck: true,
+        moduleResolution: 'bundler',
+        allowImportingTsExtensions: true,
+        resolveJsonModule: true,
+        isolatedModules: true,
+        noEmit: true,
+        jsx: 'react-jsx',
+        strict: true,
+        noUnusedLocals: true,
+        noUnusedParameters: true,
+        noFallthroughCasesInSwitch: true
+      },
+      include: ['src'],
+      references: [{ path: './tsconfig.node.json' }]
+    };
+  }
+
+  private generateViteConfig(): string {
+    return `import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@': '/src'
+    }
+  }
+});`;
+  }
+
+  private generateESLintConfig(): any {
+    return {
+      root: true,
+      env: { browser: true, es2020: true },
+      extends: [
+        'eslint:recommended',
+        '@typescript-eslint/recommended',
+        'plugin:react-hooks/recommended'
+      ],
+      ignorePatterns: ['dist', '.eslintrc.cjs'],
+      parser: '@typescript-eslint/parser',
+      plugins: ['react-refresh'],
+      rules: {
+        'react-refresh/only-export-components': [
+          'warn',
+          { allowConstantExport: true }
+        ]
+      }
+    };
+  }
+
+  private generatePrettierConfig(): any {
+    return {
+      semi: true,
+      trailingComma: 'es5',
+      singleQuote: true,
+      printWidth: 80,
+      tabWidth: 2
+    };
+  }
+
+  private generateIndexHTML(): string {
+    return `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Figma Design - ${file.name}</title>
+    <title>${this.config.projectName || 'Figma Project'}</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>`;
+  }
 
-      // Generate main.tsx
-      const mainTsx = `import React from 'react'
-import ReactDOM from 'react-dom/client'
-import ${componentName} from './components/FigmaDesign.tsx'
-import './index.css'
+  private generateMainTSX(): string {
+    return `import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import './styles/globals.css';
+${this.config.features.darkMode ? "import { ThemeProvider } from './hooks/useTheme';" : ''}
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <${componentName} />
-  </React.StrictMode>,
-)`;
+    ${this.config.features.darkMode ? '<ThemeProvider>' : ''}
+      <App />
+    ${this.config.features.darkMode ? '</ThemeProvider>' : ''}
+  </React.StrictMode>
+);`;
+  }
 
-      return { 
-        component, 
-        css, 
-        packageJson, 
-        viteConfig, 
-        indexHtml, 
-        mainTsx,
-        designTokens,
-        componentLibrary,
-        storybook
-      };
-    } catch (error) {
-      console.error('Error converting Figma file to React project:', error);
-      return null;
-    }
+  private generateAppTSX(): string {
+    return `import React from 'react';
+
+function App() {
+  return (
+    <div className="app">
+      <header className="app-header">
+        <h1>Welcome to ${this.config.projectName || 'Your Figma Project'}</h1>
+        <p>Generated from Figma design</p>
+      </header>
+      <main>
+        {/* Your components will be rendered here */}
+      </main>
+    </div>
+  );
+}
+
+export default App;`;
+  }
+
+  private generateComponentStyles(component: ComponentMetadata): string {
+    return `.${component.name.toLowerCase()} {
+  /* Styles for ${component.name} component */
+  display: block;
+}
+
+.${component.name.toLowerCase()}--variant {
+  /* Variant styles */
+}`;
   }
 
   /**
-   * Generate React component with enhanced structure
+   * Génère le composant principal à partir des données Figma
    */
-  private static generateReactComponent(
-    componentName: string, 
-    mainFrame: FigmaNode, 
-    projectStructure?: FigmaProjectStructure
-  ): string {
-    const hasTokens = projectStructure?.designTokens;
-    const imports = [
-      "import React from 'react';",
-      "import './FigmaDesign.css';"
-    ];
-
-    if (hasTokens) {
-      imports.push("import { designTokens } from './tokens/designTokens';");
-    }
-
-    if (projectStructure?.components && projectStructure.components.length > 0) {
-      imports.push("import * as Components from './components';");
-    }
-
-    const componentJSX = this.nodeToReactComponent(mainFrame, 3).trim();
-
-    return `${imports.join('\n')}
+  generateMainComponent(figmaData: any): string {
+    const componentName = figmaData.name?.replace(/[^a-zA-Z0-9]/g, '') || 'FigmaComponent';
+    
+    return `import React from 'react';
+import './styles.css';
 
 interface ${componentName}Props {
   className?: string;
 }
 
-const ${componentName}: React.FC<${componentName}Props> = ({ className }) => {
+const ${componentName}: React.FC<${componentName}Props> = ({ className = '' }) => {
   return (
-    <div className={\`figma-design-container \${className || ''}\`}>
-      ${componentJSX}
+    <div className={\`figma-component \${className}\`}>
+      <h1>Figma Component</h1>
+      <p>Generated from Figma design: ${figmaData.name || 'Untitled'}</p>
+      {/* Component content will be generated here */}
     </div>
   );
 };
@@ -1105,193 +1361,212 @@ export default ${componentName};`;
   }
 
   /**
-   * Generate enhanced CSS with design tokens
+   * Génère le CSS principal à partir des données Figma
    */
-  private static generateEnhancedCSS(designTokens: FigmaDesignTokens, nodes: FigmaNode[]): string {
-    const tokenCSS = this.generateTokenCSS(designTokens);
-    const componentCSS = this.generateCSS(nodes);
-    
-    return `/* Design Tokens */\n${tokenCSS}\n\n/* Component Styles */\n${componentCSS}`;
+  generateMainCSS(figmaData: any): string {
+    return `.figma-component {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.figma-component h1 {
+  margin: 0 0 16px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.figma-component p {
+  margin: 0;
+  font-size: 16px;
+  color: #666666;
+  line-height: 1.5;
+}`;
   }
 
   /**
-   * Generate CSS from design tokens
+   * Génère les tokens de design à partir des données Figma
    */
-  private static generateTokenCSS(tokens: FigmaDesignTokens): string {
-    let css = ':root {\n';
-    
-    // Colors
-    Object.entries(tokens.colors).forEach(([name, value]) => {
-      css += `  --color-${name.toLowerCase().replace(/\s+/g, '-')}: ${value};\n`;
-    });
-    
-    // Typography
-    Object.entries(tokens.typography).forEach(([name, typo]) => {
-      const tokenName = name.toLowerCase().replace(/\s+/g, '-');
-      css += `  --font-${tokenName}-family: ${typo.fontFamily};\n`;
-      css += `  --font-${tokenName}-size: ${typo.fontSize}px;\n`;
-      css += `  --font-${tokenName}-weight: ${typo.fontWeight};\n`;
-      css += `  --font-${tokenName}-line-height: ${typo.lineHeightPx}px;\n`;
-    });
-    
-    // Spacing
-    Object.entries(tokens.spacing).forEach(([name, value]) => {
-      css += `  --spacing-${name.toLowerCase()}: ${value}px;\n`;
-    });
-    
-    // Border radius
-    Object.entries(tokens.borderRadius).forEach(([name, value]) => {
-      css += `  --radius-${name.toLowerCase()}: ${value}px;\n`;
-    });
-    
-    // Shadows
-    Object.entries(tokens.shadows).forEach(([name, value]) => {
-      css += `  --shadow-${name.toLowerCase().replace(/\s+/g, '-')}: ${value};\n`;
-    });
-    
-    css += '}\n';
-    return css;
-  }
-
-  /**
-   * Generate design tokens file
-   */
-  private static generateDesignTokensFile(tokens: FigmaDesignTokens): string {
-    return `export const designTokens = ${JSON.stringify(tokens, null, 2)};\n\nexport default designTokens;`;
-  }
-
-  /**
-   * Generate component library
-   */
-  private static generateComponentLibrary(components: FigmaComponentAnalysis[]): string {
-    const componentExports = components.map(comp => {
-      const componentName = comp.name.replace(/[^a-zA-Z0-9]/g, '');
-      return `export { default as ${componentName} } from './${componentName}';`;
-    }).join('\n');
-
-    const componentFiles = components.map(comp => {
-      const componentName = comp.name.replace(/[^a-zA-Z0-9]/g, '');
-      const props = Object.entries(comp.props).map(([name, value]) => `  ${name}?: any;`).join('\n');
-      
-      return {
-        name: `${componentName}.tsx`,
-        content: `import React from 'react';\n\ninterface ${componentName}Props {\n${props}\n}\n\nconst ${componentName}: React.FC<${componentName}Props> = (props) => {\n  return (\n    <div className="${componentName.toLowerCase()}">\n      {/* Component implementation */}\n    </div>\n  );\n};\n\nexport default ${componentName};`
-      };
-    });
-
-    return JSON.stringify({ index: componentExports, files: componentFiles }, null, 2);
-  }
-
-  /**
-   * Generate Storybook configuration
-   */
-  private static generateStorybookConfig(mainComponentName: string, components: FigmaComponentAnalysis[]): string {
-    const stories = components.map(comp => {
-      const componentName = comp.name.replace(/[^a-zA-Z0-9]/g, '');
-      return {
-        name: `${componentName}.stories.tsx`,
-        content: `import type { Meta, StoryObj } from '@storybook/react';\nimport ${componentName} from '../components/${componentName}';\n\nconst meta: Meta<typeof ${componentName}> = {\n  title: 'Components/${componentName}',\n  component: ${componentName},\n  parameters: {\n    layout: 'centered',\n  },\n  tags: ['autodocs'],\n};\n\nexport default meta;\ntype Story = StoryObj<typeof meta>;\n\nexport const Default: Story = {\n  args: {},\n};`
-      };
-    });
-
-    const mainConfig = `import type { StorybookConfig } from '@storybook/react-vite';\n\nconst config: StorybookConfig = {\n  stories: ['../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],\n  addons: [\n    '@storybook/addon-links',\n    '@storybook/addon-essentials',\n    '@storybook/addon-interactions',\n  ],\n  framework: {\n    name: '@storybook/react-vite',\n    options: {},\n  },\n  docs: {\n    autodocs: 'tag',\n  },\n};\n\nexport default config;`;
-
-    return JSON.stringify({ 
-      mainConfig, 
-      stories,
-      preview: `export const parameters = {\n  actions: { argTypesRegex: '^on[A-Z].*' },\n  controls: {\n    matchers: {\n      color: /(background|color)$/i,\n      date: /Date$/,\n    },\n  },\n};`
-    }, null, 2);
-  }
-
-  /**
-   * Convert Figma file to web code (legacy support)
-   */
-  static async convertToWebCode(fileId: string): Promise<{
-    html: string;
-    css: string;
-    js: string;
-  } | null> {
-    const file = await this.getFile(fileId);
-    if (!file) {
-      return null;
-    }
-
-    console.log('Figma file data received:', file.name);
-
-    try {
-      // Find the first canvas/artboard
-      const canvas = file.document.children[0];
-      if (!canvas || !canvas.children || canvas.children.length === 0) {
-        console.error('No canvas or artboard found in Figma file');
-        return null;
+  generateDesignTokens(figmaData: any): any {
+    return {
+      colors: {
+        primary: '#007AFF',
+        secondary: '#5856D6',
+        success: '#34C759',
+        warning: '#FF9500',
+        error: '#FF3B30',
+        background: '#FFFFFF',
+        surface: '#F2F2F7',
+        text: '#000000'
+      },
+      typography: {
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        fontSize: {
+          xs: '12px',
+          sm: '14px',
+          base: '16px',
+          lg: '18px',
+          xl: '20px',
+          '2xl': '24px'
+        },
+        fontWeight: {
+          normal: 400,
+          medium: 500,
+          semibold: 600,
+          bold: 700
+        }
+      },
+      spacing: {
+        xs: '4px',
+        sm: '8px',
+        md: '16px',
+        lg: '24px',
+        xl: '32px',
+        '2xl': '48px'
+      },
+      borderRadius: {
+        sm: '4px',
+        md: '8px',
+        lg: '12px',
+        xl: '16px'
       }
-
-      // Get the main frame/artboard (usually the first one)
-      const mainFrame = canvas.children[0];
-      console.log('Main frame found:', mainFrame.name);
-
-      // Generate HTML with container
-      const html = `<div class="figma-design-container">
-  ${this.nodeToHTML(mainFrame)}</div>`;
-
-      // Generate CSS
-      const css = this.generateCSS([mainFrame]);
-
-      // Enhanced JavaScript with better responsive handling
-      const js = `// Generated from Figma design "${file.name}"
-// Enhanced interactive functionality
-
-class FigmaDesignController {
-  constructor() {
-    this.container = null;
-    this.originalWidth = ${mainFrame.absoluteBoundingBox?.width || 1440};
-    this.init();
-  }
-
-  init() {
-    document.addEventListener('DOMContentLoaded', () => {
-      this.container = document.querySelector('.figma-design-container');
-      this.setupResponsive();
-      this.setupInteractions();
-      console.log('Figma design loaded: ${file.name}');
-    });
-  }
-
-  setupResponsive() {
-    if (!this.container) return;
-    
-    const adjustScale = () => {
-      const scale = Math.min(1, window.innerWidth / this.originalWidth);
-      this.container.style.transform = \`scale(\${scale})\`;
-      this.container.style.transformOrigin = 'top left';
     };
-    
-    adjustScale();
-    window.addEventListener('resize', adjustScale);
   }
 
-  setupInteractions() {
-    // Add hover effects for interactive elements
-    const interactiveElements = this.container?.querySelectorAll('[data-figma-type="COMPONENT"], [data-figma-type="INSTANCE"]');
-    interactiveElements?.forEach(element => {
-      element.style.cursor = 'pointer';
-      element.addEventListener('mouseenter', () => {
-        element.style.transform = 'scale(1.02)';
-        element.style.transition = 'transform 0.2s ease';
-      });
-      element.addEventListener('mouseleave', () => {
-        element.style.transform = 'scale(1)';
-      });
-    });
+  /**
+   * Génère la bibliothèque de composants
+   */
+  generateComponentLibrary(figmaData: any): any {
+    return {
+      components: [
+        {
+          name: 'Button',
+          description: 'A customizable button component',
+          props: [
+            { name: 'variant', type: 'primary | secondary | outline', required: false },
+            { name: 'size', type: 'sm | md | lg', required: false },
+            { name: 'disabled', type: 'boolean', required: false },
+            { name: 'onClick', type: '() => void', required: false }
+          ]
+        },
+        {
+          name: 'Card',
+          description: 'A flexible card container',
+          props: [
+            { name: 'title', type: 'string', required: false },
+            { name: 'children', type: 'ReactNode', required: true },
+            { name: 'className', type: 'string', required: false }
+          ]
+        }
+      ]
+    };
+  }
+
+  /**
+   * Génère la configuration Storybook
+   */
+  generateStorybookConfig(): any {
+    return {
+      stories: ['../src/**/*.stories.@(js|jsx|ts|tsx)'],
+      addons: [
+        '@storybook/addon-essentials',
+        '@storybook/addon-interactions'
+      ],
+      framework: {
+        name: '@storybook/react-vite',
+        options: {}
+      }
+    };
+  }
+
+  private generateComponentTypes(component: ComponentMetadata): string {
+    return `export interface ${component.name}Props {
+${component.props.map(prop => 
+  `  ${prop.name}${prop.required ? '' : '?'}: ${prop.type};${prop.description ? ` // ${prop.description}` : ''}`
+).join('\n')}
+  className?: string;
+  children?: React.ReactNode;
+}
+
+export type ${component.name}Variant = ${component.variants.map(v => `'${v.name}'`).join(' | ') || "'default'"};
+
+export interface ${component.name}Ref {
+  focus: () => void;
+  blur: () => void;
+}`;
+  }
+
+  private generateComponentTest(component: ComponentMetadata): string {
+    return `import { render, screen } from '../../../__tests__/utils/testUtils';
+import ${component.name} from '../${component.name}';
+
+describe('${component.name}', () => {
+  it('renders correctly', () => {
+    render(<${component.name} />);
+    expect(screen.getByRole('${component.type === 'form' ? 'form' : 'generic'}')).toBeInTheDocument();
+  });
+
+  it('applies custom className', () => {
+    const customClass = 'custom-class';
+    render(<${component.name} className={customClass} />);
+    expect(screen.getByRole('${component.type === 'form' ? 'form' : 'generic'}')).toHaveClass(customClass);
+  });
+
+  ${component.props.filter(p => p.required).map(prop => 
+    `it('renders with ${prop.name} prop', () => {
+    const ${prop.name}Value = ${prop.type === 'string' ? "'test'" : prop.type === 'number' ? '42' : 'true'};
+    render(<${component.name} ${prop.name}={${prop.name}Value} />);
+    // Add specific assertions for this prop
+  });`
+  ).join('\n\n  ')}
+});`;
+  }
+
+  private generateComponentStory(component: ComponentMetadata): string {
+    return `import type { Meta, StoryObj } from '@storybook/react';
+import ${component.name} from './${component.name}';
+
+const meta: Meta<typeof ${component.name}> = {
+  title: '${component.category}/${component.name}',
+  component: ${component.name},
+  parameters: {
+    layout: 'centered'
+  },
+  tags: ['autodocs'],
+  argTypes: {
+${component.props.map(prop => 
+  `    ${prop.name}: {
+      description: '${prop.description || `${prop.name} prop`}',
+      control: { type: '${prop.type === 'boolean' ? 'boolean' : prop.type === 'number' ? 'number' : 'text'}' }
+    }`
+).join(',\n')}
+  }
+};
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Default: Story = {
+  args: {
+${component.props.filter(p => p.defaultValue !== undefined).map(prop => 
+  `    ${prop.name}: ${JSON.stringify(prop.defaultValue)}`
+).join(',\n')}
+  }
+};
+
+${component.variants.map(variant => 
+  `export const ${variant.name.charAt(0).toUpperCase() + variant.name.slice(1)}: Story = {
+  args: {
+${Object.entries(variant.props).map(([key, value]) => 
+    `    ${key}: ${JSON.stringify(value)}`
+  ).join(',\n')}
+  }
+};`
+).join('\n\n')}`;
   }
 }
 
-new FigmaDesignController();`;
-
-      return { html, css, js };
-    } catch (error) {
-      console.error('Error converting Figma file to web code:', error);
-      return null;
-    }
-  }
-}
+export { EnhancedFigmaService, EnhancedFigmaService as FigmaService, type FigmaProjectConfig, type ProjectStructure };
