@@ -2,7 +2,16 @@ import React, { useState, useRef, useCallback, memo, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { classNames } from '~/utils/classNames';
-import { Dialog, DialogRoot, DialogTitle, DialogClose } from '~/components/ui/Dialog';
+import { 
+  UIImageAnalyzerModal,
+  UIImageAnalyzerModalRoot,
+  UIImageAnalyzerModalClose,
+  UIImageAnalyzerModalHeader,
+  UIImageAnalyzerModalSteps,
+  UIImageAnalyzerModalContent,
+  UIImageAnalyzerModalFooter,
+  UIImageAnalyzerModalStyles
+} from '~/components/ui/UIImageAnalyzerModal';
 import { IconButton } from '~/components/ui/IconButton';
 import type { Message } from 'ai';
 import styles from './UIImageAnalyzer.module.scss';
@@ -127,41 +136,7 @@ const isValidImageUrl = (url: string) => {
   }
 };
 
-const ProgressIndicator = memo(({ currentStep, selectedFile }: { currentStep: number, selectedFile: File | null }) => (
-  <div className="flex items-center gap-3 mt-6">
-    <div className="flex items-center gap-2">
-      <motion.div
-        className={classNames(
-          'w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all',
-          currentStep >= 1 ? 'bg-bolt-elements-item-contentAccent text-white' : 'bg-bolt-elements-background-depth-3 text-bolt-elements-textTertiary'
-        )}
-        animate={{ scale: currentStep === 1 ? 1.1 : 1 }}
-      >
-        1
-      </motion.div>
-      <span className={classNames('text-sm font-medium', currentStep >= 1 ? 'text-bolt-elements-item-contentAccent' : 'text-bolt-elements-textTertiary')}>
-        Image
-      </span>
-    </div>
-    
-    <div className={classNames('flex-1 h-0.5 rounded-full transition-all', selectedFile ? 'bg-bolt-elements-item-contentAccent' : 'bg-bolt-elements-background-depth-3')} />
-    
-    <div className="flex items-center gap-2">
-      <motion.div
-        className={classNames(
-          'w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all',
-          currentStep >= 2 ? 'bg-bolt-elements-item-contentAccent text-white' : 'bg-bolt-elements-background-depth-3 text-bolt-elements-textTertiary'
-        )}
-        animate={{ scale: currentStep === 2 ? 1.1 : 1 }}
-      >
-        2
-      </motion.div>
-      <span className={classNames('text-sm font-medium', currentStep >= 2 ? 'text-bolt-elements-item-contentAccent' : 'text-bolt-elements-textTertiary')}>
-        Analyse
-      </span>
-    </div>
-  </div>
-));
+
 
 const AnalysisOptionItem = memo(({ 
   option, 
@@ -231,24 +206,7 @@ const AnalysisOptionItem = memo(({
   </motion.button>
 ));
 
-// Constantes memoizées pour éviter les recréations à chaque rendu
-const DIALOG_ANIMATION_VARIANTS = {
-  initial: { opacity: 0, scale: 0.95 },
-  animate: { opacity: 1, scale: 1 },
-  exit: { opacity: 0, scale: 0.95 }
-};
 
-const STEP1_ANIMATION_VARIANTS = {
-  initial: { opacity: 0, x: -20 },
-  animate: { opacity: 1, x: 0 },
-  exit: { opacity: 0, x: -20 }
-};
-
-const STEP2_ANIMATION_VARIANTS = {
-  initial: { opacity: 0, x: 20 },
-  animate: { opacity: 1, x: 0 },
-  exit: { opacity: 0, x: 20 }
-};
 
 // Nouveau composant pour l'entrée d'URL
 const URLInput = memo(({ onUrlSubmit }: { onUrlSubmit: (url: string) => Promise<void> }) => {
@@ -428,15 +386,7 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
     }
   }, [handleFileSelect]);
 
-  // Optimisation des classes conditionnelles avec useMemo
-  const analyzeButtonClasses = useMemo(() => 
-    classNames(
-      'px-8 py-3 rounded-lg font-semibold transition-all flex items-center gap-2',
-      {
-        'bg-bolt-elements-button-primary-background hover:bg-bolt-elements-button-primary-backgroundHover text-bolt-elements-button-primary-text border border-bolt-elements-item-contentAccent': Boolean(selectedFile && selectedAnalysis && !isAnalyzing),
-        'bg-bolt-elements-background-depth-3 text-bolt-elements-textTertiary cursor-not-allowed border border-bolt-elements-borderColor': !selectedFile || !selectedAnalysis || isAnalyzing
-      }
-    ), [selectedFile, selectedAnalysis, isAnalyzing]);
+
 
   // Optimisation du message avec useMemo
   const analysisMessage = useMemo(() => {
@@ -604,6 +554,7 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
 
   return (
     <>
+      <UIImageAnalyzerModalStyles />
       <motion.div
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
@@ -629,38 +580,36 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
         </IconButton>
       </motion.div>
 
-      <DialogRoot open={isOpen} onOpenChange={setIsOpen}>
+      <UIImageAnalyzerModalRoot open={isOpen} onOpenChange={setIsOpen}>
         <AnimatePresence>
           {isOpen && (
-            <motion.div
-              variants={DIALOG_ANIMATION_VARIANTS}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              transition={{ duration: 0.2 }}
-            >
-              <Dialog className="max-w-7xl p-0 overflow-hidden bg-bolt-elements-background-depth-1 backdrop-blur-xl border border-bolt-elements-borderColor shadow-2xl">
-                {/* Header */}
-                <div className="relative p-6 bg-bolt-elements-background-depth-2 border-b border-bolt-elements-borderColor">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <DialogTitle className="text-2xl font-bold text-bolt-elements-textPrimary">
-                        Analyser une interface utilisateur
-                      </DialogTitle>
-                      <p className="text-sm text-bolt-elements-textSecondary mt-1">
-                        Uploadez une image ou analysez depuis une URL
-                      </p>
-                    </div>
-                    <DialogClose asChild>
-                      
-                    </DialogClose>
-                  </div>
-
-                  {/* Progress indicator */}
-                  <ProgressIndicator currentStep={currentStep} selectedFile={selectedFile} />
-                </div>
-
-                <div className="p-6 space-y-8">
+            <UIImageAnalyzerModal onClose={handleClose} onBackdrop={handleClose}>
+              <UIImageAnalyzerModalHeader
+                title="Analyser une interface utilisateur"
+                description="Uploadez une image ou analysez depuis une URL"
+                currentStep={currentStep}
+                totalSteps={2}
+              />
+              
+              <UIImageAnalyzerModalSteps
+                currentStep={currentStep}
+                steps={[
+                  {
+                    key: 1,
+                    label: "Image",
+                    icon: "i-ph:upload",
+                    completed: Boolean(selectedFile)
+                  },
+                  {
+                    key: 2,
+                    label: "Analyse",
+                    icon: "i-ph:magic-wand",
+                    completed: Boolean(selectedAnalysis)
+                  }
+                ]}
+              />
+              
+              <UIImageAnalyzerModalContent>
                   {/* Étape 1: Upload d'image */}
                   <AnimatePresence mode="wait">
                     {currentStep === 1 && (
@@ -848,57 +797,29 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
                       </motion.div>
                     )}
                   </AnimatePresence>
-                </div>
-
-                {/* Footer avec boutons */}
-                <div className="p-6 bg-bolt-elements-background-depth-2 border-t border-bolt-elements-borderColor">
-                  <div className="flex justify-between items-center">
-                    <div className="text-sm text-bolt-elements-textSecondary">
-                      {currentStep === 1 && "Étape 1 sur 2 - Sélectionnez votre image"}
-                      {currentStep === 2 && "Étape 2 sur 2 - Choisissez votre analyse"}
-                    </div>
-                    
-                    <div className="flex gap-3">
-                      <motion.button
-                        onClick={handleClose}
-                        className="px-6 bg-bolt-elements-background-depth-2 py-2 text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary transition-colors rounded-lg border border-bolt-elements-borderColor hover:bg-bolt-elements-background-depth-3"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        Annuler
-                      </motion.button>
-                      
-                      <motion.button
-                        onClick={handleAnalyze}
-                        disabled={!selectedFile || !selectedAnalysis || isAnalyzing}
-                        className={analyzeButtonClasses}
-                        whileHover={selectedFile && selectedAnalysis && !isAnalyzing ? { scale: 1.02 } : {}}
-                        whileTap={selectedFile && selectedAnalysis && !isAnalyzing ? { scale: 0.98 } : {}}
-                      >
-                        {isAnalyzing ? (
-                          <>
-                            <motion.div
-                              className="i-ph:spinner-gap"
-                              animate={{ rotate: 360 }}
-                              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                            />
-                            Analyse en cours...
-                          </>
-                        ) : (
-                          <>
-                            <div className="i-ph:rocket-launch" />
-                            Lancer l'analyse
-                          </>
-                        )}
-                      </motion.button>
-                    </div>
-                  </div>
-                </div>
-              </Dialog>
-            </motion.div>
+              </UIImageAnalyzerModalContent>
+              
+              <UIImageAnalyzerModalFooter
+                currentStep={currentStep}
+                totalSteps={2}
+                stepLabel={
+                  currentStep === 1 
+                    ? "Étape 1 sur 2 - Sélectionnez votre image"
+                    : "Étape 2 sur 2 - Choisissez votre analyse"
+                }
+                onCancel={handleClose}
+                onNext={currentStep === 1 ? () => setCurrentStep(2) : handleAnalyze}
+                onPrevious={currentStep === 2 ? handleBackToStep1 : undefined}
+                nextLabel={currentStep === 2 ? "Lancer l'analyse" : "Suivant"}
+                previousLabel="Modifier l'image"
+                cancelLabel="Annuler"
+                isNextDisabled={!selectedFile || (currentStep === 2 && !selectedAnalysis)}
+                isLoading={isAnalyzing}
+              />
+            </UIImageAnalyzerModal>
           )}
         </AnimatePresence>
-      </DialogRoot>
+      </UIImageAnalyzerModalRoot>
     </>
   );
 });
