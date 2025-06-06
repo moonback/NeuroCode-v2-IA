@@ -81,6 +81,9 @@ interface BaseChatProps {
   selectedElement?: ElementInfo | null;
   setSelectedElement?: (element: ElementInfo | null) => void;
   runAnimation?: () => void;
+  onReply?: (messageId: string, content: string) => void;
+  replyToMessage?: {id: string, content: string} | null;
+  setReplyToMessage?: (reply: {id: string, content: string} | null) => void;
 
 }
 
@@ -128,6 +131,9 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
       selectedElement,
       setSelectedElement,
       runAnimation,
+      onReply,
+      replyToMessage,
+      setReplyToMessage,
     },
     ref,
   ) => {
@@ -419,6 +425,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                         setChatMode={setChatMode}
                         provider={provider}
                         model={model}
+                        onReply={onReply}
                       />
                     ) : null
                   }
@@ -505,9 +512,11 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                   designScheme={designScheme}
                   setDesignScheme={setDesignScheme}
                   selectedElement={selectedElement}
-                  setSelectedElement={setSelectedElement}
-                  runAnimation={runAnimation}
-                />
+                        setSelectedElement={setSelectedElement}
+                        runAnimation={runAnimation}
+                        replyToMessage={replyToMessage}
+                        setReplyToMessage={setReplyToMessage}
+                      />
               </div>
             </StickToBottom>
             <div className="flex flex-col justify-center">

@@ -22,6 +22,7 @@ interface MessagesProps {
   setChatMode?: (mode: 'discuss' | 'build') => void;
   model?: string;
   provider?: ProviderInfo;
+  onReply?: (messageId: string, content: string) => void;
 }
 
 export const Messages = forwardRef<HTMLDivElement, MessagesProps>(
@@ -47,6 +48,12 @@ export const Messages = forwardRef<HTMLDivElement, MessagesProps>(
         window.location.href = `/chat/${urlId}`;
       } catch (error) {
         toast.error('Failed to fork chat: ' + (error as Error).message);
+      }
+    };
+
+    const handleReply = (messageId: string, content: string) => {
+      if (props.onReply) {
+        props.onReply(messageId, content);
       }
     };
 
@@ -85,6 +92,7 @@ export const Messages = forwardRef<HTMLDivElement, MessagesProps>(
                         messageId={messageId}
                         onRewind={handleRewind}
                         onFork={handleFork}
+                        onReply={handleReply}
                         append={props.append}
                         chatMode={props.chatMode}
                         setChatMode={props.setChatMode}

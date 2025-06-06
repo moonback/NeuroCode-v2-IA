@@ -155,6 +155,7 @@ export const ChatImpl = memo(
     const [chatMode, setChatMode] = useState<'discuss' | 'build'>('build');
      // Keep track of the errors we alerted on. useChat gets the same data twice even if they're removed with setData
      const [selectedElement, setSelectedElement] = useState<ElementInfo | null>(null);
+     const [replyToMessage, setReplyToMessage] = useState<{id: string, content: string} | null>(null);
      const alertedErrorIds = useRef(new Set());
     const {
       messages,
@@ -323,6 +324,14 @@ export const ChatImpl = memo(
       setChatStarted(true);
     };
 
+    const handleReply = (messageId: string, content: string) => {
+      setReplyToMessage({ id: messageId, content });
+      // Optionally scroll to the input area or focus it
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+      }
+    };
+
     const sendMessage = async (_event: React.UIEvent, messageInput?: string) => {
       const messageContent = messageInput || input;
 
@@ -349,6 +358,12 @@ export const ChatImpl = memo(
         contextSection += '\n--- FIN CONTEXTE ---\n\n';
       }
       let finalMessageContent = messageContent;
+
+      // Add reply context if replying to a message
+      if (replyToMessage) {
+        finalMessageContent = `En réponse au message: "${replyToMessage.content.substring(0, 200)}${replyToMessage.content.length > 200 ? '...' : ''}"\n\n${finalMessageContent}`;
+        setReplyToMessage(null); // Clear reply context after sending
+      }
 
       if (selectedElement) {
         console.log('Selected Element:', selectedElement);
@@ -618,6 +633,9 @@ export const ChatImpl = memo(
         selectedElement={selectedElement}
         setSelectedElement={setSelectedElement}
         runAnimation={runAnimation}
+        onReply={handleReply}
+        replyToMessage={replyToMessage}
+        setReplyToMessage={setReplyToMessage}
       />
     );
   },
