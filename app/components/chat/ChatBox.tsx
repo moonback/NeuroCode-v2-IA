@@ -71,6 +71,8 @@ interface ChatBoxProps {
   selectedElement?: ElementInfo | null;
   setSelectedElement?: ((element: ElementInfo | null) => void) | undefined;
   runAnimation?: () => void;
+  replyToMessage?: {id: string, content: string} | null;
+  setReplyToMessage?: (reply: {id: string, content: string} | null) => void;
 }
 
 export const ChatBox: React.FC<ChatBoxProps> = (props) => {
@@ -133,6 +135,23 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
         <rect className={classNames(styles.PromptShine)} x="48" y="24" width="70" height="1"></rect>
       </svg>
       <div>
+        {props.replyToMessage && (
+        <div className="flex mx-1.5 gap-2 items-center justify-between rounded-lg rounded-b-none border border-b-none border-bolt-elements-borderColor text-bolt-elements-textPrimary flex py-1 px-2.5 font-medium text-xs bg-blue-50 dark:bg-blue-900/20">
+          <div className="flex gap-2 items-center">
+            <div className="i-ph:arrow-bend-up-left text-blue-500 w-4 h-4"></div>
+            <span className="text-blue-600 dark:text-blue-400">Réponse à:</span>
+            <span className="text-bolt-elements-textSecondary truncate max-w-[200px]">
+              {props.replyToMessage.content.substring(0, 50)}{props.replyToMessage.content.length > 50 ? '...' : ''}
+            </span>
+          </div>
+          <button
+            className="bg-transparent text-blue-500 hover:text-blue-700 pointer-auto ml-[-20px]"
+            onClick={() => props.setReplyToMessage?.(null)}
+          >
+            ✕
+          </button>
+        </div>
+      )}
         {props.selectedElement && (
         <div className="flex mx-1.5 gap-2 items-center justify-between rounded-lg rounded-b-none border border-b-none border-bolt-elements-borderColor text-bolt-elements-textPrimary flex py-1 px-2.5 font-medium text-xs">
           <div className="flex gap-2 items-center lowercase">

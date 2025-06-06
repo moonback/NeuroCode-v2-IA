@@ -18,6 +18,7 @@ interface AssistantMessageProps {
   messageId?: string;
   onRewind?: (messageId: string) => void;
   onFork?: (messageId: string) => void;
+  onReply?: (messageId: string, content: string) => void;
   append?: (message: Message) => void;
   chatMode?: 'discuss' | 'build';
   setChatMode?: (mode: 'discuss' | 'build') => void;
@@ -92,6 +93,7 @@ export const AssistantMessage = memo(
     messageId,
     onRewind,
     onFork,
+    onReply,
     append,
     chatMode,
     setChatMode,
@@ -150,8 +152,17 @@ export const AssistantMessage = memo(
                 </div>
               </div>
               )}
-              {(onRewind || onFork) && messageId && (
+              {(onRewind || onFork || onReply) && messageId && (
                 <div className="flex gap-2 flex-col lg:flex-row ml-auto">
+                  {onReply && (
+                    <WithTooltip tooltip="Répondre à ce message">
+                      <button
+                        onClick={() => onReply(messageId, content)}
+                        key="i-ph:arrow-bend-up-left"
+                        className="i-ph:arrow-bend-up-left text-xl text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary transition-colors"
+                      />
+                    </WithTooltip>
+                  )}
                   {onRewind && (
                     <WithTooltip tooltip="Revert to this message">
                       <button
