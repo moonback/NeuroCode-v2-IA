@@ -3,6 +3,17 @@ export interface DesignScheme {
     features: string[];
     font: string[];
   }
+
+  // Interface pour les groupes de couleurs personnalisés
+  export interface CustomColorGroup {
+    id: string;
+    name: string;
+    description?: string;
+    scheme: DesignScheme;
+    createdAt: string;
+    updatedAt: string;
+    isCustom: true;
+  }
   
   export const defaultDesignScheme: DesignScheme = {
     palette: {
@@ -345,25 +356,25 @@ export const mergeDesignSchemes = (base: DesignScheme, override: Partial<DesignS
 };
 
 // Fonction pour générer un schéma aléatoire
-export const generateRandomScheme = (): DesignScheme => {
-  const randomPalette: { [key: string]: string } = {};
+// export const generateRandomScheme = (): DesignScheme => {
+//   const randomPalette: { [key: string]: string } = {};
   
-  Object.keys(defaultDesignScheme.palette).forEach(key => {
-    randomPalette[key] = colorUtils.generateRandomColor();
-  });
+//   Object.keys(defaultDesignScheme.palette).forEach(key => {
+//     randomPalette[key] = colorUtils.generateRandomColor();
+//   });
   
-  const randomFeatures = designFeatures
-    .filter(() => Math.random() > 0.5)
-    .map(f => f.key);
+//   const randomFeatures = designFeatures
+//     .filter(() => Math.random() > 0.5)
+//     .map(f => f.key);
     
-  const randomFont = [designFonts[Math.floor(Math.random() * designFonts.length)].key];
+//   const randomFont = [designFonts[Math.floor(Math.random() * designFonts.length)].key];
   
-  return {
-    palette: randomPalette,
-    features: randomFeatures.length > 0 ? randomFeatures : ['rounded'],
-    font: randomFont,
-  };
-};
+//   return {
+//     palette: randomPalette,
+//     features: randomFeatures.length > 0 ? randomFeatures : ['rounded'],
+//     font: randomFont,
+//   };
+// };
 
 // Export des constantes pour l'accessibilité
 export const ACCESSIBILITY_STANDARDS = {
@@ -387,4 +398,171 @@ export const checkWCAGCompliance = (
   const contrast = colorUtils.getContrastRatio(foreground, background);
   const key = `WCAG_${level}_${textSize.toUpperCase()}` as keyof typeof ACCESSIBILITY_STANDARDS;
   return contrast >= ACCESSIBILITY_STANDARDS[key];
+};
+
+// Fonctions pour la gestion des groupes de couleurs personnalisés
+export const customColorGroupsUtils = {
+  // Clé de stockage local
+  STORAGE_KEY: 'neurocode-custom-color-groups',
+
+  // Charger les groupes personnalisés depuis le localStorage
+  loadCustomGroups: (): CustomColorGroup[] => {
+    try {
+      const stored = localStorage.getItem(customColorGroupsUtils.STORAGE_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+      console.error('Erreur lors du chargement des groupes personnalisés:', error);
+      return [];
+    }
+  },
+
+  // Sauvegarder les groupes personnalisés dans le localStorage
+  saveCustomGroups: (groups: CustomColorGroup[]): void => {
+    try {
+      localStorage.setItem(customColorGroupsUtils.STORAGE_KEY, JSON.stringify(groups));
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde des groupes personnalisés:', error);
+    }
+  },
+
+  // Créer un nouveau groupe personnalisé
+  createCustomGroup: (name: string, scheme: DesignScheme, description?: string): CustomColorGroup => {
+    const now = new Date().toISOString();
+    return {
+      id: `custom-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name,
+      description,
+      scheme,
+      createdAt: now,
+      updatedAt: now,
+      isCustom: true,
+    };
+  },
+
+  // Ajouter un nouveau groupe personnalisé
+  addCustomGroup: (name: string, scheme: DesignScheme, description?: string): CustomColorGroup => {
+    const groups = customColorGroupsUtils.loadCustomGroups();
+    const newGroup = customColorGroupsUtils.createCustomGroup(name, scheme, description);
+    groups.push(newGroup);
+    customColorGroupsUtils.saveCustomGroups(groups);
+    return newGroup;
+  },
+
+  // Mettre à jour un groupe personnalisé existant
+  updateCustomGroup: (id: string, updates: Partial<Omit<CustomColorGroup, 'id' | 'createdAt' | 'isCustom'>>): CustomColorGroup | null => {
+    const groups = customColorGroupsUtils.loadCustomGroups();
+    const index = groups.findIndex(group => group.id === id);
+    
+    if (index === -1) return null;
+    
+    groups[index] = {
+      ...groups[index],
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    };
+    
+    customColorGroupsUtils.saveCustomGroups(groups);
+    return groups[index];
+  },
+
+  // Supprimer un groupe personnalisé
+  deleteCustomGroup: (id: string): boolean => {
+    const groups = customColorGroupsUtils.loadCustomGroups();
+    const filteredGroups = groups.filter(group => group.id !== id);
+    
+    if (filteredGroups.length === groups.length) return false;
+    
+    customColorGroupsUtils.saveCustomGroups(filteredGroups);
+    return true;
+  },
+
+  // Dupliquer un groupe personnalisé
+  duplicateCustomGroup: (id: string, newName?: string): CustomColorGroup | null => {
+    const groups = customColorGroupsUtils.loadCustomGroups();
+    const originalGroup = groups.find(group => group.id === id);
+    
+    if (!originalGroup) return null;
+    
+    const duplicatedGroup = customColorGroupsUtils.createCustomGroup(
+      newName || `${originalGroup.name} (Copie)`,
+      originalGroup.scheme,
+      originalGroup.description
+    );
+    
+    groups.push(duplicatedGroup);
+    customColorGroupsUtils.saveCustomGroups(groups);
+    return duplicatedGroup;
+  },
+
+  // Exporter tous les groupes personnalisés
+  exportCustomGroups: (): void => {
+    const groups = customColorGroupsUtils.loadCustomGroups();
+    const dataStr = JSON.stringify(groups, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `neurocode-custom-color-groups-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  },
+
+  // Importer des groupes personnalisés
+  importCustomGroups: (file: File): Promise<CustomColorGroup[]> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const imported = JSON.parse(e.target?.result as string);
+          
+          if (!Array.isArray(imported)) {
+            reject(new Error('Le fichier doit contenir un tableau de groupes'));
+            return;
+          }
+          
+          const validGroups: CustomColorGroup[] = imported.filter(group => 
+            group.id && group.name && group.scheme && group.isCustom
+          ).map(group => ({
+            ...group,
+            id: `imported-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // Nouveau ID pour éviter les conflits
+            updatedAt: new Date().toISOString(),
+          }));
+          
+          const existingGroups = customColorGroupsUtils.loadCustomGroups();
+          const allGroups = [...existingGroups, ...validGroups];
+          customColorGroupsUtils.saveCustomGroups(allGroups);
+          
+          resolve(validGroups);
+        } catch (error) {
+          reject(new Error('Erreur lors de l\'analyse du fichier JSON'));
+        }
+      };
+      reader.onerror = () => reject(new Error('Erreur lors de la lecture du fichier'));
+      reader.readAsText(file);
+    });
+  },
+
+  // Valider un nom de groupe (éviter les doublons)
+  validateGroupName: (name: string, excludeId?: string): { isValid: boolean; error?: string } => {
+    if (!name.trim()) {
+      return { isValid: false, error: 'Le nom ne peut pas être vide' };
+    }
+    
+    if (name.length > 50) {
+      return { isValid: false, error: 'Le nom ne peut pas dépasser 50 caractères' };
+    }
+    
+    const groups = customColorGroupsUtils.loadCustomGroups();
+    const nameExists = groups.some(group => 
+      group.name.toLowerCase() === name.toLowerCase() && group.id !== excludeId
+    );
+    
+    if (nameExists) {
+      return { isValid: false, error: 'Un groupe avec ce nom existe déjà' };
+    }
+    
+    return { isValid: true };
+  },
 };
