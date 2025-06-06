@@ -533,8 +533,8 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
         onClick={() => setShowAdvanced(!showAdvanced)}
         className={`group relative overflow-hidden flex-1 sm:flex-initial text-sm rounded-xl flex items-center justify-center gap-2 px-4 py-2.5 transition-all duration-300 transform hover:scale-105 ${
           showAdvanced
-            ? 'bg-gradient-to-r from-bolt-elements-item-contentAccent/20 to-bolt-elements-item-contentAccent/10 text-bolt-elements-item-contentAccent border border-bolt-elements-item-contentAccent/30 shadow-lg shadow-bolt-elements-item-contentAccent/20'
-            : 'bg-bolt-elements-button-primary-background hover:from-bolt-elements-bg-depth-1 hover:to-bolt-elements-bg-depth-2 text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary border border-bolt-elements-borderColor/30 hover:border-bolt-elements-borderColor'
+            ? ''
+            : 'bg-bolt-elements-button-primary-background hover:from-bolt-elements-bg-depth-1 hover:to-bolt-elements-bg-depth-2 text-bolt-elements-textSecondary hover:text-white border border-bolt-elements-borderColor/30 hover:border-bolt-elements-borderColor'
         }`}
       >
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
