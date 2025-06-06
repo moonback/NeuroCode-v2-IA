@@ -666,6 +666,7 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
                                 </motion.div>
                               </motion.div>
                               
+                              {/* Input file caché pour le bouton "Parcourir les fichiers" */}
                               <input
                                 ref={fileInputRef}
                                 type="file"
@@ -690,46 +691,101 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
                           <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="space-y-4"
+                            className="space-y-6"
                           >
+                            {/* Preview de l'image avec overlay d'actions */}
                             <div className="relative group">
                               {imagePreview && (
-                                <img
-                                  src={imagePreview}
-                                  alt="Aperçu de l'image sélectionnée"
-                                  className="w-full max-h-80 object-contain rounded-xl border border-bolt-elements-borderColor shadow-lg"
-                                  onError={() => {
-                                    toast.error('Erreur lors de l\'affichage de l\'image.');
-                                    setImagePreview(null);
-                                    setSelectedFile(null);
-                                    setCurrentStep(1);
-                                  }}
-                                />
+                                <div className="relative">
+                                  <img
+                                    src={imagePreview}
+                                    alt="Aperçu de l'image sélectionnée"
+                                    className="w-full max-h-80 object-contain rounded-xl border border-bolt-elements-borderColor shadow-lg"
+                                    onError={() => {
+                                      toast.error('Erreur lors de l\'affichage de l\'image.');
+                                      setImagePreview(null);
+                                      setSelectedFile(null);
+                                      setCurrentStep(1);
+                                    }}
+                                  />
+                                  
+                                  {/* Overlay avec actions */}
+                                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                    <div className="flex gap-3">
+                                      <motion.button
+                                        onClick={() => {
+                                          setSelectedFile(null);
+                                          setImagePreview(null);
+                                          setCurrentStep(1);
+                                        }}
+                                        className="p-3 bg-bolt-elements-button-danger-background backdrop-blur-sm text-bolt-elements-button-danger-text rounded-full hover:bg-bolt-elements-button-danger-backgroundHover transition-all shadow-lg"
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        title="Supprimer l'image"
+                                      >
+                                        <div className="i-ph:trash text-lg" />
+                                      </motion.button>
+                                      
+                                      <motion.button
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="p-3 bg-bolt-elements-background-depth-1 backdrop-blur-sm text-bolt-elements-textPrimary rounded-full hover:bg-bolt-elements-background-depth-2 transition-all shadow-lg"
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        title="Changer d'image"
+                                      >
+                                        <div className="i-ph:swap text-lg" />
+                                      </motion.button>
+                                    </div>
+                                  </div>
+                                </div>
                               )}
-                              <motion.button
-                                onClick={() => {
-                                  setSelectedFile(null);
-                                  setImagePreview(null);
-                                  setCurrentStep(1);
-                                }}
-                                className="absolute top-3 right-3 p-2 bg-bolt-elements-button-danger-background backdrop-blur text-bolt-elements-button-danger-text rounded-full hover:bg-bolt-elements-button-danger-backgroundHover transition-all shadow-lg opacity-0 group-hover:opacity-100"
-                                whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.9 }}
-                              >
-                                <div className="i-ph:trash text-sm" />
-                              </motion.button>
                             </div>
                             
-                            <div className="flex items-center gap-3 p-4 bg-bolt-elements-background-depth-2 rounded-lg border border-bolt-elements-borderColor">
-                              <div className="i-ph:file-image text-2xl text-bolt-elements-item-contentAccent" />
-                              <div className="flex-1">
-                                <p className="text-bolt-elements-textPrimary font-medium">{selectedFile.name}</p>
+                            {/* Informations du fichier avec design amélioré */}
+                            <motion.div 
+                              className="flex items-center gap-4 p-4 bg-gradient-to-r from-bolt-elements-background-depth-2 to-bolt-elements-background-depth-1 rounded-xl border border-bolt-elements-borderColor shadow-sm"
+                              initial={{ scale: 0.95 }}
+                              animate={{ scale: 1 }}
+                              transition={{ delay: 0.1 }}
+                            >
+                              <div className="flex-shrink-0">
+                                <div className="w-12 h-12 bg-bolt-elements-item-backgroundAccent rounded-lg flex items-center justify-center">
+                                  <div className="i-ph:file-image text-2xl text-bolt-elements-item-contentAccent" />
+                                </div>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-bolt-elements-textPrimary font-semibold truncate">{selectedFile.name}</p>
                                 <p className="text-bolt-elements-textSecondary text-sm">
-                                  {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                                  {(selectedFile.size / 1024 / 1024).toFixed(2)} MB • {selectedFile.type.split('/')[1].toUpperCase()}
                                 </p>
                               </div>
-                              <div className="i-ph:check-circle-fill text-2xl text-green-400" />
-                            </div>
+                              <div className="flex-shrink-0">
+                                <motion.div 
+                                  className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center"
+                                  initial={{ scale: 0 }}
+                                  animate={{ scale: 1 }}
+                                  transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                                >
+                                  <div className="i-ph:check text-white text-sm font-bold" />
+                                </motion.div>
+                              </div>
+                            </motion.div>
+                            
+                            {/* Call-to-action pour passer à l'étape suivante */}
+                            <motion.div 
+                              className="text-center p-4 bg-bolt-elements-item-backgroundAccent rounded-xl border border-bolt-elements-item-contentAccent"
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.3 }}
+                            >
+                              <div className="flex items-center justify-center gap-2 text-bolt-elements-item-contentAccent mb-2">
+                                <div className="i-ph:check-circle-fill text-lg" />
+                                <span className="font-medium">Image chargée avec succès !</span>
+                              </div>
+                              <p className="text-bolt-elements-textSecondary text-sm">
+                                Cliquez sur "Suivant" pour choisir le type d'analyse
+                              </p>
+                            </motion.div>
                           </motion.div>
                         )}
                       </motion.div>
