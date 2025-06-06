@@ -3,123 +3,25 @@ import { Dialog, DialogTitle, DialogDescription, DialogRoot } from './Dialog';
 import { Button } from './Button';
 import { IconButton } from './IconButton';
 import type { DesignScheme } from '~/types/design-scheme';
-import { defaultDesignScheme, designFeatures, designFonts, paletteRoles } from '~/types/design-scheme';
+import { 
+  defaultDesignScheme, 
+  designFeatures, 
+  designFonts, 
+  paletteRoles,
+  themePresets,
+  colorUtils,
+  validateDesignScheme,
+  checkWCAGCompliance,
+  ACCESSIBILITY_STANDARDS
+} from '~/types/design-scheme';
 
 export interface ColorSchemeDialogProps {
   designScheme?: DesignScheme;
   setDesignScheme?: (scheme: DesignScheme) => void;
 }
 
-// Préréglages de couleurs populaires
-const colorPresets = [
-  {
-    name: 'Dark Modern',
-    palette: {
-      primary: '#9E7FFF',
-      secondary: '#38bdf8',
-      accent: '#f472b6',
-      background: '#171717',
-      surface: '#262626',
-      text: '#FFFFFF',
-      textSecondary: '#A3A3A3',
-      border: '#2F2F2F',
-      success: '#10b981',
-      warning: '#f59e0b',
-      error: '#ef4444',
-    }
-  },
-  {
-    name: 'Light Clean',
-    palette: {
-      primary: '#3b82f6',
-      secondary: '#6366f1',
-      accent: '#ec4899',
-      background: '#ffffff',
-      surface: '#f8fafc',
-      text: '#1e293b',
-      textSecondary: '#64748b',
-      border: '#e2e8f0',
-      success: '#059669',
-      warning: '#d97706',
-      error: '#dc2626',
-    }
-  },
-  {
-    name: 'Ocean Blue',
-    palette: {
-      primary: '#0ea5e9',
-      secondary: '#06b6d4',
-      accent: '#8b5cf6',
-      background: '#0f172a',
-      surface: '#1e293b',
-      text: '#f1f5f9',
-      textSecondary: '#94a3b8',
-      border: '#334155',
-      success: '#22c55e',
-      warning: '#eab308',
-      error: '#f87171',
-    }
-  },
-  {
-    name: 'Warm Sunset',
-    palette: {
-      primary: '#f97316',
-      secondary: '#eab308',
-      accent: '#ef4444',
-      background: '#1c1917',
-      surface: '#292524',
-      text: '#fafaf9',
-      textSecondary: '#a8a29e',
-      border: '#44403c',
-      success: '#84cc16',
-      warning: '#f59e0b',
-      error: '#dc2626',
-    }
-  },
-  {
-    name: 'Forest Green',
-    palette: {
-      primary: '#059669',
-      secondary: '#0d9488',
-      accent: '#7c3aed',
-      background: '#0c0a09',
-      surface: '#1c1917',
-      text: '#fafaf9',
-      textSecondary: '#a8a29e',
-      border: '#292524',
-      success: '#22c55e',
-      warning: '#f59e0b',
-      error: '#ef4444',
-    }
-  }
-];
-
-// Utilitaires pour la validation des couleurs
-const isValidHexColor = (color: string): boolean => {
-  return /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(color);
-};
-
-const getContrastRatio = (color1: string, color2: string): number => {
-  const getLuminance = (color: string): number => {
-    const hex = color.replace('#', '');
-    const r = parseInt(hex.substr(0, 2), 16) / 255;
-    const g = parseInt(hex.substr(2, 2), 16) / 255;
-    const b = parseInt(hex.substr(4, 2), 16) / 255;
-    
-    const sRGB = [r, g, b].map(c => {
-      return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
-    });
-    
-    return 0.2126 * sRGB[0] + 0.7152 * sRGB[1] + 0.0722 * sRGB[2];
-  };
-  
-  const l1 = getLuminance(color1);
-  const l2 = getLuminance(color2);
-  const lighter = Math.max(l1, l2);
-  const darker = Math.min(l1, l2);
-  
-  return (lighter + 0.05) / (darker + 0.05);
-};
+// Utilisation des préréglages de thèmes depuis design-scheme.ts
+const colorPresets = themePresets;
 
 export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignScheme, designScheme }) => {
   const [palette, setPalette] = useState<{ [key: string]: string }>(() => {
@@ -175,7 +77,9 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
   };
 
   const handlePresetSelect = (preset: typeof colorPresets[0]) => {
-    setPalette(preset.palette);
+    setPalette(preset.scheme.palette);
+    setFeatures(preset.scheme.features);
+    setFont(preset.scheme.font);
   };
 
   const handleExportScheme = useCallback(() => {
@@ -211,13 +115,9 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
   }, []);
 
   const generateRandomPalette = useCallback(() => {
-    const generateRandomColor = () => {
-      return '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
-    };
-
     const newPalette = { ...palette };
     Object.keys(newPalette).forEach(key => {
-      newPalette[key] = generateRandomColor();
+      newPalette[key] = colorUtils.generateRandomColor();
     });
     setPalette(newPalette);
   }, [palette]);
@@ -231,21 +131,25 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
     );
   }, [searchTerm]);
 
-  // Validation des contrastes
+  // Validation des contrastes avec les nouvelles fonctions
   const contrastWarnings = useMemo(() => {
     const warnings: string[] = [];
-    const textContrast = getContrastRatio(palette.text, palette.background);
-    const primaryContrast = getContrastRatio(palette.primary, palette.background);
+    const validationErrors = validateDesignScheme({ palette, features, font });
     
-    if (textContrast < 4.5) {
-      warnings.push('Le contraste du texte principal est insuffisant (< 4.5:1)');
+    // Ajouter les erreurs de validation
+    warnings.push(...validationErrors);
+    
+    // Vérifications WCAG supplémentaires
+    if (!checkWCAGCompliance(palette.text, palette.background, 'AA', 'normal')) {
+      warnings.push('Le texte principal ne respecte pas les standards WCAG AA');
     }
-    if (primaryContrast < 3) {
-      warnings.push('Le contraste de la couleur primaire est insuffisant (< 3:1)');
+    
+    if (!checkWCAGCompliance(palette.primary, palette.background, 'AA', 'normal')) {
+      warnings.push('La couleur primaire ne respecte pas les standards WCAG AA');
     }
     
     return warnings;
-  }, [palette]);
+  }, [palette, features, font]);
 
 
 
@@ -253,9 +157,13 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
 
   // Fonction pour vérifier si un préréglage est actuellement sélectionné
   const isPresetSelected = (preset: typeof colorPresets[0]): boolean => {
-    return Object.keys(preset.palette).every(key => 
-      palette[key] === preset.palette[key as keyof typeof preset.palette]
+    const paletteMatch = Object.keys(preset.scheme.palette).every(key => 
+      palette[key] === preset.scheme.palette[key as keyof typeof preset.scheme.palette]
     );
+    const featuresMatch = JSON.stringify(features.sort()) === JSON.stringify(preset.scheme.features.sort());
+    const fontMatch = JSON.stringify(font.sort()) === JSON.stringify(preset.scheme.font.sort());
+    
+    return paletteMatch && featuresMatch && fontMatch;
   };
 
   const renderPresetsSection = () => (
@@ -307,7 +215,7 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
               </div>
               
               <div className="flex gap-1 mb-2">
-                {Object.entries(preset.palette).slice(0, 6).map(([key, color]) => (
+                {Object.entries(preset.scheme.palette).slice(0, 6).map(([key, color]) => (
                   <div
                     key={key}
                     className={`w-6 h-6 rounded-md shadow-sm transition-all duration-200 ${
@@ -319,11 +227,17 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
                 ))}
               </div>
               
-              <div className={`text-xs transition-colors ${
+              <div className={`text-xs transition-colors mb-1 ${
                 isSelected ? 'text-bolt-elements-item-contentAccent' : 'text-bolt-elements-textSecondary'
               }`}>
-                {Object.keys(preset.palette).length} couleurs
+                {Object.keys(preset.scheme.palette).length} couleurs • {preset.scheme.features.length} fonctionnalités
                 {isSelected && ' • Sélectionné'}
+              </div>
+              
+              <div className={`text-xs transition-colors ${
+                isSelected ? 'text-bolt-elements-item-contentAccent/80' : 'text-bolt-elements-textTertiary'
+              }`}>
+                {preset.description}
               </div>
             </div>
           );
@@ -386,8 +300,9 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
         {filteredPaletteRoles.map((role) => {
-          const contrastRatio = role.key === 'text' ? getContrastRatio(palette[role.key], palette.background) : null;
-          const hasGoodContrast = contrastRatio ? contrastRatio >= 4.5 : true;
+          const contrastRatio = role.key === 'text' ? colorUtils.getContrastRatio(palette[role.key], palette.background) : null;
+          const hasGoodContrast = contrastRatio ? contrastRatio >= ACCESSIBILITY_STANDARDS.WCAG_AA_NORMAL : true;
+          const wcagCompliant = role.key === 'text' ? checkWCAGCompliance(palette[role.key], palette.background) : true;
           
           return (
             <div
