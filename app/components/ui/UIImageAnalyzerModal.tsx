@@ -5,6 +5,7 @@ import { classNames } from '~/utils/classNames';
 import { cubicEasingFn } from '~/utils/easings';
 import { IconButton } from './IconButton';
 import { Button } from './Button';
+import { DialogTitle, DialogDescription } from './Dialog';
 
 export { Close as UIImageAnalyzerModalClose, Root as UIImageAnalyzerModalRoot } from '@radix-ui/react-dialog';
 
@@ -114,6 +115,12 @@ export const UIImageAnalyzerModal = memo(({ children, className, onClose, onBack
           exit="closed"
           variants={modalVariants}
         >
+          {/* Éléments d'accessibilité requis par Radix UI */}
+          <DialogTitle className="sr-only">Analyser une interface utilisateur</DialogTitle>
+          <DialogDescription className="sr-only">
+            Modal pour uploader et analyser une image d'interface utilisateur
+          </DialogDescription>
+          
           <div className="flex flex-col h-full">
             {children}
             <RadixDialog.Close asChild onClick={onClose}>
