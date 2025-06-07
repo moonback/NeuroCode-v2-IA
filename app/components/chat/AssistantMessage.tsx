@@ -237,8 +237,9 @@ export const AssistantMessage = memo(
                 {reasoning}
               </div>
               {reasoning.includes('[Raisonnement tronqué...]') && (
-                <div className="mt-2 text-xs text-blue-600 dark:text-blue-400 italic">
-                  💡 Le raisonnement complet a été tronqué pour l'affichage
+                <div className="mt-3 flex items-center gap-2 text-xs text-blue-600 dark:text-blue-400">
+                  <div className="i-ph:info text-blue-500" />
+                  <span className="italic">Le raisonnement complet a été tronqué pour l'affichage</span>
                 </div>
               )}
             </div>
