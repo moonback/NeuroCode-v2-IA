@@ -496,16 +496,16 @@ function assessComplexity(message: string): string {
 
             (async () => {
               let fullContent = '';
-              let isGoogleThinkingModel = false;
               
               // Extraire le modèle et le fournisseur du dernier message utilisateur
               const lastUserMessage = messages.filter((x) => x.role == 'user').slice(-1)[0];
               const { model, provider } = extractPropertiesFromMessage(lastUserMessage);
               
-              // Vérifier si c'est un modèle Google thinking
-              if (provider === 'Google' && model && model.includes('thinking')) {
-                isGoogleThinkingModel = true;
-              }
+              // 1) Déterminer une fois pour toutes si l'on doit tenter l'extraction
+              const isGoogleModel = provider === 'Google';
+              
+              // 2) Toujours accumuler le flux (avec plafond ajustable)
+              const MAX_CAPTURE_LEN = 20000;   // 20 k – suffit pour ~8k tokens
               
               for await (const part of result.fullStream) {
                 if (part.type === 'error') {
@@ -514,18 +514,26 @@ function assessComplexity(message: string): string {
                   return;
                 }
                 
-                // Capturer tout le contenu pour les modèles Google thinking
-                if (isGoogleThinkingModel && part.type === 'text-delta' && part.textDelta) {
-                  if (fullContent.length < 10000) { // Limite généreuse pour la capture
+                // Capturer tout le contenu pour les modèles Google
+                if (isGoogleModel && part.type === 'text-delta' && part.textDelta) {
+                  if (fullContent.length < MAX_CAPTURE_LEN) {
                     fullContent += part.textDelta;
                   }
                 }
                 
-                // Traiter le raisonnement à la fin de la génération pour tous les modèles
-                if (part.type === 'finish' && fullContent.trim()) {
-                  const reasoningResult = extractReasoning(fullContent, 10000);
+                // 3) Déclencher l'extraction plus tôt : dès qu'on voit la balise ouvrante
+                const hasThinkingTag = fullContent.includes('<thinking>');
+                const hasClosingTag = 
+                  fullContent.includes('</thinking>') || 
+                  fullContent.includes('</reasoning>') || 
+                  fullContent.includes('</analyse>');
+                const shouldExtractReasoning = 
+                  (hasClosingTag || (hasThinkingTag && fullContent.length > 20000) || fullContent.length > MAX_CAPTURE_LEN / 2);
+                
+                if (shouldExtractReasoning && isGoogleModel && fullContent.trim()) {
+                  const reasoningResult = extractReasoning(fullContent, MAX_CAPTURE_LEN);
                   
-                  if (reasoningResult) {
+                  if (reasoningResult && reasoningResult.content.trim().length > 200) {
                     // Ajouter l'annotation de raisonnement
                     dataStream.writeMessageAnnotation({
                       type: 'reasoning',
@@ -582,17 +590,17 @@ function assessComplexity(message: string): string {
 
         (async () => {
           let fullContent = '';
-          let isGoogleThinkingModel = false;
           let reasoningProcessed = false; // Variable pour suivre l'état du raisonnement
           
           // Extraire le modèle et le fournisseur du dernier message utilisateur
           const lastUserMessage = messages.filter((x) => x.role == 'user').slice(-1)[0];
           const { model, provider } = extractPropertiesFromMessage(lastUserMessage);
           
-          // Vérifier si c'est un modèle Google thinking
-          if (provider === 'Google' && model && model.includes('thinking')) {
-            isGoogleThinkingModel = true;
-          }
+          // 1) Déterminer une fois pour toutes si l'on doit tenter l'extraction
+          const isGoogleModel = provider === 'Google';
+          
+          // 2) Toujours accumuler le flux (avec plafond ajustable)
+          const MAX_CAPTURE_LEN = 20000;   // 20 k – suffit pour ~8k tokens
           
           for await (const part of result.fullStream) {
             if (part.type === 'error') {
@@ -601,27 +609,28 @@ function assessComplexity(message: string): string {
               return;
             }
             
-            // Capturer tout le contenu pour les modèles Google thinking
-            if (isGoogleThinkingModel && part.type === 'text-delta' && part.textDelta) {
-              if (fullContent.length < 10000) { // Limite généreuse pour la capture
+            // Capturer tout le contenu pour les modèles Google
+            if (isGoogleModel && part.type === 'text-delta' && part.textDelta) {
+              if (fullContent.length < MAX_CAPTURE_LEN) {
                 fullContent += part.textDelta;
               }
             }
             
-            // Traiter le raisonnement de manière progressive pendant le streaming
-            if (part.type === 'text-delta' && part.textDelta) {
-              // Attendre plus de contenu avant d'extraire le raisonnement
-              const shouldExtractReasoning = fullContent.length > 500 && 
-                (fullContent.includes('</thinking>') || 
-                 fullContent.includes('</reasoning>') || 
-                 fullContent.includes('</analyse>') ||
-                 fullContent.includes('<thinking>') ||
-                 fullContent.length > 2000); // Ou si le contenu est déjà long
+            // 3) Déclencher l'extraction plus tôt : dès qu'on voit la balise ouvrante
+            if (part.type === 'text-delta' && part.textDelta && isGoogleModel) {
+              const hasThinkingTag = fullContent.includes('<thinking>');
+              const hasClosingTag = 
+                fullContent.includes('</thinking>') || 
+                fullContent.includes('</reasoning>') || 
+                fullContent.includes('</analyse>');
+              const shouldExtractReasoning = 
+                !reasoningProcessed && 
+                (hasClosingTag || (hasThinkingTag && fullContent.length > 20000) || fullContent.length > MAX_CAPTURE_LEN / 2);
               
-              if (shouldExtractReasoning && !reasoningProcessed) {
-                const reasoningResult = extractReasoning(fullContent, 10000);
+              if (shouldExtractReasoning) {
+                const reasoningResult = extractReasoning(fullContent, MAX_CAPTURE_LEN);
                 
-                if (reasoningResult && reasoningResult.content.length > 1200) { // S'assurer d'avoir un raisonnement substantiel
+                if (reasoningResult && reasoningResult.content.trim().length > 200) { // Seuil de contenu plus permissif
                   reasoningProcessed = true;
                   
                   // Ajouter un message de progression pour l'extraction du raisonnement
@@ -652,7 +661,7 @@ function assessComplexity(message: string): string {
                     label: 'thinking-extraction',
                     status: 'complete',
                     order: progressCounter++,
-                    message: '✅ Processus de réflexion extrait avec succès',
+                    message: '✅ Processus de réflexion ',
                   } satisfies ProgressAnnotation);
                   
                   // Nettoyer le contenu et continuer avec la réponse propre
@@ -665,7 +674,7 @@ function assessComplexity(message: string): string {
             }
             
             // Traitement final à la fin de la génération (fallback)
-            if (part.type === 'finish' && fullContent.trim() && !reasoningProcessed) {
+            if (part.type === 'finish' && fullContent.trim() && !reasoningProcessed && isGoogleModel) {
               // Ajouter un message de progression pour l'extraction fallback
               dataStream.writeData({
                 type: 'progress',
@@ -675,7 +684,7 @@ function assessComplexity(message: string): string {
                 message: '🔍 Recherche de processus de réflexion <thinking> non détecté...',
               } satisfies ProgressAnnotation);
               
-              const reasoningResult = extractReasoning(fullContent, 10000);
+              const reasoningResult = extractReasoning(fullContent, MAX_CAPTURE_LEN);
               
               if (reasoningResult) {
                 // Marquer l'extraction fallback comme réussie

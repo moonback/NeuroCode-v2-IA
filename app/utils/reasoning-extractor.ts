@@ -7,20 +7,92 @@ export interface ReasoningExtractionResult {
   originalLength: number;
   extractionMethod: 'explicit' | 'pattern' | 'heuristic' | 'fallback';
   confidence: 'high' | 'medium' | 'low';
+  patterns?: ReasoningPattern[];
+  cacheKey?: string;
+  streamingChunks?: string[];
 }
+
+export interface ReasoningPattern {
+  type: 'question' | 'analysis' | 'decision' | 'step' | 'consideration' | 'conclusion';
+  content: string;
+  confidence: number;
+  position: { start: number; end: number };
+  keywords: string[];
+}
+
+export interface ReasoningCache {
+  [key: string]: {
+    result: ReasoningExtractionResult;
+    timestamp: number;
+    accessCount: number;
+    contentHash: string;
+  };
+}
+
+export interface StreamingExtractionState {
+  buffer: string;
+  extractedChunks: string[];
+  currentPattern: string | null;
+  confidence: number;
+  isComplete: boolean;
+}
+
+// Cache intelligent pour les extractions de raisonnement
+const reasoningCache: ReasoningCache = {};
+const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+const MAX_CACHE_SIZE = 100;
+
+// Patterns de raisonnement pour l'analyse
+const REASONING_PATTERNS = {
+  question: {
+    patterns: [/\b(comment|pourquoi|que|quel|how|why|what|which).{10,}\?/gi, /\?.{0,20}$/gm],
+    weight: 0.8
+  },
+  analysis: {
+    patterns: [/\b(analyser?|examiner|évaluer|considérer|analysis|examine|evaluate|consider)\b/gi],
+    weight: 0.9
+  },
+  decision: {
+    patterns: [/\b(décider|choisir|opter|sélectionner|decide|choose|select|opt)\b/gi],
+    weight: 0.85
+  },
+  step: {
+    patterns: [/\b(étape|d'abord|ensuite|puis|enfin|step|first|then|next|finally)\b/gi],
+    weight: 0.7
+  },
+  consideration: {
+    patterns: [/\b(considération|aspect|facteur|élément|consideration|aspect|factor|element)\b/gi],
+    weight: 0.6
+  },
+  conclusion: {
+    patterns: [/\b(conclusion|résultat|donc|ainsi|par conséquent|conclusion|result|therefore|thus)\b/gi],
+    weight: 0.8
+  }
+};
 
 /**
  * Extrait le raisonnement d'un contenu de réponse de modèle thinking
  * @param content Le contenu complet de la réponse
  * @param maxLength Longueur maximale du raisonnement extrait
+ * @param useCache Utiliser le cache intelligent (défaut: true)
  * @returns Le raisonnement extrait avec métadonnées ou null si aucun raisonnement trouvé
  */
 export function extractReasoning(
   content: string,
-  maxLength: number = 10000
+  maxLength: number = 10000,
+  useCache: boolean = true
 ): ReasoningExtractionResult | null {
   if (!content || content.trim().length === 0) {
     return null;
+  }
+
+  // Vérifier le cache en premier
+  if (useCache) {
+    const cacheKey = generateCacheKey(content);
+    const cachedResult = getCachedReasoning(cacheKey, content);
+    if (cachedResult) {
+      return cachedResult;
+    }
   }
 
   const originalLength = content.length;
@@ -143,12 +215,194 @@ export function extractReasoning(
     extractedContent = extractedContent.substring(0, truncateAt).trim() + '\n\n[Raisonnement tronqué pour la lisibilité...]';
   }
 
-  return {
+  // Analyser les patterns de raisonnement
+  const patterns = analyzeReasoningPatterns(extractedContent);
+  
+  // Générer une clé de cache
+  const cacheKey = generateCacheKey(content);
+  
+  const result: ReasoningExtractionResult = {
     content: extractedContent,
     originalLength,
     extractionMethod,
-    confidence
+    confidence,
+    patterns,
+    cacheKey
   };
+  
+  // Mettre en cache le résultat
+  cacheReasoningResult(cacheKey, result, content);
+  
+  return result;
+}
+
+/**
+ * Cache intelligent pour les extractions de raisonnement
+ */
+function generateCacheKey(content: string): string {
+  // Créer une clé basée sur un hash du contenu
+  const contentHash = simpleHash(content.substring(0, 500)); // Utiliser les 500 premiers caractères
+  return `reasoning_${contentHash}_${content.length}`;
+}
+
+function simpleHash(str: string): string {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convertir en 32bit integer
+  }
+  return Math.abs(hash).toString(36);
+}
+
+function cacheReasoningResult(cacheKey: string, result: ReasoningExtractionResult, content: string): void {
+  // Nettoyer le cache si nécessaire
+  cleanupCache();
+  
+  const contentHash = simpleHash(content);
+  reasoningCache[cacheKey] = {
+    result,
+    timestamp: Date.now(),
+    accessCount: 1,
+    contentHash
+  };
+}
+
+function getCachedReasoning(cacheKey: string, content: string): ReasoningExtractionResult | null {
+  const cached = reasoningCache[cacheKey];
+  if (!cached) return null;
+  
+  // Vérifier la validité du cache
+  const now = Date.now();
+  if (now - cached.timestamp > CACHE_TTL) {
+    delete reasoningCache[cacheKey];
+    return null;
+  }
+  
+  // Vérifier que le contenu n'a pas changé
+  const contentHash = simpleHash(content);
+  if (cached.contentHash !== contentHash) {
+    delete reasoningCache[cacheKey];
+    return null;
+  }
+  
+  // Mettre à jour les statistiques d'accès
+  cached.accessCount++;
+  cached.timestamp = now;
+  
+  return cached.result;
+}
+
+function cleanupCache(): void {
+  const now = Date.now();
+  const cacheKeys = Object.keys(reasoningCache);
+  
+  // Supprimer les entrées expirées
+  for (const key of cacheKeys) {
+    if (now - reasoningCache[key].timestamp > CACHE_TTL) {
+      delete reasoningCache[key];
+    }
+  }
+  
+  // Si le cache est encore trop grand, supprimer les moins utilisées
+  const remainingKeys = Object.keys(reasoningCache);
+  if (remainingKeys.length > MAX_CACHE_SIZE) {
+    const sortedKeys = remainingKeys.sort((a, b) => {
+      const aEntry = reasoningCache[a];
+      const bEntry = reasoningCache[b];
+      // Trier par fréquence d'accès puis par timestamp
+      if (aEntry.accessCount !== bEntry.accessCount) {
+        return aEntry.accessCount - bEntry.accessCount;
+      }
+      return aEntry.timestamp - bEntry.timestamp;
+    });
+    
+    // Supprimer les 20% les moins utilisées
+    const toRemove = Math.floor(sortedKeys.length * 0.2);
+    for (let i = 0; i < toRemove; i++) {
+      delete reasoningCache[sortedKeys[i]];
+    }
+  }
+}
+
+/**
+ * Analyse les patterns de raisonnement dans le contenu
+ */
+function analyzeReasoningPatterns(content: string): ReasoningPattern[] {
+  const patterns: ReasoningPattern[] = [];
+  
+  for (const [patternType, config] of Object.entries(REASONING_PATTERNS)) {
+    for (const regex of config.patterns) {
+      const matches = Array.from(content.matchAll(regex));
+      
+      for (const match of matches) {
+        if (match.index !== undefined) {
+          const matchContent = match[0];
+          const start = match.index;
+          const end = start + matchContent.length;
+          
+          // Extraire les mots-clés du match
+          const keywords = extractKeywords(matchContent);
+          
+          // Calculer la confiance basée sur le contexte
+          const contextConfidence = calculateContextConfidence(content, start, end);
+          const finalConfidence = config.weight * contextConfidence;
+          
+          patterns.push({
+            type: patternType as ReasoningPattern['type'],
+            content: matchContent.trim(),
+            confidence: finalConfidence,
+            position: { start, end },
+            keywords
+          });
+        }
+      }
+    }
+  }
+  
+  // Trier par confiance décroissante
+  return patterns.sort((a, b) => b.confidence - a.confidence);
+}
+
+function extractKeywords(content: string): string[] {
+  const words = content.toLowerCase().match(/\b\w{3,}\b/g) || [];
+  const stopWords = new Set(['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 
+                             'le', 'la', 'les', 'et', 'ou', 'mais', 'dans', 'sur', 'pour', 'avec', 'par']);
+  
+  return words.filter(word => !stopWords.has(word) && word.length > 3);
+}
+
+function calculateContextConfidence(content: string, start: number, end: number): number {
+  const contextRadius = 100;
+  const contextStart = Math.max(0, start - contextRadius);
+  const contextEnd = Math.min(content.length, end + contextRadius);
+  const context = content.substring(contextStart, contextEnd);
+  
+  let confidence = 0.5; // Base confidence
+  
+  // Bonus pour les indicateurs de raisonnement dans le contexte
+  const reasoningIndicators = [
+    /\b(analyser?|considérer|examiner|évaluer)\b/gi,
+    /\b(donc|ainsi|par conséquent|cependant)\b/gi,
+    /\b(premièrement|deuxièmement|d'abord|ensuite)\b/gi
+  ];
+  
+  for (const indicator of reasoningIndicators) {
+    if (indicator.test(context)) {
+      confidence += 0.1;
+    }
+  }
+  
+  // Bonus pour la longueur du contexte (plus de détails = plus de confiance)
+  if (context.length > 200) confidence += 0.1;
+  if (context.length > 400) confidence += 0.1;
+  
+  // Malus pour les indicateurs de code ou de réponse finale
+  if (/```|\bcode\b|\bfunction\b|\bclass\b/i.test(context)) {
+    confidence -= 0.2;
+  }
+  
+  return Math.max(0, Math.min(1, confidence));
 }
 
 /**
@@ -546,4 +800,274 @@ export function isLikelyReasoning(content: string): boolean {
   const hasSingleStrongIndicator = matchCount >= 1 && content.length > 100;
 
   return hasMinLength && (hasMultipleIndicators || hasSingleStrongIndicator);
+}
+
+/**
+ * Extraction en streaming pour traiter le raisonnement au fur et à mesure
+ */
+export function createStreamingExtractor(): {
+  processChunk: (chunk: string) => ReasoningExtractionResult | null;
+  getState: () => StreamingExtractionState;
+  finalize: () => ReasoningExtractionResult | null;
+} {
+  let state: StreamingExtractionState = {
+    buffer: '',
+    extractedChunks: [],
+    currentPattern: null,
+    confidence: 0,
+    isComplete: false
+  };
+
+  const processChunk = (chunk: string): ReasoningExtractionResult | null => {
+    if (state.isComplete) return null;
+
+    state.buffer += chunk;
+    
+    // Détecter les balises de début de raisonnement
+    const startPatterns = [
+      /<thinking[^>]*>/i,
+      /<reasoning[^>]*>/i,
+      /<analyse[^>]*>/i,
+      /\[THINKING\]/i,
+      /\[REASONING\]/i
+    ];
+
+    // Détecter les balises de fin de raisonnement
+    const endPatterns = [
+      /<\/thinking>/i,
+      /<\/reasoning>/i,
+      /<\/analyse>/i,
+      /\[\/THINKING\]/i,
+      /\[\/REASONING\]/i
+    ];
+
+    // Si on n'a pas encore détecté de pattern, chercher le début
+    if (!state.currentPattern) {
+      for (const pattern of startPatterns) {
+        const match = state.buffer.match(pattern);
+        if (match) {
+          state.currentPattern = match[0];
+          // Extraire le contenu après la balise d'ouverture
+          const startIndex = state.buffer.indexOf(match[0]) + match[0].length;
+          const contentAfterTag = state.buffer.substring(startIndex);
+          if (contentAfterTag.trim()) {
+            state.extractedChunks.push(contentAfterTag);
+          }
+          break;
+        }
+      }
+    } else {
+      // On est dans un pattern de raisonnement, accumuler le contenu
+      const newContent = chunk;
+      
+      // Vérifier si on a atteint la fin du raisonnement
+      let endFound = false;
+      for (const pattern of endPatterns) {
+        if (pattern.test(state.buffer)) {
+          endFound = true;
+          // Extraire le contenu jusqu'à la balise de fin
+          const endMatch = state.buffer.match(pattern);
+          if (endMatch) {
+            const endIndex = state.buffer.indexOf(endMatch[0]);
+            const finalContent = state.buffer.substring(0, endIndex);
+            // Nettoyer et ajouter le contenu final
+            const cleanedContent = finalContent.replace(new RegExp(state.currentPattern, 'i'), '').trim();
+            if (cleanedContent) {
+              state.extractedChunks = [cleanedContent]; // Remplacer par le contenu complet
+            }
+          }
+          state.isComplete = true;
+          break;
+        }
+      }
+      
+      if (!endFound) {
+        // Continuer à accumuler le contenu
+        state.extractedChunks.push(newContent);
+      }
+    }
+
+    // Calculer la confiance basée sur le contenu accumulé
+    const accumulatedContent = state.extractedChunks.join('');
+    if (accumulatedContent.length > 50) {
+      state.confidence = calculateStreamingConfidence(accumulatedContent);
+      
+      // Retourner un résultat partiel si on a suffisamment de contenu
+      if (accumulatedContent.length > 200 || state.isComplete) {
+        return {
+          content: accumulatedContent.trim(),
+          originalLength: state.buffer.length,
+          extractionMethod: state.currentPattern ? 'explicit' : 'pattern',
+          confidence: state.confidence > 0.7 ? 'high' : state.confidence > 0.4 ? 'medium' : 'low',
+          streamingChunks: [...state.extractedChunks],
+          patterns: analyzeReasoningPatterns(accumulatedContent)
+        };
+      }
+    }
+
+    return null;
+  };
+
+  const getState = (): StreamingExtractionState => ({ ...state });
+
+  const finalize = (): ReasoningExtractionResult | null => {
+    const accumulatedContent = state.extractedChunks.join('').trim();
+    if (!accumulatedContent) {
+      // Essayer d'extraire avec les méthodes classiques
+      return extractReasoning(state.buffer, 10000, false);
+    }
+
+    return {
+      content: accumulatedContent,
+      originalLength: state.buffer.length,
+      extractionMethod: state.currentPattern ? 'explicit' : 'heuristic',
+      confidence: state.confidence > 0.7 ? 'high' : state.confidence > 0.4 ? 'medium' : 'low',
+      streamingChunks: state.extractedChunks,
+      patterns: analyzeReasoningPatterns(accumulatedContent)
+    };
+  };
+
+  return { processChunk, getState, finalize };
+}
+
+function calculateStreamingConfidence(content: string): number {
+  let confidence = 0.3; // Base confidence pour le streaming
+  
+  // Bonus pour les indicateurs de raisonnement
+  const reasoningWords = [
+    /\b(analyser?|considérer|examiner|évaluer)\b/gi,
+    /\b(donc|ainsi|par conséquent|cependant)\b/gi,
+    /\b(premièrement|deuxièmement|d'abord|ensuite)\b/gi
+  ];
+  
+  for (const pattern of reasoningWords) {
+    const matches = content.match(pattern);
+    if (matches) {
+      confidence += matches.length * 0.1;
+    }
+  }
+  
+  // Bonus pour la structure
+  if (content.includes('?')) confidence += 0.1;
+  if (content.length > 100) confidence += 0.1;
+  if (content.length > 300) confidence += 0.1;
+  
+  // Malus pour les indicateurs de code
+  if (/```|\bfunction\b|\bclass\b|\bconst\b/i.test(content)) {
+    confidence -= 0.2;
+  }
+  
+  return Math.max(0, Math.min(1, confidence));
+}
+
+/**
+ * Analyse avancée des patterns de raisonnement avec métriques détaillées
+ */
+export function getReasoningAnalytics(content: string): {
+  patterns: ReasoningPattern[];
+  metrics: {
+    totalPatterns: number;
+    averageConfidence: number;
+    dominantType: string;
+    complexityScore: number;
+    readabilityScore: number;
+  };
+  suggestions: string[];
+} {
+  const patterns = analyzeReasoningPatterns(content);
+  
+  // Calculer les métriques
+  const totalPatterns = patterns.length;
+  const averageConfidence = patterns.length > 0 
+    ? patterns.reduce((sum, p) => sum + p.confidence, 0) / patterns.length 
+    : 0;
+  
+  // Trouver le type dominant
+  const typeCounts = patterns.reduce((counts, pattern) => {
+    counts[pattern.type] = (counts[pattern.type] || 0) + 1;
+    return counts;
+  }, {} as Record<string, number>);
+  
+  const dominantType = Object.entries(typeCounts)
+    .sort(([,a], [,b]) => b - a)[0]?.[0] || 'none';
+  
+  // Score de complexité basé sur la diversité des patterns
+  const uniqueTypes = Object.keys(typeCounts).length;
+  const complexityScore = Math.min(1, uniqueTypes / 6); // 6 types maximum
+  
+  // Score de lisibilité basé sur la structure
+  const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 10);
+  const avgSentenceLength = sentences.length > 0 
+    ? sentences.reduce((sum, s) => sum + s.length, 0) / sentences.length 
+    : 0;
+  const readabilityScore = Math.max(0, Math.min(1, 1 - (avgSentenceLength - 100) / 200));
+  
+  // Générer des suggestions
+  const suggestions: string[] = [];
+  
+  if (averageConfidence < 0.5) {
+    suggestions.push("Le raisonnement pourrait être plus explicite avec des connecteurs logiques.");
+  }
+  
+  if (uniqueTypes < 3) {
+    suggestions.push("Diversifier les types de raisonnement (questions, analyses, étapes).");
+  }
+  
+  if (readabilityScore < 0.6) {
+    suggestions.push("Raccourcir les phrases pour améliorer la lisibilité.");
+  }
+  
+  if (!patterns.some(p => p.type === 'conclusion')) {
+    suggestions.push("Ajouter une conclusion claire au raisonnement.");
+  }
+  
+  return {
+    patterns,
+    metrics: {
+      totalPatterns,
+      averageConfidence,
+      dominantType,
+      complexityScore,
+      readabilityScore
+    },
+    suggestions
+  };
+}
+
+/**
+ * Nettoie le cache de raisonnement (utilitaire pour la maintenance)
+ */
+export function clearReasoningCache(): void {
+  Object.keys(reasoningCache).forEach(key => {
+    delete reasoningCache[key];
+  });
+}
+
+/**
+ * Obtient les statistiques du cache
+ */
+export function getCacheStats(): {
+  size: number;
+  totalAccess: number;
+  averageAge: number;
+  hitRate: number;
+} {
+  const keys = Object.keys(reasoningCache);
+  const now = Date.now();
+  
+  const totalAccess = keys.reduce((sum, key) => sum + reasoningCache[key].accessCount, 0);
+  const averageAge = keys.length > 0 
+    ? keys.reduce((sum, key) => sum + (now - reasoningCache[key].timestamp), 0) / keys.length 
+    : 0;
+  
+  // Estimation du hit rate basée sur les accès multiples
+  const multipleAccessEntries = keys.filter(key => reasoningCache[key].accessCount > 1).length;
+  const hitRate = keys.length > 0 ? multipleAccessEntries / keys.length : 0;
+  
+  return {
+    size: keys.length,
+    totalAccess,
+    averageAge: averageAge / 1000, // en secondes
+    hitRate
+  };
 }

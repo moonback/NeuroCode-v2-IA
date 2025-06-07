@@ -53,40 +53,13 @@ function normalizedFilePath(path: string) {
 }
 
 // Composant pour afficher l'indicateur de thinking en attente
-const ThinkingIndicator = () => {
-  return (
-    <div className="mb-4">
-      <div className="relative overflow-hidden bg-gradient-to-r from-indigo-50 to-violet-50 dark:from-indigo-900/30 dark:to-violet-900/30 border border-indigo-200/70 dark:border-indigo-700/70 rounded-lg shadow-sm backdrop-blur-sm">
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-3">
-            <div className="flex-shrink-0 w-6 h-6 rounded-md bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
-              <div className="i-ph:brain text-white text-sm animate-pulse" />
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-indigo-700 dark:text-indigo-200">Thinking...</span>
-              
-              <div className="flex items-center gap-1">
-                <div className="w-1 h-1 rounded-full bg-indigo-500 animate-bounce" style={{animationDelay: '0ms'}} />
-                <div className="w-1 h-1 rounded-full bg-indigo-500 animate-bounce" style={{animationDelay: '150ms'}} />
-                <div className="w-1 h-1 rounded-full bg-indigo-500 animate-bounce" style={{animationDelay: '300ms'}} />
-              </div>
-            </div>
-          </div>
-          
-          <span className="text-xs text-indigo-600 dark:text-indigo-400">
-            Génération du raisonnement...
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-};
+
 
 // Composant pour afficher le raisonnement avec design moderne et amélioré
 const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string; reasoningMetadata: any }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true); // Ouvert par défaut pour une meilleure UX
   const [isAnimating, setIsAnimating] = useState(false);
+  const [showReasoningToggle, setShowReasoningToggle] = useState(true); // Toggle pour masquer complètement
 
   const handleToggle = () => {
     setIsAnimating(true);
@@ -154,21 +127,35 @@ const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string;
   const wordCount = reasoning.split(/\s+/).length;
   const estimatedReadTime = Math.max(1, Math.ceil(wordCount / 200)); // ~200 mots par minute
 
+  if (!showReasoningToggle) {
+    return (
+      <div className="mb-2">
+        <button 
+          onClick={() => setShowReasoningToggle(true)}
+          className="inline-flex items-center gap-2 px-3 py-1.5 text-xs text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-md transition-colors duration-200"
+        >
+          <div className="i-ph:brain text-sm" />
+          <span>Afficher le raisonnement</span>
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="mb-4">
-  <div className="relative overflow-hidden bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-900/50 dark:to-gray-900/50 border border-slate-200/70 dark:border-slate-700/70 rounded-lg shadow-sm backdrop-blur-sm transition-all duration-200 hover:shadow-md hover:border-slate-300/80 dark:hover:border-slate-600/80">
-    
-    {/* En-tête compact */}
-    <div className="relative flex items-center justify-between px-4 py-3 cursor-pointer group" onClick={handleToggle}>
+      <div className="relative overflow-hidden bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 border border-purple-200/70 dark:border-purple-700/70 rounded-lg shadow-sm backdrop-blur-sm transition-all duration-200 hover:shadow-md hover:border-purple-300/80 dark:hover:border-purple-600/80">
+        
+        {/* En-tête compact */}
+        <div className="relative flex items-center justify-between px-4 py-3 cursor-pointer group" onClick={handleToggle}>
       <div className="flex items-center gap-3">
-        <div className={`flex-shrink-0 w-6 h-6 rounded-md bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center transition-transform duration-200 ${
+        <div className={`flex-shrink-0 w-6 h-6 rounded-md bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center transition-transform duration-200 ${
           isAnimating ? 'scale-110' : 'group-hover:scale-105'
         }`}>
           <div className="i-ph:brain text-white text-sm" />
         </div>
         
         <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Raisonnement</span>
+          <span className="text-sm font-medium text-purple-700 dark:text-purple-200">🧠 Processus de réflexion</span>
           
           {/* Badges compacts */}
           <div className="flex items-center gap-1.5">
@@ -202,11 +189,21 @@ const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string;
         </div>
       </div>
       
-      {/* Bouton toggle minimaliste */}
+      {/* Boutons de contrôle */}
       <div className="flex items-center gap-2">
         <span className="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">
           {wordCount} mots
         </span>
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowReasoningToggle(false);
+          }}
+          className="flex-shrink-0 w-6 h-6 rounded bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 flex items-center justify-center transition-all duration-200"
+          title="Masquer le raisonnement"
+        >
+          <div className="i-ph:x text-red-600 dark:text-red-400 text-xs" />
+        </button>
         <button className={`flex-shrink-0 w-6 h-6 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-center transition-all duration-200 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 ${
           isExpanded ? 'rotate-180' : ''
         }`}>
@@ -217,7 +214,7 @@ const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string;
     
     {/* Contenu expansible */}
     {isExpanded && (
-      <div className="border-t border-slate-200/70 dark:border-slate-700/70 bg-white/40 dark:bg-slate-900/40">
+      <div className="border-t border-purple-200/70 dark:border-purple-700/70 bg-white/60 dark:bg-slate-900/60">
         <div className="p-4">
           
           {/* Métadonnées d'extraction (compactes) */}
@@ -251,7 +248,7 @@ const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string;
                     </h4>
                     <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700"></div>
                   </div>
-                  <div className="ml-5 p-3 rounded bg-slate-50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50">
+                  <div className="ml-5 p-3 rounded bg-purple-50/50 dark:bg-purple-500/10 border border-purple-100 dark:border-purple-800/30">
                     <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
                       {section.content.join('\n').trim()}
                     </div>
@@ -260,7 +257,7 @@ const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string;
               ))}
             </div>
           ) : (
-            <div className="p-3 rounded bg-slate-50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50">
+            <div className="p-3 rounded bg-purple-50/30 dark:bg-purple-500/5 border border-purple-100/50 dark:border-purple-800/20">
               <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
                 {reasoning}
               </div>
@@ -456,12 +453,44 @@ export const AssistantMessage = memo(
 
         {/* Section de raisonnement - Affichée AVANT le contenu principal */}
         {isStreaming && !reasoning && (
-          <ThinkingIndicator />
+          <div className="mb-4">
+            <div className="relative overflow-hidden bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-900/50 dark:to-gray-900/50 border border-slate-200/70 dark:border-slate-700/70 rounded-lg shadow-sm backdrop-blur-sm">
+              {/* Skeleton header */}
+              <div className="flex items-center justify-between px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-md bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center animate-pulse">
+                    <div className="i-ph:brain text-white text-sm" />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="h-4 w-20 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
+                    <div className="h-5 w-12 bg-slate-100 dark:bg-slate-800 rounded animate-pulse"></div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-16 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
+                  <div className="w-6 h-6 bg-slate-100 dark:bg-slate-800 rounded animate-pulse"></div>
+                </div>
+              </div>
+              
+              {/* Skeleton content preview */}
+              <div className="px-4 pb-3">
+                <div className="space-y-2">
+                  <div className="h-3 w-full bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
+                  <div className="h-3 w-4/5 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
+                  <div className="h-3 w-3/4 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
+                </div>
+                <div className="mt-3 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                  <div className="i-ph:circle-notch animate-spin" />
+                  <span>🧠 Extraction du processus de réflexion en cours...</span>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
         {reasoning && (
-          <ReasoningSection 
-            reasoning={reasoning} 
-            reasoningMetadata={reasoningMetadata} 
+          <ReasoningSection
+            reasoning={reasoning}
+            reasoningMetadata={reasoningMetadata}
           />
         )}
 
