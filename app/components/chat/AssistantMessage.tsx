@@ -59,7 +59,7 @@ function normalizedFilePath(path: string) {
 const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string; reasoningMetadata: any }) => {
   const [isExpanded, setIsExpanded] = useState(true); // Ouvert par défaut pour une meilleure UX
   const [isAnimating, setIsAnimating] = useState(false);
-  const [showReasoningToggle, setShowReasoningToggle] = useState(true); // Toggle pour masquer complètement
+  const [showReasoningToggle, setShowReasoningToggle] = useState(false); // Toggle pour masquer complètement
 
   const handleToggle = () => {
     setIsAnimating(true);
@@ -155,7 +155,7 @@ const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string;
         </div>
         
         <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-purple-700 dark:text-purple-200">🧠 Processus de réflexion</span>
+          <span className="text-sm font-medium text-purple-700 dark:text-purple-200">🧠 Réflexion</span>
           
           {/* Badges compacts */}
           <div className="flex items-center gap-1.5">
