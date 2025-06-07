@@ -142,42 +142,42 @@ const PromptSelector = () => {
   const currentPrompt = prompts.find(p => p.id === promptId) || prompts[0];
   
   return (
-    <div className="mt-6 pt-4 border-t border-bolt-elements-borderColor/30">
-      <Dropdown
-        trigger={
-          <button className="group flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 hover:from-violet-50 hover:to-indigo-50 dark:hover:from-violet-900/20 dark:hover:to-indigo-900/20 border border-gray-200 dark:border-gray-600 hover:border-violet-300 dark:hover:border-violet-600 rounded-lg transition-all duration-200 hover:shadow-sm">
-            <div className="flex-shrink-0 w-6 h-6 rounded-md bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center">
-              <span className="i-ph:book text-white text-sm" />
-            </div>
-            <div className="flex-1 text-left">
-              <span className="text-sm font-medium text-bolt-elements-textPrimary group-hover:text-violet-700 dark:group-hover:text-violet-300">
-                {currentPrompt.label}
-              </span>
-              <p className="text-xs text-bolt-elements-textSecondary mt-0.5 hidden md:block">
-                {currentPrompt.description}
-              </p>
-            </div>
-            <div className="i-ph:caret-down text-xs text-bolt-elements-textSecondary group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors" />
-          </button>
-        }
-      >
+    <div className="mt-3 pt-2 border-t border-violet-200/30 dark:border-violet-800/30">
+    <Dropdown
+      trigger={
+        <button className="group flex items-center gap-1.5 px-2.5 py-1.5 bg-violet-500 dark:from-violet-900/30 dark:to-violet-800/30 hover:from-violet-100 hover:to-violet-200/80 dark:hover:from-violet-800/40 dark:hover:to-violet-700/40 border border-violet-200/50 dark:border-violet-700/50 hover:border-violet-300/50 dark:hover:border-violet-600/50 rounded-lg transition-all duration-200 text-xs">
+          <div className="w-4 h-4 rounded bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center">
+            <span className="i-ph:book text-white text-xs" />
+          </div>
+          <span className="font-medium text-violet-800 dark:text-violet-200 group-hover:text-violet-900 dark:group-hover:text-violet-100 truncate max-w-[120px]">
+            {currentPrompt.label}
+          </span>
+          <div className="i-ph:caret-down text-violet-600 dark:text-violet-400 group-hover:text-violet-700 dark:group-hover:text-violet-300 text-xs" />
+        </button>
+      }
+    >
+      <div className="py-1">
         {prompts.map((prompt) => (
           <DropdownItem
             key={prompt.id}
-            className={`${promptId === prompt.id ? 'bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-violet-900/30 dark:to-indigo-900/30 border-l-2 border-violet-500' : 'hover:bg-gray-50 dark:hover:bg-gray-800'} transition-all duration-150`}
+            className={`px-3 py-1.5 text-xs flex items-center gap-2 ${promptId === prompt.id ? 'bg-gradient-to-r from-violet-100/80 to-violet-50/80 dark:from-violet-800/40 dark:to-violet-900/40 text-violet-900 dark:text-violet-100' : 'hover:bg-violet-50/50 dark:hover:bg-violet-900/30 text-violet-700 dark:text-violet-300'}`}
             onSelect={() => {
               setPromptId(prompt.id);
               toast.success(`Prompt "${prompt.label}" sélectionné`);
             }}
           >
-            <div className="flex flex-col p-2">
-              <span className="font-medium text-sm">{prompt.label}</span>
-              <span className="text-xs text-bolt-elements-textTertiary mt-1 leading-relaxed">{prompt.description}</span>
+            <div className="w-3 h-3 rounded-full border border-violet-300/50 dark:border-violet-600/50 flex items-center justify-center">
+              {promptId === prompt.id && (
+                <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-br from-violet-500 to-violet-600" />
+              )}
             </div>
+            <span className="font-medium truncate max-w-[150px]">{prompt.label}</span>
           </DropdownItem>
         ))}
-      </Dropdown>
-    </div>
+      </div>
+    </Dropdown>
+  </div>
+  
   );
 };
 
