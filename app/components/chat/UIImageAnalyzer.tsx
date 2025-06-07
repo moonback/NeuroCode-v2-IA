@@ -2,7 +2,16 @@ import React, { useState, useRef, useCallback, memo, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { classNames } from '~/utils/classNames';
-import { Dialog, DialogRoot, DialogTitle, DialogClose } from '~/components/ui/Dialog';
+import { 
+  UIImageAnalyzerModal,
+  UIImageAnalyzerModalRoot,
+  UIImageAnalyzerModalClose,
+  UIImageAnalyzerModalHeader,
+  UIImageAnalyzerModalSteps,
+  UIImageAnalyzerModalContent,
+  UIImageAnalyzerModalFooter,
+  UIImageAnalyzerModalStyles
+} from '~/components/ui/UIImageAnalyzerModal';
 import { IconButton } from '~/components/ui/IconButton';
 import type { Message } from 'ai';
 import styles from './UIImageAnalyzer.module.scss';
@@ -36,81 +45,169 @@ const ANALYSIS_OPTIONS: AnalysisOption[] = [
     icon: 'i-ph:code',
     gradient: 'from-bolt-elements-item-backgroundAccent to-bolt-elements-background-depth-3',
     color: 'text-bolt-elements-item-contentAccent',
-    prompt: `Analyze and reproduce this UI interface with production-ready code.
+    prompt: `En tant que Lead Designer UX/UI spécialisé React, reproduis cette interface avec une fidélité pixel-perfect.
 
-Key Focus Areas:
-- Visual fidelity & responsive design
-- Component architecture & state management
-- Performance & accessibility
-- Clean code & best practices
+**Analyse & Reproduction - Code Production-Ready**
 
-Technical Stack:
-- React + TypeScript
-- Tailwind/CSS-in-JS
-- Framer Motion
-- Unit Testing
+**1. Audit Visuel Détaillé**
+- Mesures précises (espacements, tailles, proportions)
+- Palette de couleurs exacte (hex, rgba, variables CSS)
+- Typographie (font-family, weights, line-heights, letter-spacing)
+- Grille et système d'alignement (8pt grid, breakpoints)
+- États interactifs (hover, focus, active, disabled)
 
-Deliverables:
-- Pixel-perfect components
-- Styling implementation
-- Custom hooks & utils
-- Documentation
-- Tests
+**2. Architecture Technique**
+- **Stack :** React + TypeScript + Tailwind CSS/CSS-in-JS
+- **Animations :** Framer Motion pour micro-interactions
+- **Accessibilité :** WCAG 2.2 AA (ARIA, navigation clavier)
+- **Performance :** Lazy loading, optimisation images, font-display
 
-Please provide implementation with clear structure and comments.`
+**3. Livrables Structurés**
+- Design tokens JSON (couleurs, espacements, typographie)
+- Composants React modulaires avec props typées
+- Hooks personnalisés pour logique métier
+- Tests unitaires (Jest + React Testing Library)
+- Documentation Storybook avec exemples
+
+**4. Responsive Design**
+- Mobile-first (375px, 768px, 1280px)
+- Grilles flexibles et composants adaptatifs
+- Images responsives avec srcset
+
+**Étape suivante :** Implémentation avec structure claire et commentaires détaillés.
+
+**Checklist Dev/PM :**
+☐ Design tokens exportés
+☐ Composants testés
+☐ Accessibilité validée
+☐ Performance optimisée`
   },
 
-    {
-      id: 'explain',
-      title: 'Expliquer le design',
-      description: 'Analyse détaillée des choix de design et des principes UX appliqués',
-      icon: 'i-ph:lightbulb',
-      gradient: 'from-bolt-elements-item-backgroundAccent to-bolt-elements-background-depth-2',
-      color: 'text-bolt-elements-item-contentAccent',
-      prompt: `Analyse cette interface utilisateur selon une approche design thinking structurée.
-  
-  **1. Architecture de l'Information**
-  - Organisation et structuration du contenu
-  - Hiérarchie de l'information (primary, secondary, tertiary)
-  - Navigation et wayfinding
-  - Mental models et conventions utilisateur
-  - Card sorting et tree testing principles
-  
-  **2. Système Visuel**
-  - **Typographie :** Hiérarchie, lisibilité, personnalité de marque
-  - **Couleurs :** Palette, psychologie, contraste, accessibilité
-  - **Espacement :** Système de grille, breathing room, densité
-  - **Iconographie :** Style, consistance, compréhension universelle
-  - **Imagery :** Traitement, cohérence, message véhiculé
-  
-  **3. Patterns d'Interaction**
-  - Affordances et signifiers
-  - Feedback loops (micro-interactions)
-  - Progressive disclosure
-  - Error prevention et recovery
-  - Call-to-actions et conversion
-  
-  **4. Principes UX Appliqués**
-  - **Lois de Fitts et Hick :** Optimisation des interactions
-  - **Gestalt principles :** Proximité, similarité, continuité
-  - **Jakob's Law :** Conformité aux standards
-  - **Aesthetic-Usability Effect :** Balance beauté/fonction
-  - **Cognitive Load Theory :** Simplification mentale
-  
-  **5. Context d'Usage**
-  - Personas et use cases
-  - Environment d'utilisation
-  - Device et platform considerations
-  - Accessibility requirements
-  - Business objectives alignment
-  
-  **Fournis pour chaque point :**
-  - Observation factuelle
-  - Principe design appliqué
-  - Impact sur l'expérience utilisateur
-  - Benchmarks et références sectorielles
-  - Recommandations d'optimisation`
-    },
+  {
+    id: 'improve',
+    title: 'Améliorer l\'UX',
+    description: 'Audit UX complet avec recommandations d\'amélioration priorisées',
+    icon: 'i-ph:trend-up',
+    gradient: 'from-green-500 to-emerald-600',
+    color: 'text-green-600',
+    prompt: `En tant que Lead UX Designer, effectue un audit UX complet de cette interface.
+
+**Audit UX Méthodique - Heuristiques de Nielsen**
+
+**1. Analyse Heuristique**
+- **Visibilité du statut système :** Feedback utilisateur, états de chargement
+- **Correspondance système/monde réel :** Langage utilisateur, métaphores
+- **Contrôle utilisateur :** Annulation, retour, liberté navigation
+- **Consistance & standards :** Conventions UI, patterns familiers
+- **Prévention d'erreurs :** Validation, confirmation, guides
+- **Reconnaissance vs rappel :** Affordances, aide contextuelle
+- **Flexibilité & efficacité :** Raccourcis, personnalisation
+- **Design esthétique minimal :** Hiérarchie, focus, simplicité
+- **Gestion d'erreurs :** Messages clairs, solutions proposées
+- **Aide & documentation :** Onboarding, tooltips, support
+
+**2. Pain Points Identifiés**
+- Friction dans les parcours utilisateur
+- Cognitive load excessive
+- Problèmes d'accessibilité
+- Manque de feedback/affordances
+- Incohérences visuelles/comportementales
+
+**3. Recommandations Priorisées (Matrice Impact/Effort)**
+- **Quick Wins :** Améliorations rapides, impact élevé
+- **Major Projects :** Refonte partielle, ROI important
+- **Fill-ins :** Optimisations mineures
+- **Thankless Tasks :** Nécessaires mais peu visibles
+
+**4. Propositions d'Amélioration**
+- Wireframes low-fi des solutions
+- User flows optimisés
+- Micro-interactions suggérées
+- Tests A/B recommandés
+
+**5. Métriques de Succès**
+- Taux de conversion
+- Temps de complétion des tâches
+- Score de satisfaction (SUS, NPS)
+- Taux d'erreur utilisateur
+
+**Étape suivante :** Priorisation des améliorations avec roadmap.
+
+**Checklist Dev/PM :**
+☐ Pain points documentés
+☐ Solutions wireframées
+☐ Tests A/B planifiés
+☐ Métriques définies`
+  },
+
+  {
+    id: 'explain',
+    title: 'Expliquer le design',
+    description: 'Analyse détaillée des choix de design et des principes UX appliqués',
+    icon: 'i-ph:lightbulb',
+    gradient: 'from-bolt-elements-item-backgroundAccent to-bolt-elements-background-depth-2',
+    color: 'text-bolt-elements-item-contentAccent',
+    prompt: `En tant que Lead UX Designer, analyse cette interface selon une approche design thinking structurée.
+
+**Analyse Design Thinking - Déconstruction UX/UI**
+
+**1. Architecture de l'Information**
+- **Organisation :** Card sorting, tree testing principles
+- **Hiérarchie :** Primary, secondary, tertiary content
+- **Navigation :** Wayfinding, breadcrumbs, mental models
+- **Structuration :** Groupement logique, progressive disclosure
+
+**2. Système Visuel Décodé**
+- **Typographie :** Hiérarchie, lisibilité, personnalité de marque
+- **Couleurs :** Palette, psychologie, contraste WCAG, signification
+- **Espacement :** Système de grille, breathing room, densité d'information
+- **Iconographie :** Style, consistance, compréhension universelle
+- **Imagery :** Traitement, cohérence, message véhiculé
+
+**3. Patterns d'Interaction Analysés**
+- **Affordances :** Signifiers visuels, call-to-actions
+- **Feedback Loops :** Micro-interactions, états de transition
+- **Progressive Disclosure :** Révélation graduelle d'information
+- **Error Prevention :** Validation, confirmation, guides
+- **Conversion :** Funnel design, friction reduction
+
+**4. Principes UX Appliqués**
+- **Loi de Fitts :** Taille/distance des cibles d'interaction
+- **Loi de Hick :** Simplification des choix utilisateur
+- **Gestalt Principles :** Proximité, similarité, continuité, closure
+- **Jakob's Law :** Conformité aux conventions établies
+- **Aesthetic-Usability Effect :** Balance beauté/fonctionnalité
+- **Cognitive Load Theory :** Réduction charge mentale
+
+**5. Context d'Usage Évalué**
+- **Personas :** Profils utilisateur, jobs-to-be-done
+- **Environment :** Desktop/mobile, conditions d'usage
+- **Device Considerations :** Touch targets, viewport, capabilities
+- **Accessibility :** WCAG compliance, inclusive design
+- **Business Alignment :** Objectifs, KPIs, contraintes
+
+**6. Benchmarking & Références**
+- Comparaison avec standards sectoriels
+- Best practices identifiées
+- Innovations remarquables
+- Opportunités d'amélioration
+
+**Format de Réponse :**
+Pour chaque point :
+- **Observation factuelle**
+- **Principe design appliqué**
+- **Impact sur l'expérience utilisateur**
+- **Benchmarks sectoriels**
+- **Recommandations d'optimisation**
+
+**Étape suivante :** Synthèse des insights avec plan d'action.
+
+**Checklist Dev/PM :**
+☐ Principes UX documentés
+☐ Benchmarks analysés
+☐ Recommandations priorisées
+☐ Guidelines établies`
+  },
    
   ];
 
@@ -127,41 +224,7 @@ const isValidImageUrl = (url: string) => {
   }
 };
 
-const ProgressIndicator = memo(({ currentStep, selectedFile }: { currentStep: number, selectedFile: File | null }) => (
-  <div className="flex items-center gap-3 mt-6">
-    <div className="flex items-center gap-2">
-      <motion.div
-        className={classNames(
-          'w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all',
-          currentStep >= 1 ? 'bg-bolt-elements-item-contentAccent text-white' : 'bg-bolt-elements-background-depth-3 text-bolt-elements-textTertiary'
-        )}
-        animate={{ scale: currentStep === 1 ? 1.1 : 1 }}
-      >
-        1
-      </motion.div>
-      <span className={classNames('text-sm font-medium', currentStep >= 1 ? 'text-bolt-elements-item-contentAccent' : 'text-bolt-elements-textTertiary')}>
-        Image
-      </span>
-    </div>
-    
-    <div className={classNames('flex-1 h-0.5 rounded-full transition-all', selectedFile ? 'bg-bolt-elements-item-contentAccent' : 'bg-bolt-elements-background-depth-3')} />
-    
-    <div className="flex items-center gap-2">
-      <motion.div
-        className={classNames(
-          'w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all',
-          currentStep >= 2 ? 'bg-bolt-elements-item-contentAccent text-white' : 'bg-bolt-elements-background-depth-3 text-bolt-elements-textTertiary'
-        )}
-        animate={{ scale: currentStep === 2 ? 1.1 : 1 }}
-      >
-        2
-      </motion.div>
-      <span className={classNames('text-sm font-medium', currentStep >= 2 ? 'text-bolt-elements-item-contentAccent' : 'text-bolt-elements-textTertiary')}>
-        Analyse
-      </span>
-    </div>
-  </div>
-));
+
 
 const AnalysisOptionItem = memo(({ 
   option, 
@@ -231,24 +294,7 @@ const AnalysisOptionItem = memo(({
   </motion.button>
 ));
 
-// Constantes memoizées pour éviter les recréations à chaque rendu
-const DIALOG_ANIMATION_VARIANTS = {
-  initial: { opacity: 0, scale: 0.95 },
-  animate: { opacity: 1, scale: 1 },
-  exit: { opacity: 0, scale: 0.95 }
-};
 
-const STEP1_ANIMATION_VARIANTS = {
-  initial: { opacity: 0, x: -20 },
-  animate: { opacity: 1, x: 0 },
-  exit: { opacity: 0, x: -20 }
-};
-
-const STEP2_ANIMATION_VARIANTS = {
-  initial: { opacity: 0, x: 20 },
-  animate: { opacity: 1, x: 0 },
-  exit: { opacity: 0, x: 20 }
-};
 
 // Nouveau composant pour l'entrée d'URL
 const URLInput = memo(({ onUrlSubmit }: { onUrlSubmit: (url: string) => Promise<void> }) => {
@@ -428,15 +474,7 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
     }
   }, [handleFileSelect]);
 
-  // Optimisation des classes conditionnelles avec useMemo
-  const analyzeButtonClasses = useMemo(() => 
-    classNames(
-      'px-8 py-3 rounded-lg font-semibold transition-all flex items-center gap-2',
-      {
-        'bg-bolt-elements-button-primary-background hover:bg-bolt-elements-button-primary-backgroundHover text-bolt-elements-button-primary-text border border-bolt-elements-item-contentAccent': Boolean(selectedFile && selectedAnalysis && !isAnalyzing),
-        'bg-bolt-elements-background-depth-3 text-bolt-elements-textTertiary cursor-not-allowed border border-bolt-elements-borderColor': !selectedFile || !selectedAnalysis || isAnalyzing
-      }
-    ), [selectedFile, selectedAnalysis, isAnalyzing]);
+
 
   // Optimisation du message avec useMemo
   const analysisMessage = useMemo(() => {
@@ -604,6 +642,7 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
 
   return (
     <>
+      <UIImageAnalyzerModalStyles />
       <motion.div
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
@@ -629,38 +668,36 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
         </IconButton>
       </motion.div>
 
-      <DialogRoot open={isOpen} onOpenChange={setIsOpen}>
+      <UIImageAnalyzerModalRoot open={isOpen} onOpenChange={setIsOpen}>
         <AnimatePresence>
           {isOpen && (
-            <motion.div
-              variants={DIALOG_ANIMATION_VARIANTS}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              transition={{ duration: 0.2 }}
-            >
-              <Dialog className="max-w-7xl p-0 overflow-hidden bg-bolt-elements-background-depth-1 backdrop-blur-xl border border-bolt-elements-borderColor shadow-2xl">
-                {/* Header */}
-                <div className="relative p-6 bg-bolt-elements-background-depth-2 border-b border-bolt-elements-borderColor">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <DialogTitle className="text-2xl font-bold text-bolt-elements-textPrimary">
-                        Analyser une interface utilisateur
-                      </DialogTitle>
-                      <p className="text-sm text-bolt-elements-textSecondary mt-1">
-                        Uploadez une image ou analysez depuis une URL
-                      </p>
-                    </div>
-                    <DialogClose asChild>
-                      
-                    </DialogClose>
-                  </div>
-
-                  {/* Progress indicator */}
-                  <ProgressIndicator currentStep={currentStep} selectedFile={selectedFile} />
-                </div>
-
-                <div className="p-6 space-y-8">
+            <UIImageAnalyzerModal onClose={handleClose} onBackdrop={handleClose}>
+              <UIImageAnalyzerModalHeader
+                title="Analyser une interface utilisateur"
+                description="Uploadez une image ou analysez depuis une URL"
+                currentStep={currentStep}
+                totalSteps={2}
+              />
+              
+              <UIImageAnalyzerModalSteps
+                currentStep={currentStep}
+                steps={[
+                  {
+                    key: 1,
+                    label: "Image",
+                    icon: "i-ph:upload",
+                    completed: Boolean(selectedFile)
+                  },
+                  {
+                    key: 2,
+                    label: "Analyse",
+                    icon: "i-ph:magic-wand",
+                    completed: Boolean(selectedAnalysis)
+                  }
+                ]}
+              />
+              
+              <UIImageAnalyzerModalContent>
                   {/* Étape 1: Upload d'image */}
                   <AnimatePresence mode="wait">
                     {currentStep === 1 && (
@@ -717,6 +754,7 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
                                 </motion.div>
                               </motion.div>
                               
+                              {/* Input file caché pour le bouton "Parcourir les fichiers" */}
                               <input
                                 ref={fileInputRef}
                                 type="file"
@@ -741,46 +779,101 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
                           <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="space-y-4"
+                            className="space-y-6"
                           >
+                            {/* Preview de l'image avec overlay d'actions */}
                             <div className="relative group">
                               {imagePreview && (
-                                <img
-                                  src={imagePreview}
-                                  alt="Aperçu de l'image sélectionnée"
-                                  className="w-full max-h-80 object-contain rounded-xl border border-bolt-elements-borderColor shadow-lg"
-                                  onError={() => {
-                                    toast.error('Erreur lors de l\'affichage de l\'image.');
-                                    setImagePreview(null);
-                                    setSelectedFile(null);
-                                    setCurrentStep(1);
-                                  }}
-                                />
+                                <div className="relative">
+                                  <img
+                                    src={imagePreview}
+                                    alt="Aperçu de l'image sélectionnée"
+                                    className="w-full max-h-80 object-contain rounded-xl border border-bolt-elements-borderColor shadow-lg"
+                                    onError={() => {
+                                      toast.error('Erreur lors de l\'affichage de l\'image.');
+                                      setImagePreview(null);
+                                      setSelectedFile(null);
+                                      setCurrentStep(1);
+                                    }}
+                                  />
+                                  
+                                  {/* Overlay avec actions */}
+                                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                    <div className="flex gap-3">
+                                      <motion.button
+                                        onClick={() => {
+                                          setSelectedFile(null);
+                                          setImagePreview(null);
+                                          setCurrentStep(1);
+                                        }}
+                                        className="p-3 bg-bolt-elements-button-danger-background backdrop-blur-sm text-bolt-elements-button-danger-text rounded-full hover:bg-bolt-elements-button-danger-backgroundHover transition-all shadow-lg"
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        title="Supprimer l'image"
+                                      >
+                                        <div className="i-ph:trash text-lg" />
+                                      </motion.button>
+                                      
+                                      <motion.button
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="p-3 bg-bolt-elements-background-depth-1 backdrop-blur-sm text-bolt-elements-textPrimary rounded-full hover:bg-bolt-elements-background-depth-2 transition-all shadow-lg"
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        title="Changer d'image"
+                                      >
+                                        <div className="i-ph:swap text-lg" />
+                                      </motion.button>
+                                    </div>
+                                  </div>
+                                </div>
                               )}
-                              <motion.button
-                                onClick={() => {
-                                  setSelectedFile(null);
-                                  setImagePreview(null);
-                                  setCurrentStep(1);
-                                }}
-                                className="absolute top-3 right-3 p-2 bg-bolt-elements-button-danger-background backdrop-blur text-bolt-elements-button-danger-text rounded-full hover:bg-bolt-elements-button-danger-backgroundHover transition-all shadow-lg opacity-0 group-hover:opacity-100"
-                                whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.9 }}
-                              >
-                                <div className="i-ph:trash text-sm" />
-                              </motion.button>
                             </div>
                             
-                            <div className="flex items-center gap-3 p-4 bg-bolt-elements-background-depth-2 rounded-lg border border-bolt-elements-borderColor">
-                              <div className="i-ph:file-image text-2xl text-bolt-elements-item-contentAccent" />
-                              <div className="flex-1">
-                                <p className="text-bolt-elements-textPrimary font-medium">{selectedFile.name}</p>
+                            {/* Informations du fichier avec design amélioré */}
+                            <motion.div 
+                              className="flex items-center gap-4 p-4 bg-gradient-to-r from-bolt-elements-background-depth-2 to-bolt-elements-background-depth-1 rounded-xl border border-bolt-elements-borderColor shadow-sm"
+                              initial={{ scale: 0.95 }}
+                              animate={{ scale: 1 }}
+                              transition={{ delay: 0.1 }}
+                            >
+                              <div className="flex-shrink-0">
+                                <div className="w-12 h-12 bg-bolt-elements-item-backgroundAccent rounded-lg flex items-center justify-center">
+                                  <div className="i-ph:file-image text-2xl text-bolt-elements-item-contentAccent" />
+                                </div>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-bolt-elements-textPrimary font-semibold truncate">{selectedFile.name}</p>
                                 <p className="text-bolt-elements-textSecondary text-sm">
-                                  {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                                  {(selectedFile.size / 1024 / 1024).toFixed(2)} MB • {selectedFile.type.split('/')[1].toUpperCase()}
                                 </p>
                               </div>
-                              <div className="i-ph:check-circle-fill text-2xl text-green-400" />
-                            </div>
+                              <div className="flex-shrink-0">
+                                <motion.div 
+                                  className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center"
+                                  initial={{ scale: 0 }}
+                                  animate={{ scale: 1 }}
+                                  transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                                >
+                                  <div className="i-ph:check text-white text-sm font-bold" />
+                                </motion.div>
+                              </div>
+                            </motion.div>
+                            
+                            {/* Call-to-action pour passer à l'étape suivante */}
+                            <motion.div 
+                              className="text-center p-4 bg-bolt-elements-item-backgroundAccent rounded-xl border border-bolt-elements-item-contentAccent"
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.3 }}
+                            >
+                              <div className="flex items-center justify-center gap-2 text-bolt-elements-item-contentAccent mb-2">
+                                <div className="i-ph:check-circle-fill text-lg" />
+                                <span className="font-medium">Image chargée avec succès !</span>
+                              </div>
+                              <p className="text-bolt-elements-textSecondary text-sm">
+                                Cliquez sur "Suivant" pour choisir le type d'analyse
+                              </p>
+                            </motion.div>
                           </motion.div>
                         )}
                       </motion.div>
@@ -848,57 +941,29 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
                       </motion.div>
                     )}
                   </AnimatePresence>
-                </div>
-
-                {/* Footer avec boutons */}
-                <div className="p-6 bg-bolt-elements-background-depth-2 border-t border-bolt-elements-borderColor">
-                  <div className="flex justify-between items-center">
-                    <div className="text-sm text-bolt-elements-textSecondary">
-                      {currentStep === 1 && "Étape 1 sur 2 - Sélectionnez votre image"}
-                      {currentStep === 2 && "Étape 2 sur 2 - Choisissez votre analyse"}
-                    </div>
-                    
-                    <div className="flex gap-3">
-                      <motion.button
-                        onClick={handleClose}
-                        className="px-6 bg-bolt-elements-background-depth-2 py-2 text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary transition-colors rounded-lg border border-bolt-elements-borderColor hover:bg-bolt-elements-background-depth-3"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        Annuler
-                      </motion.button>
-                      
-                      <motion.button
-                        onClick={handleAnalyze}
-                        disabled={!selectedFile || !selectedAnalysis || isAnalyzing}
-                        className={analyzeButtonClasses}
-                        whileHover={selectedFile && selectedAnalysis && !isAnalyzing ? { scale: 1.02 } : {}}
-                        whileTap={selectedFile && selectedAnalysis && !isAnalyzing ? { scale: 0.98 } : {}}
-                      >
-                        {isAnalyzing ? (
-                          <>
-                            <motion.div
-                              className="i-ph:spinner-gap"
-                              animate={{ rotate: 360 }}
-                              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                            />
-                            Analyse en cours...
-                          </>
-                        ) : (
-                          <>
-                            <div className="i-ph:rocket-launch" />
-                            Lancer l'analyse
-                          </>
-                        )}
-                      </motion.button>
-                    </div>
-                  </div>
-                </div>
-              </Dialog>
-            </motion.div>
+              </UIImageAnalyzerModalContent>
+              
+              <UIImageAnalyzerModalFooter
+                currentStep={currentStep}
+                totalSteps={2}
+                stepLabel={
+                  currentStep === 1 
+                    ? "Étape 1 sur 2 - Sélectionnez votre image"
+                    : "Étape 2 sur 2 - Choisissez votre analyse"
+                }
+                onCancel={handleClose}
+                onNext={currentStep === 1 ? () => setCurrentStep(2) : handleAnalyze}
+                onPrevious={currentStep === 2 ? handleBackToStep1 : undefined}
+                nextLabel={currentStep === 2 ? "Lancer l'analyse" : "Suivant"}
+                previousLabel="Modifier l'image"
+                cancelLabel="Annuler"
+                isNextDisabled={!selectedFile || (currentStep === 2 && !selectedAnalysis)}
+                isLoading={isAnalyzing}
+              />
+            </UIImageAnalyzerModal>
           )}
         </AnimatePresence>
-      </DialogRoot>
+      </UIImageAnalyzerModalRoot>
     </>
   );
 });
