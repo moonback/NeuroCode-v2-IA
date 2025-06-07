@@ -129,10 +129,10 @@ const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string;
       <div className="mb-2">
         <button 
           onClick={() => setShowReasoningToggle(true)}
-          className="inline-flex items-center gap-2 px-3 py-1.5 text-xs text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary bg-bolt-elements-bg-depth-2 hover:bg-bolt-elements-bg-depth-3 rounded-lg transition-colors duration-200 border border-bolt-elements-borderColor"
+          className="inline-flex bg-bolt-elements-item-backgroundAccent items-center gap-2 px-3 py-1.5 text-xs text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary bg-bolt-elements-bg-depth-2 hover:bg-bolt-elements-bg-depth-3 rounded-lg transition-colors duration-200 border border-bolt-elements-borderColor"
         >
           <div className="i-ph:brain text-sm" />
-          <span>Afficher le raisonnement</span>
+          {/* <span>Afficher le raisonnement</span> */}
         </button>
       </div>
     );
