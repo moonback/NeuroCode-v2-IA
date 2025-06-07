@@ -45,81 +45,169 @@ const ANALYSIS_OPTIONS: AnalysisOption[] = [
     icon: 'i-ph:code',
     gradient: 'from-bolt-elements-item-backgroundAccent to-bolt-elements-background-depth-3',
     color: 'text-bolt-elements-item-contentAccent',
-    prompt: `Analyze and reproduce this UI interface with production-ready code.
+    prompt: `En tant que Lead Designer UX/UI spécialisé React, reproduis cette interface avec une fidélité pixel-perfect.
 
-Key Focus Areas:
-- Visual fidelity & responsive design
-- Component architecture & state management
-- Performance & accessibility
-- Clean code & best practices
+**Analyse & Reproduction - Code Production-Ready**
 
-Technical Stack:
-- React + TypeScript
-- Tailwind/CSS-in-JS
-- Framer Motion
-- Unit Testing
+**1. Audit Visuel Détaillé**
+- Mesures précises (espacements, tailles, proportions)
+- Palette de couleurs exacte (hex, rgba, variables CSS)
+- Typographie (font-family, weights, line-heights, letter-spacing)
+- Grille et système d'alignement (8pt grid, breakpoints)
+- États interactifs (hover, focus, active, disabled)
 
-Deliverables:
-- Pixel-perfect components
-- Styling implementation
-- Custom hooks & utils
-- Documentation
-- Tests
+**2. Architecture Technique**
+- **Stack :** React + TypeScript + Tailwind CSS/CSS-in-JS
+- **Animations :** Framer Motion pour micro-interactions
+- **Accessibilité :** WCAG 2.2 AA (ARIA, navigation clavier)
+- **Performance :** Lazy loading, optimisation images, font-display
 
-Please provide implementation with clear structure and comments.`
+**3. Livrables Structurés**
+- Design tokens JSON (couleurs, espacements, typographie)
+- Composants React modulaires avec props typées
+- Hooks personnalisés pour logique métier
+- Tests unitaires (Jest + React Testing Library)
+- Documentation Storybook avec exemples
+
+**4. Responsive Design**
+- Mobile-first (375px, 768px, 1280px)
+- Grilles flexibles et composants adaptatifs
+- Images responsives avec srcset
+
+**Étape suivante :** Implémentation avec structure claire et commentaires détaillés.
+
+**Checklist Dev/PM :**
+☐ Design tokens exportés
+☐ Composants testés
+☐ Accessibilité validée
+☐ Performance optimisée`
   },
 
-    {
-      id: 'explain',
-      title: 'Expliquer le design',
-      description: 'Analyse détaillée des choix de design et des principes UX appliqués',
-      icon: 'i-ph:lightbulb',
-      gradient: 'from-bolt-elements-item-backgroundAccent to-bolt-elements-background-depth-2',
-      color: 'text-bolt-elements-item-contentAccent',
-      prompt: `Analyse cette interface utilisateur selon une approche design thinking structurée.
-  
-  **1. Architecture de l'Information**
-  - Organisation et structuration du contenu
-  - Hiérarchie de l'information (primary, secondary, tertiary)
-  - Navigation et wayfinding
-  - Mental models et conventions utilisateur
-  - Card sorting et tree testing principles
-  
-  **2. Système Visuel**
-  - **Typographie :** Hiérarchie, lisibilité, personnalité de marque
-  - **Couleurs :** Palette, psychologie, contraste, accessibilité
-  - **Espacement :** Système de grille, breathing room, densité
-  - **Iconographie :** Style, consistance, compréhension universelle
-  - **Imagery :** Traitement, cohérence, message véhiculé
-  
-  **3. Patterns d'Interaction**
-  - Affordances et signifiers
-  - Feedback loops (micro-interactions)
-  - Progressive disclosure
-  - Error prevention et recovery
-  - Call-to-actions et conversion
-  
-  **4. Principes UX Appliqués**
-  - **Lois de Fitts et Hick :** Optimisation des interactions
-  - **Gestalt principles :** Proximité, similarité, continuité
-  - **Jakob's Law :** Conformité aux standards
-  - **Aesthetic-Usability Effect :** Balance beauté/fonction
-  - **Cognitive Load Theory :** Simplification mentale
-  
-  **5. Context d'Usage**
-  - Personas et use cases
-  - Environment d'utilisation
-  - Device et platform considerations
-  - Accessibility requirements
-  - Business objectives alignment
-  
-  **Fournis pour chaque point :**
-  - Observation factuelle
-  - Principe design appliqué
-  - Impact sur l'expérience utilisateur
-  - Benchmarks et références sectorielles
-  - Recommandations d'optimisation`
-    },
+  {
+    id: 'improve',
+    title: 'Améliorer l\'UX',
+    description: 'Audit UX complet avec recommandations d\'amélioration priorisées',
+    icon: 'i-ph:trend-up',
+    gradient: 'from-green-500 to-emerald-600',
+    color: 'text-green-600',
+    prompt: `En tant que Lead UX Designer, effectue un audit UX complet de cette interface.
+
+**Audit UX Méthodique - Heuristiques de Nielsen**
+
+**1. Analyse Heuristique**
+- **Visibilité du statut système :** Feedback utilisateur, états de chargement
+- **Correspondance système/monde réel :** Langage utilisateur, métaphores
+- **Contrôle utilisateur :** Annulation, retour, liberté navigation
+- **Consistance & standards :** Conventions UI, patterns familiers
+- **Prévention d'erreurs :** Validation, confirmation, guides
+- **Reconnaissance vs rappel :** Affordances, aide contextuelle
+- **Flexibilité & efficacité :** Raccourcis, personnalisation
+- **Design esthétique minimal :** Hiérarchie, focus, simplicité
+- **Gestion d'erreurs :** Messages clairs, solutions proposées
+- **Aide & documentation :** Onboarding, tooltips, support
+
+**2. Pain Points Identifiés**
+- Friction dans les parcours utilisateur
+- Cognitive load excessive
+- Problèmes d'accessibilité
+- Manque de feedback/affordances
+- Incohérences visuelles/comportementales
+
+**3. Recommandations Priorisées (Matrice Impact/Effort)**
+- **Quick Wins :** Améliorations rapides, impact élevé
+- **Major Projects :** Refonte partielle, ROI important
+- **Fill-ins :** Optimisations mineures
+- **Thankless Tasks :** Nécessaires mais peu visibles
+
+**4. Propositions d'Amélioration**
+- Wireframes low-fi des solutions
+- User flows optimisés
+- Micro-interactions suggérées
+- Tests A/B recommandés
+
+**5. Métriques de Succès**
+- Taux de conversion
+- Temps de complétion des tâches
+- Score de satisfaction (SUS, NPS)
+- Taux d'erreur utilisateur
+
+**Étape suivante :** Priorisation des améliorations avec roadmap.
+
+**Checklist Dev/PM :**
+☐ Pain points documentés
+☐ Solutions wireframées
+☐ Tests A/B planifiés
+☐ Métriques définies`
+  },
+
+  {
+    id: 'explain',
+    title: 'Expliquer le design',
+    description: 'Analyse détaillée des choix de design et des principes UX appliqués',
+    icon: 'i-ph:lightbulb',
+    gradient: 'from-bolt-elements-item-backgroundAccent to-bolt-elements-background-depth-2',
+    color: 'text-bolt-elements-item-contentAccent',
+    prompt: `En tant que Lead UX Designer, analyse cette interface selon une approche design thinking structurée.
+
+**Analyse Design Thinking - Déconstruction UX/UI**
+
+**1. Architecture de l'Information**
+- **Organisation :** Card sorting, tree testing principles
+- **Hiérarchie :** Primary, secondary, tertiary content
+- **Navigation :** Wayfinding, breadcrumbs, mental models
+- **Structuration :** Groupement logique, progressive disclosure
+
+**2. Système Visuel Décodé**
+- **Typographie :** Hiérarchie, lisibilité, personnalité de marque
+- **Couleurs :** Palette, psychologie, contraste WCAG, signification
+- **Espacement :** Système de grille, breathing room, densité d'information
+- **Iconographie :** Style, consistance, compréhension universelle
+- **Imagery :** Traitement, cohérence, message véhiculé
+
+**3. Patterns d'Interaction Analysés**
+- **Affordances :** Signifiers visuels, call-to-actions
+- **Feedback Loops :** Micro-interactions, états de transition
+- **Progressive Disclosure :** Révélation graduelle d'information
+- **Error Prevention :** Validation, confirmation, guides
+- **Conversion :** Funnel design, friction reduction
+
+**4. Principes UX Appliqués**
+- **Loi de Fitts :** Taille/distance des cibles d'interaction
+- **Loi de Hick :** Simplification des choix utilisateur
+- **Gestalt Principles :** Proximité, similarité, continuité, closure
+- **Jakob's Law :** Conformité aux conventions établies
+- **Aesthetic-Usability Effect :** Balance beauté/fonctionnalité
+- **Cognitive Load Theory :** Réduction charge mentale
+
+**5. Context d'Usage Évalué**
+- **Personas :** Profils utilisateur, jobs-to-be-done
+- **Environment :** Desktop/mobile, conditions d'usage
+- **Device Considerations :** Touch targets, viewport, capabilities
+- **Accessibility :** WCAG compliance, inclusive design
+- **Business Alignment :** Objectifs, KPIs, contraintes
+
+**6. Benchmarking & Références**
+- Comparaison avec standards sectoriels
+- Best practices identifiées
+- Innovations remarquables
+- Opportunités d'amélioration
+
+**Format de Réponse :**
+Pour chaque point :
+- **Observation factuelle**
+- **Principe design appliqué**
+- **Impact sur l'expérience utilisateur**
+- **Benchmarks sectoriels**
+- **Recommandations d'optimisation**
+
+**Étape suivante :** Synthèse des insights avec plan d'action.
+
+**Checklist Dev/PM :**
+☐ Principes UX documentés
+☐ Benchmarks analysés
+☐ Recommandations priorisées
+☐ Guidelines établies`
+  },
    
   ];
 
