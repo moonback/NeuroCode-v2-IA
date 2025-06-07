@@ -123,135 +123,133 @@ const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string;
   const estimatedReadTime = Math.max(1, Math.ceil(wordCount / 200)); // ~200 mots par minute
 
   return (
-    <div className="mb-6">
-      <div className="relative overflow-hidden bg-gradient-to-br from-violet-50/80 via-indigo-50/80 to-purple-50/80 dark:from-violet-950/40 dark:via-indigo-950/40 dark:to-purple-950/40 border border-violet-200/60 dark:border-violet-800/60 rounded-xl shadow-sm backdrop-blur-sm transition-all duration-300 hover:shadow-md">
-        {/* Effet de brillance subtil */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500" />
-        
-        <div className="relative flex items-center justify-between p-5 cursor-pointer group" onClick={handleToggle}>
-          <div className="flex items-center gap-3">
-            <div className={`flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-sm transition-transform duration-300 ${
-              isAnimating ? 'scale-110' : 'group-hover:scale-105'
-            }`}>
-              <div className="i-ph:brain text-white text-lg" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-violet-900 dark:text-violet-100">Raisonnement</span>
-                <span className="text-xs px-2 py-0.5 bg-violet-100 dark:bg-violet-800/50 text-violet-600 dark:text-violet-300 rounded-full">
-                  {estimatedReadTime} min
-                </span>
-              </div>
-              <p className="text-xs text-violet-600 dark:text-violet-300 mt-0.5">
-                {reasoningSections.length > 1 ? `${reasoningSections.length} sections • ` : ''}
-                Processus de réflexion de l'IA
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            {/* Badges de métadonnées améliorés */}
-            <div className="flex items-center gap-2">
-              {reasoningMetadata?.extractionMethod && (
-                <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-gradient-to-r from-violet-100 to-indigo-100 dark:from-violet-900/80 dark:to-indigo-900/80 text-violet-700 dark:text-violet-200 border border-violet-200/50 dark:border-violet-700/50 transition-all duration-200 hover:scale-105">
-                  <div className="w-1.5 h-1.5 rounded-full bg-violet-500 mr-2 animate-pulse" />
-                  {reasoningMetadata.extractionMethod === 'explicit' ? 'Balises explicites' :
-                   reasoningMetadata.extractionMethod === 'pattern' ? 'Structure détectée' :
-                   reasoningMetadata.extractionMethod === 'heuristic' ? 'Analyse heuristique' :
-                   reasoningMetadata.extractionMethod === 'fallback' ? 'Début du contenu' :
-                   reasoningMetadata.extractionMethod}
-                </span>
-              )}
-              {reasoningMetadata?.confidence && (
-                <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 hover:scale-105 ${
-                  reasoningMetadata.confidence === 'high' 
-                    ? 'bg-gradient-to-r from-emerald-100 to-green-100 dark:from-emerald-900/80 dark:to-green-900/80 text-emerald-700 dark:text-emerald-200 border-emerald-200/50 dark:border-emerald-700/50' :
-                  reasoningMetadata.confidence === 'medium' 
-                    ? 'bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-900/80 dark:to-yellow-900/80 text-amber-700 dark:text-amber-200 border-amber-200/50 dark:border-amber-700/50' :
-                    'bg-gradient-to-r from-red-100 to-rose-100 dark:from-red-900/80 dark:to-rose-900/80 text-red-700 dark:text-red-200 border-red-200/50 dark:border-red-700/50'
-                }`}>
-                  <div className={`w-1.5 h-1.5 rounded-full mr-2 ${
-                    reasoningMetadata.confidence === 'high' ? 'bg-emerald-500 animate-pulse' :
-                    reasoningMetadata.confidence === 'medium' ? 'bg-amber-500' : 'bg-red-500'
-                  }`} />
-                  {reasoningMetadata.confidence === 'high' ? 'Élevée' :
-                   reasoningMetadata.confidence === 'medium' ? 'Moyenne' : 'Faible'}
-                </span>
-              )}
-            </div>
-            
-            <WithTooltip tooltip={isExpanded ? "Masquer le raisonnement" : "Afficher le raisonnement"}>
-              <button className={`flex-shrink-0 w-8 h-8 rounded-lg bg-white/80 dark:bg-gray-800/80 border border-violet-200/50 dark:border-violet-700/50 flex items-center justify-center transition-all duration-300 group-hover:scale-105 ${
-                isExpanded ? 'rotate-180' : ''
-              }`}>
-                <div className="i-ph:caret-down text-violet-600 dark:text-violet-400 text-sm" />
-              </button>
-            </WithTooltip>
-          </div>
+    <div className="mb-4">
+  <div className="relative overflow-hidden bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-900/50 dark:to-gray-900/50 border border-slate-200/70 dark:border-slate-700/70 rounded-lg shadow-sm backdrop-blur-sm transition-all duration-200 hover:shadow-md hover:border-slate-300/80 dark:hover:border-slate-600/80">
+    
+    {/* En-tête compact */}
+    <div className="relative flex items-center justify-between px-4 py-3 cursor-pointer group" onClick={handleToggle}>
+      <div className="flex items-center gap-3">
+        <div className={`flex-shrink-0 w-6 h-6 rounded-md bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center transition-transform duration-200 ${
+          isAnimating ? 'scale-110' : 'group-hover:scale-105'
+        }`}>
+          <div className="i-ph:brain text-white text-sm" />
         </div>
         
-        {isExpanded && (
-          <div className="px-5 pb-5 transition-all duration-300 ease-in-out">
-            <div className="relative bg-white/60 dark:bg-gray-900/60 rounded-lg border border-violet-200/30 dark:border-violet-800/30 backdrop-blur-sm overflow-hidden">
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-violet-400 to-indigo-600 rounded-l-lg" />
-              
-              {/* Contenu du raisonnement avec sections structurées */}
-              <div className="p-4 pl-6">
-                {reasoningSections.length > 1 ? (
-                  <div className="space-y-4">
-                    {reasoningSections.map((section, index) => (
-                      <div key={index} className="group">
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="text-lg">{section.icon}</span>
-                          <h4 className="font-semibold text-violet-900 dark:text-violet-100 text-sm uppercase tracking-wide">
-                            {section.title}
-                          </h4>
-                          <div className="flex-1 h-px bg-gradient-to-r from-violet-200/50 dark:from-violet-800/50 to-transparent"></div>
-                        </div>
-                        <div className="ml-6 p-3 rounded-lg bg-white/40 dark:bg-gray-900/40 border border-violet-200/30 dark:border-violet-800/30">
-                          <div className="text-sm text-violet-800 dark:text-violet-100 whitespace-pre-wrap leading-relaxed">
-                            {section.content.join('\n').trim()}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="p-4 rounded-lg bg-white/40 dark:bg-gray-900/40 border border-violet-200/30 dark:border-violet-800/30">
-                    <div className="text-sm text-violet-800 dark:text-violet-100 whitespace-pre-wrap leading-relaxed">
-                      {reasoning}
-                    </div>
-                  </div>
-                )}
-                
-                {/* Informations supplémentaires */}
-                <div className="mt-4 pt-3 border-t border-violet-200/30 dark:border-violet-800/30 flex items-center justify-between text-xs text-violet-600 dark:text-violet-400">
-                  <div className="flex items-center gap-4">
-                    <span className="flex items-center gap-1">
-                      <div className="i-ph:text-aa text-sm" />
-                      {wordCount} mots
-                    </span>
-                    {reasoningMetadata?.originalLength && (
-                      <span className="flex items-center gap-1">
-                        <div className="i-ph:file-text text-sm" />
-                        {Math.round((reasoning.length / reasoningMetadata.originalLength) * 100)}% extrait
-                      </span>
-                    )}
-                  </div>
-                  
-                  {reasoning.includes('[Raisonnement tronqué...]') && (
-                    <div className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
-                      <div className="i-ph:warning text-sm" />
-                      <span className="italic">Contenu tronqué</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Raisonnement</span>
+          
+          {/* Badges compacts */}
+          <div className="flex items-center gap-1.5">
+            <span className="inline-flex items-center px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded text-xs font-medium">
+              {estimatedReadTime}min
+            </span>
+            
+            {reasoningMetadata?.confidence && (
+              <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                reasoningMetadata.confidence === 'high' 
+                  ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' :
+                reasoningMetadata.confidence === 'medium' 
+                  ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' :
+                  'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+              }`}>
+                <div className={`w-1 h-1 rounded-full mr-1.5 ${
+                  reasoningMetadata.confidence === 'high' ? 'bg-emerald-500' :
+                  reasoningMetadata.confidence === 'medium' ? 'bg-amber-500' : 'bg-red-500'
+                }`} />
+                {reasoningMetadata.confidence === 'high' ? 'Élevée' :
+                 reasoningMetadata.confidence === 'medium' ? 'Moyenne' : 'Faible'}
+              </span>
+            )}
+            
+            {reasoningSections.length > 1 && (
+              <span className="inline-flex items-center px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded text-xs font-medium">
+                {reasoningSections.length} sections
+              </span>
+            )}
           </div>
-        )}
+        </div>
+      </div>
+      
+      {/* Bouton toggle minimaliste */}
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">
+          {wordCount} mots
+        </span>
+        <button className={`flex-shrink-0 w-6 h-6 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-center transition-all duration-200 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 ${
+          isExpanded ? 'rotate-180' : ''
+        }`}>
+          <div className="i-ph:caret-down text-slate-500 dark:text-slate-400 text-xs" />
+        </button>
       </div>
     </div>
+    
+    {/* Contenu expansible */}
+    {isExpanded && (
+      <div className="border-t border-slate-200/70 dark:border-slate-700/70 bg-white/40 dark:bg-slate-900/40">
+        <div className="p-4">
+          
+          {/* Métadonnées d'extraction (compactes) */}
+          {reasoningMetadata?.extractionMethod && (
+            <div className="mb-3 pb-2 border-b border-slate-200/50 dark:border-slate-700/50">
+              <span className="inline-flex items-center text-xs text-slate-600 dark:text-slate-400">
+                <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 mr-2" />
+                Méthode : {reasoningMetadata.extractionMethod === 'explicit' ? 'Balises explicites' :
+                          reasoningMetadata.extractionMethod === 'pattern' ? 'Structure détectée' :
+                          reasoningMetadata.extractionMethod === 'heuristic' ? 'Analyse heuristique' :
+                          reasoningMetadata.extractionMethod === 'fallback' ? 'Début du contenu' :
+                          reasoningMetadata.extractionMethod}
+                {reasoningMetadata?.originalLength && (
+                  <span className="ml-3 text-slate-500">
+                    • {Math.round((reasoning.length / reasoningMetadata.originalLength) * 100)}% extrait
+                  </span>
+                )}
+              </span>
+            </div>
+          )}
+          
+          {/* Contenu du raisonnement */}
+          {reasoningSections.length > 1 ? (
+            <div className="space-y-3">
+              {reasoningSections.map((section, index) => (
+                <div key={index} className="group">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-sm">{section.icon}</span>
+                    <h4 className="font-medium text-slate-800 dark:text-slate-200 text-sm">
+                      {section.title}
+                    </h4>
+                    <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700"></div>
+                  </div>
+                  <div className="ml-5 p-3 rounded bg-slate-50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50">
+                    <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+                      {section.content.join('\n').trim()}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-3 rounded bg-slate-50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50">
+              <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+                {reasoning}
+              </div>
+            </div>
+          )}
+          
+          {/* Footer avec avertissement si tronqué */}
+          {reasoning.includes('[Raisonnement tronqué...]') && (
+            <div className="mt-3 pt-2 border-t border-slate-200/50 dark:border-slate-700/50">
+              <div className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
+                <div className="i-ph:warning text-sm" />
+                <span>Contenu partiellement affiché</span>
+              </div>
+            </div>
+          )}
+          
+        </div>
+      </div>
+    )}
+  </div>
+</div>
   );
 };
 
