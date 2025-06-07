@@ -45,168 +45,168 @@ const ANALYSIS_OPTIONS: AnalysisOption[] = [
     icon: 'i-ph:code',
     gradient: 'from-bolt-elements-item-backgroundAccent to-bolt-elements-background-depth-3',
     color: 'text-bolt-elements-item-contentAccent',
-    prompt: `En tant que Lead Designer UX/UI spécialisé React, reproduis cette interface avec une fidélité pixel-perfect.
+    prompt: `As a Lead UX/UI Designer specialized in React, reproduce this interface with pixel-perfect fidelity.
 
-**Analyse & Reproduction - Code Production-Ready**
+**Analysis & Reproduction - Production-Ready Code**
 
-**1. Audit Visuel Détaillé**
-- Mesures précises (espacements, tailles, proportions)
-- Palette de couleurs exacte (hex, rgba, variables CSS)
-- Typographie (font-family, weights, line-heights, letter-spacing)
-- Grille et système d'alignement (8pt grid, breakpoints)
-- États interactifs (hover, focus, active, disabled)
+**1. Detailed Visual Audit**
+- Precise measurements (spacing, sizes, proportions)
+- Exact color palette (hex, rgba, CSS variables)
+- Typography (font-family, weights, line-heights, letter-spacing)
+- Grid and alignment system (8pt grid, breakpoints)
+- Interactive states (hover, focus, active, disabled)
 
-**2. Architecture Technique**
-- **Stack :** React + TypeScript + Tailwind CSS/CSS-in-JS
-- **Animations :** Framer Motion pour micro-interactions
-- **Accessibilité :** WCAG 2.2 AA (ARIA, navigation clavier)
-- **Performance :** Lazy loading, optimisation images, font-display
+**2. Technical Architecture**
+- **Stack:** React + TypeScript + Tailwind CSS/CSS-in-JS
+- **Animations:** Framer Motion for micro-interactions
+- **Accessibility:** WCAG 2.2 AA (ARIA, keyboard navigation)
+- **Performance:** Lazy loading, image optimization, font-display
 
-**3. Livrables Structurés**
-- Design tokens JSON (couleurs, espacements, typographie)
-- Composants React modulaires avec props typées
-- Hooks personnalisés pour logique métier
-- Tests unitaires (Jest + React Testing Library)
-- Documentation Storybook avec exemples
+**3. Structured Deliverables**
+- Design tokens JSON (colors, spacing, typography)
+- Modular React components with typed props
+- Custom hooks for business logic
+- Unit tests (Jest + React Testing Library)
+- Storybook documentation with examples
 
 **4. Responsive Design**
 - Mobile-first (375px, 768px, 1280px)
-- Grilles flexibles et composants adaptatifs
-- Images responsives avec srcset
+- Flexible grids and adaptive components
+- Responsive images with srcset
 
-**Étape suivante :** Implémentation avec structure claire et commentaires détaillés.
+**Next Step:** Implementation with clear structure and detailed comments.
 
-**Checklist Dev/PM :**
-☐ Design tokens exportés
-☐ Composants testés
-☐ Accessibilité validée
-☐ Performance optimisée`
+**Dev/PM Checklist:**
+☐ Design tokens exported
+☐ Components tested
+☐ Accessibility validated
+☐ Performance optimized`
   },
 
   {
     id: 'improve',
-    title: 'Améliorer l\'UX',
-    description: 'Audit UX complet avec recommandations d\'amélioration priorisées',
+    title: 'Improve UX',
+    description: 'Complete UX audit with prioritized improvement recommendations',
     icon: 'i-ph:trend-up',
     gradient: 'from-green-500 to-emerald-600',
     color: 'text-green-600',
-    prompt: `En tant que Lead UX Designer, effectue un audit UX complet de cette interface.
+    prompt: `As a Lead UX Designer, perform a complete UX audit of this interface.
 
-**Audit UX Méthodique - Heuristiques de Nielsen**
+**Methodical UX Audit - Nielsen's Heuristics**
 
-**1. Analyse Heuristique**
-- **Visibilité du statut système :** Feedback utilisateur, états de chargement
-- **Correspondance système/monde réel :** Langage utilisateur, métaphores
-- **Contrôle utilisateur :** Annulation, retour, liberté navigation
-- **Consistance & standards :** Conventions UI, patterns familiers
-- **Prévention d'erreurs :** Validation, confirmation, guides
-- **Reconnaissance vs rappel :** Affordances, aide contextuelle
-- **Flexibilité & efficacité :** Raccourcis, personnalisation
-- **Design esthétique minimal :** Hiérarchie, focus, simplicité
-- **Gestion d'erreurs :** Messages clairs, solutions proposées
-- **Aide & documentation :** Onboarding, tooltips, support
+**1. Heuristic Analysis**
+- **System Status Visibility:** User feedback, loading states
+- **System/Real World Match:** User language, metaphors
+- **User Control:** Undo, back, navigation freedom
+- **Consistency & Standards:** UI conventions, familiar patterns
+- **Error Prevention:** Validation, confirmation, guides
+- **Recognition vs Recall:** Affordances, contextual help
+- **Flexibility & Efficiency:** Shortcuts, customization
+- **Minimal Aesthetic Design:** Hierarchy, focus, simplicity
+- **Error Management:** Clear messages, proposed solutions
+- **Help & Documentation:** Onboarding, tooltips, support
 
-**2. Pain Points Identifiés**
-- Friction dans les parcours utilisateur
-- Cognitive load excessive
-- Problèmes d'accessibilité
-- Manque de feedback/affordances
-- Incohérences visuelles/comportementales
+**2. Identified Pain Points**
+- User journey friction
+- Excessive cognitive load
+- Accessibility issues
+- Lack of feedback/affordances
+- Visual/behavioral inconsistencies
 
-**3. Recommandations Priorisées (Matrice Impact/Effort)**
-- **Quick Wins :** Améliorations rapides, impact élevé
-- **Major Projects :** Refonte partielle, ROI important
-- **Fill-ins :** Optimisations mineures
-- **Thankless Tasks :** Nécessaires mais peu visibles
+**3. Prioritized Recommendations (Impact/Effort Matrix)**
+- **Quick Wins:** Rapid improvements, high impact
+- **Major Projects:** Partial redesign, significant ROI
+- **Fill-ins:** Minor optimizations
+- **Thankless Tasks:** Necessary but low visibility
 
-**4. Propositions d'Amélioration**
-- Wireframes low-fi des solutions
-- User flows optimisés
-- Micro-interactions suggérées
-- Tests A/B recommandés
+**4. Improvement Proposals**
+- Low-fi solution wireframes
+- Optimized user flows
+- Suggested micro-interactions
+- Recommended A/B tests
 
-**5. Métriques de Succès**
-- Taux de conversion
-- Temps de complétion des tâches
-- Score de satisfaction (SUS, NPS)
-- Taux d'erreur utilisateur
+**5. Success Metrics**
+- Conversion rate
+- Task completion time
+- Satisfaction score (SUS, NPS)
+- User error rate
 
-**Étape suivante :** Priorisation des améliorations avec roadmap.
+**Next Step:** Prioritization of improvements with roadmap.
 
-**Checklist Dev/PM :**
-☐ Pain points documentés
-☐ Solutions wireframées
-☐ Tests A/B planifiés
-☐ Métriques définies`
+**Dev/PM Checklist:**
+☐ Pain points documented
+☐ Solutions wireframed
+☐ A/B tests planned
+☐ Metrics defined`
   },
 
   {
     id: 'explain',
-    title: 'Expliquer le design',
-    description: 'Analyse détaillée des choix de design et des principes UX appliqués',
+    title: 'Explain Design',
+    description: 'Detailed analysis of design choices and applied UX principles',
     icon: 'i-ph:lightbulb',
     gradient: 'from-bolt-elements-item-backgroundAccent to-bolt-elements-background-depth-2',
     color: 'text-bolt-elements-item-contentAccent',
-    prompt: `En tant que Lead UX Designer, analyse cette interface selon une approche design thinking structurée.
+    prompt: `As a Lead UX Designer, analyze this interface using a structured design thinking approach.
 
-**Analyse Design Thinking - Déconstruction UX/UI**
+**Design Thinking Analysis - UX/UI Deconstruction**
 
-**1. Architecture de l'Information**
-- **Organisation :** Card sorting, tree testing principles
-- **Hiérarchie :** Primary, secondary, tertiary content
-- **Navigation :** Wayfinding, breadcrumbs, mental models
-- **Structuration :** Groupement logique, progressive disclosure
+**1. Information Architecture**
+- **Organization:** Card sorting, tree testing principles
+- **Hierarchy:** Primary, secondary, tertiary content
+- **Navigation:** Wayfinding, breadcrumbs, mental models
+- **Structure:** Logical grouping, progressive disclosure
 
-**2. Système Visuel Décodé**
-- **Typographie :** Hiérarchie, lisibilité, personnalité de marque
-- **Couleurs :** Palette, psychologie, contraste WCAG, signification
-- **Espacement :** Système de grille, breathing room, densité d'information
-- **Iconographie :** Style, consistance, compréhension universelle
-- **Imagery :** Traitement, cohérence, message véhiculé
+**2. Decoded Visual System**
+- **Typography:** Hierarchy, readability, brand personality
+- **Colors:** Palette, psychology, WCAG contrast, meaning
+- **Spacing:** Grid system, breathing room, information density
+- **Iconography:** Style, consistency, universal understanding
+- **Imagery:** Treatment, coherence, conveyed message
 
-**3. Patterns d'Interaction Analysés**
-- **Affordances :** Signifiers visuels, call-to-actions
-- **Feedback Loops :** Micro-interactions, états de transition
-- **Progressive Disclosure :** Révélation graduelle d'information
-- **Error Prevention :** Validation, confirmation, guides
-- **Conversion :** Funnel design, friction reduction
+**3. Analyzed Interaction Patterns**
+- **Affordances:** Visual signifiers, call-to-actions
+- **Feedback Loops:** Micro-interactions, transition states
+- **Progressive Disclosure:** Gradual information reveal
+- **Error Prevention:** Validation, confirmation, guides
+- **Conversion:** Funnel design, friction reduction
 
-**4. Principes UX Appliqués**
-- **Loi de Fitts :** Taille/distance des cibles d'interaction
-- **Loi de Hick :** Simplification des choix utilisateur
-- **Gestalt Principles :** Proximité, similarité, continuité, closure
-- **Jakob's Law :** Conformité aux conventions établies
-- **Aesthetic-Usability Effect :** Balance beauté/fonctionnalité
-- **Cognitive Load Theory :** Réduction charge mentale
+**4. Applied UX Principles**
+- **Fitts's Law:** Size/distance of interaction targets
+- **Hick's Law:** User choice simplification
+- **Gestalt Principles:** Proximity, similarity, continuity, closure
+- **Jakob's Law:** Conformity to established conventions
+- **Aesthetic-Usability Effect:** Beauty/functionality balance
+- **Cognitive Load Theory:** Mental load reduction
 
-**5. Context d'Usage Évalué**
-- **Personas :** Profils utilisateur, jobs-to-be-done
-- **Environment :** Desktop/mobile, conditions d'usage
-- **Device Considerations :** Touch targets, viewport, capabilities
-- **Accessibility :** WCAG compliance, inclusive design
-- **Business Alignment :** Objectifs, KPIs, contraintes
+**5. Evaluated Usage Context**
+- **Personas:** User profiles, jobs-to-be-done
+- **Environment:** Desktop/mobile, usage conditions
+- **Device Considerations:** Touch targets, viewport, capabilities
+- **Accessibility:** WCAG compliance, inclusive design
+- **Business Alignment:** Objectives, KPIs, constraints
 
-**6. Benchmarking & Références**
-- Comparaison avec standards sectoriels
-- Best practices identifiées
-- Innovations remarquables
-- Opportunités d'amélioration
+**6. Benchmarking & References**
+- Industry standards comparison
+- Identified best practices
+- Notable innovations
+- Improvement opportunities
 
-**Format de Réponse :**
-Pour chaque point :
-- **Observation factuelle**
-- **Principe design appliqué**
-- **Impact sur l'expérience utilisateur**
-- **Benchmarks sectoriels**
-- **Recommandations d'optimisation**
+**Response Format:**
+For each point:
+- **Factual observation**
+- **Applied design principle**
+- **User experience impact**
+- **Industry benchmarks**
+- **Optimization recommendations**
 
-**Étape suivante :** Synthèse des insights avec plan d'action.
+**Next Step:** Insights synthesis with action plan.
 
-**Checklist Dev/PM :**
-☐ Principes UX documentés
-☐ Benchmarks analysés
-☐ Recommandations priorisées
-☐ Guidelines établies`
+**Dev/PM Checklist:**
+☐ UX principles documented
+☐ Benchmarks analyzed
+☐ Recommendations prioritized
+☐ Guidelines established`
   },
    
   ];
