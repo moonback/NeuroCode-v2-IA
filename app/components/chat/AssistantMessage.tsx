@@ -117,6 +117,12 @@ export const AssistantMessage = memo(
       codeContext = filteredAnnotations.find((annotation) => annotation.type === 'codeContext')?.files;
     }
 
+    let reasoning: string | undefined = undefined;
+
+    if (filteredAnnotations.find((annotation) => annotation.type === 'reasoning')) {
+      reasoning = filteredAnnotations.find((annotation) => annotation.type === 'reasoning')?.content;
+    }
+
     const usage: {
       completionTokens: number;
       promptTokens: number;
@@ -186,6 +192,19 @@ export const AssistantMessage = memo(
             </div>
           </div>
         </>
+        {reasoning && provider?.name === 'Google' && (
+          <div className="mb-4">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="i-ph:brain text-blue-600 dark:text-blue-400 text-lg" />
+                <span className="text-sm font-medium text-blue-800 dark:text-blue-300">Raisonnement Google</span>
+              </div>
+              <div className="text-sm text-blue-700 dark:text-blue-200 whitespace-pre-wrap leading-relaxed">
+                {reasoning}
+              </div>
+            </div>
+          </div>
+        )}
         <Markdown append={append} chatMode={chatMode} setChatMode={setChatMode} model={model} provider={provider} html>
           {content}
         </Markdown>

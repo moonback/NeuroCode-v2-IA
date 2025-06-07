@@ -7,6 +7,11 @@ export type ContextAnnotation =
       type: 'chatSummary';
       summary: string;
       chatId: string;
+    }
+  | {
+      type: 'reasoning';
+      content: string;
+      provider: string;
     };
 
 export type ProgressAnnotation = {
