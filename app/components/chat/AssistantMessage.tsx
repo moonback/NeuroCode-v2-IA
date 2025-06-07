@@ -118,9 +118,12 @@ export const AssistantMessage = memo(
     }
 
     let reasoning: string | undefined = undefined;
+    let reasoningMetadata: any = undefined;
 
-    if (filteredAnnotations.find((annotation) => annotation.type === 'reasoning')) {
-      reasoning = filteredAnnotations.find((annotation) => annotation.type === 'reasoning')?.content;
+    const reasoningAnnotation = filteredAnnotations.find((annotation) => annotation.type === 'reasoning');
+    if (reasoningAnnotation) {
+      reasoning = reasoningAnnotation.content;
+      reasoningMetadata = reasoningAnnotation.metadata;
     }
 
     const usage: {
@@ -194,14 +197,50 @@ export const AssistantMessage = memo(
         </>
         {reasoning && provider?.name === 'Google' && (
           <div className="mb-4">
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="i-ph:brain text-blue-600 dark:text-blue-400 text-lg" />
-                <span className="text-sm font-medium text-blue-800 dark:text-blue-300">Raisonnement Google</span>
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="i-ph:brain text-blue-600 dark:text-blue-400 text-lg" />
+                  <span className="text-sm font-medium text-blue-800 dark:text-blue-300">Processus de Raisonnement</span>
+                  {reasoningMetadata?.model && (
+                    <span className="text-xs bg-blue-100 dark:bg-blue-800/50 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-full">
+                      {reasoningMetadata.model}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 text-xs text-blue-600 dark:text-blue-400">
+                  {reasoningMetadata?.originalLength && (
+                    <span>{reasoningMetadata.originalLength} caractères</span>
+                  )}
+                  {reasoningMetadata?.extractionMethod && (
+                    <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 rounded text-blue-700 dark:text-blue-300">
+                      {reasoningMetadata.extractionMethod === 'explicit' ? 'Balises explicites' :
+                       reasoningMetadata.extractionMethod === 'structured' ? 'Structure détectée' :
+                       reasoningMetadata.extractionMethod === 'heuristic' ? 'Analyse heuristique' :
+                       reasoningMetadata.extractionMethod === 'fallback' ? 'Début du contenu' :
+                       reasoningMetadata.extractionMethod}
+                    </span>
+                  )}
+                  {reasoningMetadata?.confidence && (
+                    <span className={`px-2 py-1 rounded ${
+                      reasoningMetadata.confidence === 'high' ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300' :
+                      reasoningMetadata.confidence === 'medium' ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300' :
+                      'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300'
+                    }`}>
+                      Confiance: {reasoningMetadata.confidence === 'high' ? 'Élevée' :
+                                 reasoningMetadata.confidence === 'medium' ? 'Moyenne' : 'Faible'}
+                    </span>
+                  )}
+                </div>
               </div>
-              <div className="text-sm text-blue-700 dark:text-blue-200 whitespace-pre-wrap leading-relaxed">
+              <div className="text-sm text-blue-700 dark:text-blue-200 whitespace-pre-wrap leading-relaxed border-l-2 border-blue-300 dark:border-blue-600 pl-3">
                 {reasoning}
               </div>
+              {reasoning.includes('[Raisonnement tronqué...]') && (
+                <div className="mt-2 text-xs text-blue-600 dark:text-blue-400 italic">
+                  💡 Le raisonnement complet a été tronqué pour l'affichage
+                </div>
+              )}
             </div>
           </div>
         )}

@@ -12,6 +12,13 @@ export type ContextAnnotation =
       type: 'reasoning';
       content: string;
       provider: string;
+      metadata?: {
+        originalLength?: number;
+        model?: string;
+        extractionMethod?: 'explicit' | 'structured' | 'heuristic' | 'fallback';
+        confidence?: 'high' | 'medium' | 'low';
+        [key: string]: any;
+      };
     };
 
 export type ProgressAnnotation = {

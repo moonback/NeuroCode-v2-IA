@@ -8,6 +8,7 @@ import type { IProviderSetting } from '~/types/model';
 import { createScopedLogger } from '~/utils/logger';
 import { getFilePaths, selectContext } from '~/lib/.server/llm/select-context';
 import type { ContextAnnotation, DataStreamError, ProgressAnnotation, SegmentsGroupAnnotation } from '~/types/context';
+import { extractReasoning, isLikelyReasoning } from '~/utils/reasoning-extractor';
 
 
 import { WORK_DIR } from '~/utils/constants';
@@ -494,7 +495,7 @@ function assessComplexity(message: string): string {
             result.mergeIntoDataStream(dataStream);
 
             (async () => {
-              let reasoningContent = '';
+              let fullContent = '';
               let isGoogleThinkingModel = false;
               
               // Extraire le modèle et le fournisseur du dernier message utilisateur
@@ -513,26 +514,28 @@ function assessComplexity(message: string): string {
                   return;
                 }
                 
-                // Capturer le raisonnement pour les modèles Google thinking
+                // Capturer tout le contenu pour les modèles Google thinking
                 if (isGoogleThinkingModel && part.type === 'text-delta' && part.textDelta) {
-                  if (reasoningContent.length < 2000) {
-                    reasoningContent += part.textDelta;
+                  if (fullContent.length < 10000) { // Limite généreuse pour la capture
+                    fullContent += part.textDelta;
                   }
                 }
                 
-                // Ajouter l'annotation de raisonnement à la fin
-                if (isGoogleThinkingModel && part.type === 'finish' && reasoningContent.trim()) {
-                  let extractedReasoning = reasoningContent;
+                // Traiter le raisonnement à la fin de la génération
+                if (isGoogleThinkingModel && part.type === 'finish' && fullContent.trim()) {
+                  const reasoningResult = extractReasoning(fullContent, 2500);
                   
-                  if (extractedReasoning.length > 1000) {
-                    extractedReasoning = extractedReasoning.substring(0, 1000) + '...';
-                  }
-                  
-                  if (extractedReasoning.trim()) {
+                  if (reasoningResult && reasoningResult.confidence !== 'low') {
                     dataStream.writeMessageAnnotation({
                       type: 'reasoning',
-                      content: extractedReasoning.trim(),
-                      provider: 'Google'
+                      content: reasoningResult.content,
+                      provider: 'Google',
+                      metadata: {
+                        originalLength: reasoningResult.originalLength,
+                        model: model,
+                        extractionMethod: reasoningResult.extractionMethod,
+                        confidence: reasoningResult.confidence
+                      }
                     });
                   }
                 }
@@ -568,7 +571,7 @@ function assessComplexity(message: string): string {
         });
 
         (async () => {
-          let reasoningContent = '';
+          let fullContent = '';
           let isGoogleThinkingModel = false;
           
           // Extraire le modèle et le fournisseur du dernier message utilisateur
@@ -587,29 +590,28 @@ function assessComplexity(message: string): string {
               return;
             }
             
-            // Capturer le raisonnement pour les modèles Google thinking
+            // Capturer tout le contenu pour les modèles Google thinking
             if (isGoogleThinkingModel && part.type === 'text-delta' && part.textDelta) {
-              // Les modèles thinking de Google incluent souvent le raisonnement au début
-              if (reasoningContent.length < 2000) { // Limiter la taille du raisonnement
-                reasoningContent += part.textDelta;
+              if (fullContent.length < 10000) { // Limite généreuse pour la capture
+                fullContent += part.textDelta;
               }
             }
             
-            // Quand la génération est terminée, ajouter l'annotation de raisonnement
-            if (isGoogleThinkingModel && part.type === 'finish' && reasoningContent.trim()) {
-              // Extraire le raisonnement (généralement entre des balises ou au début)
-              let extractedReasoning = reasoningContent;
+            // Traiter le raisonnement à la fin de la génération
+            if (isGoogleThinkingModel && part.type === 'finish' && fullContent.trim()) {
+              const reasoningResult = extractReasoning(fullContent, 2500);
               
-              // Nettoyer le raisonnement si nécessaire
-              if (extractedReasoning.length > 1000) {
-                extractedReasoning = extractedReasoning.substring(0, 1000) + '...';
-              }
-              
-              if (extractedReasoning.trim()) {
+              if (reasoningResult && reasoningResult.confidence !== 'low') {
                 dataStream.writeMessageAnnotation({
                   type: 'reasoning',
-                  content: extractedReasoning.trim(),
-                  provider: 'Google'
+                  content: reasoningResult.content,
+                  provider: 'Google',
+                  metadata: {
+                    originalLength: reasoningResult.originalLength,
+                    model: model,
+                    extractionMethod: reasoningResult.extractionMethod,
+                    confidence: reasoningResult.confidence
+                  }
                 });
               }
             }
