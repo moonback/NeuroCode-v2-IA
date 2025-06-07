@@ -8,7 +8,7 @@ import type { IProviderSetting } from '~/types/model';
 import { createScopedLogger } from '~/utils/logger';
 import { getFilePaths, selectContext } from '~/lib/.server/llm/select-context';
 import type { ContextAnnotation, DataStreamError, ProgressAnnotation, SegmentsGroupAnnotation } from '~/types/context';
-import { extractReasoning, isLikelyReasoning } from '~/utils/reasoning-extractor';
+import { extractReasoning, isLikelyReasoning, removeReasoningFromContent } from '~/utils/reasoning-extractor';
 
 
 import { WORK_DIR } from '~/utils/constants';
@@ -526,6 +526,7 @@ function assessComplexity(message: string): string {
                   const reasoningResult = extractReasoning(fullContent, 2500);
                   
                   if (reasoningResult) {
+                    // Ajouter l'annotation de raisonnement
                     dataStream.writeMessageAnnotation({
                       type: 'reasoning',
                       content: reasoningResult.content,
@@ -537,6 +538,15 @@ function assessComplexity(message: string): string {
                         confidence: reasoningResult.confidence
                       }
                     });
+                    
+                    // Nettoyer le contenu principal en supprimant le raisonnement
+                    const cleanedContent = removeReasoningFromContent(fullContent, reasoningResult.content);
+                    
+                    // Remplacer le contenu du message par la version nettoyée
+                    if (cleanedContent && cleanedContent.trim() && cleanedContent !== fullContent) {
+                      // Mettre à jour le contenu du message pour ne garder que le résultat
+                      fullContent = cleanedContent;
+                    }
                   }
                 }
               }
@@ -602,6 +612,7 @@ function assessComplexity(message: string): string {
               const reasoningResult = extractReasoning(fullContent, 2500);
               
               if (reasoningResult) {
+                // Ajouter l'annotation de raisonnement
                 dataStream.writeMessageAnnotation({
                   type: 'reasoning',
                   content: reasoningResult.content,
@@ -613,6 +624,15 @@ function assessComplexity(message: string): string {
                     confidence: reasoningResult.confidence
                   }
                 });
+                
+                // Nettoyer le contenu principal en supprimant le raisonnement
+                const cleanedContent = removeReasoningFromContent(fullContent, reasoningResult.content);
+                
+                // Remplacer le contenu du message par la version nettoyée
+                if (cleanedContent && cleanedContent.trim() && cleanedContent !== fullContent) {
+                  // Mettre à jour le contenu du message pour ne garder que le résultat
+                  fullContent = cleanedContent;
+                }
               }
             }
           }

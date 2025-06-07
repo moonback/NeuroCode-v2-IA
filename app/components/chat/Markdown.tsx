@@ -9,6 +9,7 @@ import type { Message } from 'ai';
 import styles from './Markdown.module.scss';
 import ThoughtBox from './ThoughtBox';
 import type { ProviderInfo } from '~/types/model';
+import { removeReasoningFromContent } from '~/utils/reasoning-extractor';
 
 const logger = createScopedLogger('MarkdownComponent');
 
@@ -26,6 +27,16 @@ interface MarkdownProps {
 export const Markdown = memo(
   ({ children, html = false, limitedMarkdown = false, append, setChatMode, model, provider }: MarkdownProps) => {
     logger.trace('Render');
+
+    const sanitizedContent = useMemo(() => {
+      // First validate and clean boltArtifact tags, then strip code fences
+      let cleanedContent = validateAndCleanBoltArtifacts(children);
+      
+      // Remove any residual reasoning content that might have slipped through
+      cleanedContent = removeReasoningFromContent(cleanedContent);
+      
+      return stripCodeFenceFromArtifact(cleanedContent);
+    }, [children]);
 
     const components = useMemo(() => {
       return {
@@ -194,11 +205,55 @@ export const Markdown = memo(
         remarkPlugins={remarkPlugins(limitedMarkdown)}
         rehypePlugins={rehypePlugins(html)}
       >
-        {stripCodeFenceFromArtifact(children)}
+        {sanitizedContent}
       </ReactMarkdown>
     );
   },
 );
+
+/**
+ * Validates and cleans boltArtifact tags to ensure proper formatting
+ *
+ * @param content - The content to validate and clean
+ * @returns Cleaned content with properly formatted boltArtifact tags
+ */
+export function validateAndCleanBoltArtifacts(content: string): string {
+  if (!content) return content;
+  
+  // Patterns for malformed artifact tags
+  const malformedPatterns = [
+    /<boltArtifacs([^>]*)>/g,
+    /<oltArtfiact([^>]*)>/g,
+    /<boltArtifactt([^>]*)>/g,
+    /<boltartifact([^>]*)>/g, // lowercase
+    /<BoltArtifact([^>]*)>/g, // wrong case
+  ];
+  
+  let cleanedContent = content;
+  
+  // Fix malformed opening tags
+  malformedPatterns.forEach(pattern => {
+    cleanedContent = cleanedContent.replace(pattern, (match, attributes) => {
+      console.warn(`Fixed malformed boltArtifact tag: ${match}`);
+      return `<boltArtifact${attributes}>`;
+    });
+  });
+  
+  // Fix malformed closing tags
+  const malformedClosingPatterns = [
+    /<\/boltArtifacs>/g,
+    /<\/oltArtfiact>/g,
+    /<\/boltArtifactt>/g,
+    /<\/boltartifact>/g,
+    /<\/BoltArtifact>/g,
+  ];
+  
+  malformedClosingPatterns.forEach(pattern => {
+    cleanedContent = cleanedContent.replace(pattern, '</boltArtifact>');
+  });
+  
+  return cleanedContent;
+}
 
 /**
  * Removes code fence markers (```) surrounding an artifact element while preserving the artifact content.

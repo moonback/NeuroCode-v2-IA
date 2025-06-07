@@ -320,6 +320,119 @@ function enhanceReasoningContent(content: string): string {
 }
 
 /**
+ * Supprime le raisonnement du contenu principal pour ne garder que le résultat
+ * @param content Le contenu complet
+ * @param extractedReasoning Le raisonnement extrait (optionnel)
+ * @returns Le contenu nettoyé sans le raisonnement
+ */
+export function removeReasoningFromContent(
+  content: string,
+  extractedReasoning?: string
+): string {
+  if (!content || content.trim().length === 0) {
+    return content;
+  }
+
+  let cleanedContent = content;
+
+  // 1. Supprimer les balises explicites de raisonnement
+  const explicitPatterns = [
+    /<thinking[^>]*>[\s\S]*?<\/thinking>/gi,
+    /<thought[^>]*>[\s\S]*?<\/thought>/gi,
+    /<reasoning[^>]*>[\s\S]*?<\/reasoning>/gi,
+    /<analyse[^>]*>[\s\S]*?<\/analyse>/gi,
+    /<reflection[^>]*>[\s\S]*?<\/reflection>/gi,
+    /\[THINKING\][\s\S]*?\[\/THINKING\]/gi,
+    /\[REASONING\][\s\S]*?\[\/REASONING\]/gi,
+    /\[ANALYSE\][\s\S]*?\[\/ANALYSE\]/gi
+  ];
+
+  for (const pattern of explicitPatterns) {
+    cleanedContent = cleanedContent.replace(pattern, '');
+  }
+
+  // 2. Supprimer les sections de raisonnement structurées
+  const structurePatterns = [
+    /\*\*Thinking\*\*:?[\s\S]*?(?=\n\n\*\*|\n\n[A-Z]|$)/gi,
+    /\*\*Raisonnement\*\*:?[\s\S]*?(?=\n\n\*\*|\n\n[A-Z]|$)/gi,
+    /\*\*Analyse\*\*:?[\s\S]*?(?=\n\n\*\*|\n\n[A-Z]|$)/gi,
+    /\*\*Réflexion\*\*:?[\s\S]*?(?=\n\n\*\*|\n\n[A-Z]|$)/gi,
+    /\*\*Approche\*\*:?[\s\S]*?(?=\n\n\*\*|\n\n[A-Z]|$)/gi,
+    /Thinking:[\s\S]*?(?=\n\n(?:Response|Solution|Answer|Implementation):|$)/gi,
+    /Raisonnement:[\s\S]*?(?=\n\n(?:Réponse|Solution|Résultat|Implémentation):|$)/gi,
+    /Analyse:[\s\S]*?(?=\n\n(?:Réponse|Solution|Résultat|Implémentation):|$)/gi,
+    /## Analyse[\s\S]*?(?=\n\n##|$)/gi,
+    /## Raisonnement[\s\S]*?(?=\n\n##|$)/gi,
+    /# Thinking[\s\S]*?(?=\n\n#|$)/gi
+  ];
+
+  for (const pattern of structurePatterns) {
+    cleanedContent = cleanedContent.replace(pattern, '');
+  }
+
+  // 3. Si un raisonnement spécifique a été extrait, le supprimer du contenu
+  if (extractedReasoning && extractedReasoning.trim()) {
+    // Nettoyer le raisonnement extrait pour la comparaison
+    const cleanReasoning = extractedReasoning
+      .replace(/\[Raisonnement tronqué...\]/g, '')
+      .trim();
+    
+    if (cleanReasoning.length > 50) {
+      // Chercher le raisonnement dans le contenu et le supprimer
+      const reasoningLines = cleanReasoning.split('\n').slice(0, 5); // Prendre les 5 premières lignes
+      for (const line of reasoningLines) {
+        if (line.trim().length > 10) {
+          const escapedLine = line.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const linePattern = new RegExp(escapedLine, 'gi');
+          cleanedContent = cleanedContent.replace(linePattern, '');
+        }
+      }
+    }
+  }
+
+  // 4. Détecter et supprimer les sections de raisonnement au début du contenu
+  const lines = cleanedContent.split('\n');
+  let startIndex = 0;
+  let foundReasoningEnd = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    
+    // Détecter la fin du raisonnement et le début du contenu principal
+    if (/^(Réponse|Response|Solution|Conclusion|Résultat|Result|Implémentation|Implementation|Voici|Here's):/i.test(line) ||
+        /^(Maintenant|Now|Pour|To|Afin de|In order to)/i.test(line) ||
+        line.startsWith('```') ||
+        /^#{1,3}\s/.test(line)) {
+      startIndex = i;
+      foundReasoningEnd = true;
+      break;
+    }
+    
+    // Si on trouve du contenu structuré (code, listes), on s'arrête
+    if (line.startsWith('```') || 
+        /^\d+\.|^[a-z]\)|^-\s|^\*\s/.test(line) ||
+        /^#{1,6}\s/.test(line)) {
+      startIndex = i;
+      foundReasoningEnd = true;
+      break;
+    }
+  }
+
+  // Si on a trouvé une fin de raisonnement, garder seulement le contenu après
+  if (foundReasoningEnd && startIndex > 0) {
+    cleanedContent = lines.slice(startIndex).join('\n');
+  }
+
+  // 5. Nettoyer les lignes vides excessives et les espaces
+  cleanedContent = cleanedContent
+    .replace(/\n\s*\n\s*\n/g, '\n\n') // Réduire les lignes vides multiples
+    .replace(/^\s+|\s+$/g, '') // Supprimer les espaces en début/fin
+    .trim();
+
+  return cleanedContent;
+}
+
+/**
  * Détermine si un contenu semble contenir du raisonnement (amélioré)
  */
 export function isLikelyReasoning(content: string): boolean {
