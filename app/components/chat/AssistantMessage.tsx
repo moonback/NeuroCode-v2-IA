@@ -290,42 +290,47 @@ const PromptSelector = () => {
   const currentPrompt = prompts.find(p => p.id === promptId) || prompts[0];
   
   return (
-    <div className="mt-3 pt-2 border-t border-violet-200/30 dark:border-violet-800/30">
-    <Dropdown
-      trigger={
-        <button className="group flex items-center gap-1.5 px-2.5 py-1.5 bg-gradient-to-r from-violet-50 to-violet-100 dark:from-violet-900/30 dark:to-violet-800/30 hover:from-violet-100 hover:to-violet-200/80 dark:hover:from-violet-800/40 dark:hover:to-violet-700/40 border border-violet-200/50 dark:border-violet-700/50 hover:border-violet-300/50 dark:hover:border-violet-600/50 rounded-lg transition-all duration-200 text-xs">
-          <div className="w-4 h-4 rounded bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center">
-            <span className="i-ph:book text-white text-xs" />
-          </div>
-          <span className="font-medium text-violet-800 dark:text-violet-200 group-hover:text-violet-900 dark:group-hover:text-violet-100 truncate max-w-[120px]">
-            {currentPrompt.label}
-          </span>
-          <div className="i-ph:caret-down text-violet-600 dark:text-violet-400 group-hover:text-violet-700 dark:group-hover:text-violet-300 text-xs" />
-        </button>
-      }
-    >
-      <div className="py-1">
-        {prompts.map((prompt) => (
-          <DropdownItem
-            key={prompt.id}
-            className={`px-3 py-1.5 text-xs flex items-center gap-2 ${promptId === prompt.id ? 'bg-gradient-to-r from-violet-100/80 to-violet-50/80 dark:from-violet-800/40 dark:to-violet-900/40 text-violet-900 dark:text-violet-100' : 'hover:bg-violet-50/50 dark:hover:bg-violet-900/30 text-violet-700 dark:text-violet-300'}`}
-            onSelect={() => {
-              setPromptId(prompt.id);
-              toast.success(`Prompt "${prompt.label}" sélectionné`);
-            }}
-          >
-            <div className="w-3 h-3 rounded-full border border-violet-300/50 dark:border-violet-600/50 flex items-center justify-center">
-              {promptId === prompt.id && (
-                <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-br from-violet-500 to-violet-600" />
-              )}
+    <div className="mt-3 pt-2 border-t border-slate-200/50 dark:border-slate-700/50">
+      <Dropdown
+        trigger={
+          <button className="group flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-900/50 dark:to-gray-900/50 hover:from-slate-100 hover:to-gray-100 dark:hover:from-slate-800/60 dark:hover:to-gray-800/60 border border-slate-200/70 dark:border-slate-700/70 hover:border-slate-300/70 dark:hover:border-slate-600/70 rounded-lg transition-all duration-200 text-sm shadow-sm hover:shadow-md">
+            <div className="w-4 h-4 rounded bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
+              <span className="i-ph:book text-white text-xs" />
             </div>
-            <span className="font-medium truncate max-w-[150px]">{prompt.label}</span>
-          </DropdownItem>
-        ))}
-      </div>
-    </Dropdown>
-  </div>
-  
+            <span className="font-medium text-slate-800 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-slate-100 truncate max-w-[140px]">
+              {currentPrompt.label}
+            </span>
+            <div className="i-ph:caret-down text-slate-600 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-300 text-xs ml-auto" />
+          </button>
+        }
+      >
+        <div className="py-1">
+          {prompts.map((prompt) => (
+            <DropdownItem
+              key={prompt.id}
+              className={`px-3 py-2 text-sm flex items-center gap-3 transition-colors duration-200 ${
+                promptId === prompt.id 
+                  ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100' 
+                  : 'hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-700 dark:text-slate-300'
+              }`}
+              onSelect={() => {
+                setPromptId(prompt.id);
+                toast.success(`Prompt "${prompt.label}" selected`);
+              }}
+            >
+              <div className="w-4 h-4 flex-shrink-0 flex items-center justify-center">
+                {promptId === prompt.id ? (
+                  <div className="i-ph:check-circle-fill text-purple-500" />
+                ) : (
+                  <div className="i-ph:circle text-slate-400" />
+                )}
+              </div>
+              <span className="truncate">{prompt.label}</span>
+            </DropdownItem>
+          ))}
+        </div>
+      </Dropdown>
+    </div>
   );
 };
 
