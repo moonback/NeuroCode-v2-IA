@@ -523,7 +523,7 @@ function assessComplexity(message: string): string {
                 
                 // Traiter le raisonnement à la fin de la génération pour tous les modèles
                 if (part.type === 'finish' && fullContent.trim()) {
-                  const reasoningResult = extractReasoning(fullContent, 2500);
+                  const reasoningResult = extractReasoning(fullContent, 10000);
                   
                   if (reasoningResult) {
                     // Ajouter l'annotation de raisonnement
@@ -583,6 +583,7 @@ function assessComplexity(message: string): string {
         (async () => {
           let fullContent = '';
           let isGoogleThinkingModel = false;
+          let reasoningProcessed = false; // Variable pour suivre l'état du raisonnement
           
           // Extraire le modèle et le fournisseur du dernier message utilisateur
           const lastUserMessage = messages.filter((x) => x.role == 'user').slice(-1)[0];
@@ -607,11 +608,85 @@ function assessComplexity(message: string): string {
               }
             }
             
-            // Traiter le raisonnement à la fin de la génération pour tous les modèles
-            if (part.type === 'finish' && fullContent.trim()) {
-              const reasoningResult = extractReasoning(fullContent, 2500);
+            // Traiter le raisonnement de manière progressive pendant le streaming
+            if (part.type === 'text-delta' && part.textDelta) {
+              // Attendre plus de contenu avant d'extraire le raisonnement
+              const shouldExtractReasoning = fullContent.length > 500 && 
+                (fullContent.includes('</thinking>') || 
+                 fullContent.includes('</reasoning>') || 
+                 fullContent.includes('</analyse>') ||
+                 fullContent.includes('<thinking>') ||
+                 fullContent.length > 2000); // Ou si le contenu est déjà long
+              
+              if (shouldExtractReasoning && !reasoningProcessed) {
+                const reasoningResult = extractReasoning(fullContent, 10000);
+                
+                if (reasoningResult && reasoningResult.content.length > 1200) { // S'assurer d'avoir un raisonnement substantiel
+                  reasoningProcessed = true;
+                  
+                  // Ajouter un message de progression pour l'extraction du raisonnement
+                  dataStream.writeData({
+                    type: 'progress',
+                    label: 'thinking-extraction',
+                    status: 'in-progress',
+                    order: progressCounter++,
+                    message: '🧠 Extraction du processus de réflexion <thinking>...',
+                  } satisfies ProgressAnnotation);
+                  
+                  // Ajouter l'annotation de raisonnement immédiatement
+                  dataStream.writeMessageAnnotation({
+                    type: 'reasoning',
+                    content: reasoningResult.content,
+                    provider: provider,
+                    metadata: {
+                      originalLength: reasoningResult.originalLength,
+                      model: model,
+                      extractionMethod: reasoningResult.extractionMethod,
+                      confidence: reasoningResult.confidence
+                    }
+                  });
+                  
+                  // Marquer l'extraction comme terminée
+                  dataStream.writeData({
+                    type: 'progress',
+                    label: 'thinking-extraction',
+                    status: 'complete',
+                    order: progressCounter++,
+                    message: '✅ Processus de réflexion extrait avec succès',
+                  } satisfies ProgressAnnotation);
+                  
+                  // Nettoyer le contenu et continuer avec la réponse propre
+                  const cleanedContent = removeReasoningFromContent(fullContent, reasoningResult.content);
+                  if (cleanedContent && cleanedContent.trim() && cleanedContent !== fullContent) {
+                    fullContent = cleanedContent;
+                  }
+                }
+              }
+            }
+            
+            // Traitement final à la fin de la génération (fallback)
+            if (part.type === 'finish' && fullContent.trim() && !reasoningProcessed) {
+              // Ajouter un message de progression pour l'extraction fallback
+              dataStream.writeData({
+                type: 'progress',
+                label: 'thinking-fallback',
+                status: 'in-progress',
+                order: progressCounter++,
+                message: '🔍 Recherche de processus de réflexion <thinking> non détecté...',
+              } satisfies ProgressAnnotation);
+              
+              const reasoningResult = extractReasoning(fullContent, 10000);
               
               if (reasoningResult) {
+                // Marquer l'extraction fallback comme réussie
+                dataStream.writeData({
+                  type: 'progress',
+                  label: 'thinking-fallback',
+                  status: 'complete',
+                  order: progressCounter++,
+                  message: '✅ Processus de réflexion <thinking> trouvé et extrait',
+                } satisfies ProgressAnnotation);
+                
                 // Ajouter l'annotation de raisonnement
                 dataStream.writeMessageAnnotation({
                   type: 'reasoning',
@@ -633,6 +708,15 @@ function assessComplexity(message: string): string {
                   // Mettre à jour le contenu du message pour ne garder que le résultat
                   fullContent = cleanedContent;
                 }
+              } else {
+                // Marquer l'extraction fallback comme échouée
+                dataStream.writeData({
+                  type: 'progress',
+                  label: 'thinking-fallback',
+                  status: 'complete',
+                  order: progressCounter++,
+                  message: '⚪ Aucun processus de réflexion <thinking> détecté',
+                } satisfies ProgressAnnotation);
               }
             }
           }

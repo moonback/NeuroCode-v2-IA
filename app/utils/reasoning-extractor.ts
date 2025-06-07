@@ -17,7 +17,7 @@ export interface ReasoningExtractionResult {
  */
 export function extractReasoning(
   content: string,
-  maxLength: number = 2000
+  maxLength: number = 10000
 ): ReasoningExtractionResult | null {
   if (!content || content.trim().length === 0) {
     return null;
@@ -126,8 +126,21 @@ export function extractReasoning(
   // Nettoyer et structurer le contenu
   extractedContent = enhanceReasoningContent(extractedContent);
   
+  // Troncature intelligente qui préserve les phrases complètes
   if (extractedContent.length > maxLength) {
-    extractedContent = extractedContent.substring(0, maxLength) + '\n\n[Raisonnement tronqué...]';
+    // Chercher le dernier point ou saut de ligne avant la limite
+    let truncateAt = maxLength;
+    const lastPeriod = extractedContent.lastIndexOf('.', maxLength - 100);
+    const lastNewline = extractedContent.lastIndexOf('\n', maxLength - 50);
+    
+    // Utiliser le point le plus proche de la limite, mais pas trop près du début
+    if (lastPeriod > maxLength * 0.7) {
+      truncateAt = lastPeriod + 1;
+    } else if (lastNewline > maxLength * 0.8) {
+      truncateAt = lastNewline;
+    }
+    
+    extractedContent = extractedContent.substring(0, truncateAt).trim() + '\n\n[Raisonnement tronqué pour la lisibilité...]';
   }
 
   return {
@@ -148,7 +161,7 @@ function extractByHeuristic(content: string): { content: string; confidence: Rea
   let confidence: ReasoningExtractionResult['confidence'] = 'low';
   let reasoningScore = 0;
 
-  for (let i = 0; i < lines.length && reasoningLines.length < 25; i++) {
+  for (let i = 0; i < lines.length && reasoningLines.length < 200; i++) {
     const line = lines[i];
     const trimmedLine = line.trim();
     
@@ -166,7 +179,7 @@ function extractByHeuristic(content: string): { content: string; confidence: Rea
     if (trimmedLine.startsWith('```') || 
         trimmedLine.startsWith('##') ||
         /^\d+\.|^[a-z]\)|^-\s|^\*\s/.test(trimmedLine)) {
-      if (foundContent && reasoningLines.length > 5) {
+      if (foundContent && reasoningLines.length > 10) {
         break; // On a déjà du contenu de raisonnement substantiel, on s'arrête
       }
       if (!foundContent) {
@@ -189,7 +202,7 @@ function extractByHeuristic(content: string): { content: string; confidence: Rea
       if (indicator.test(trimmedLine)) {
         reasoningScore++;
         if (reasoningScore >= 2) confidence = 'medium';
-        if (reasoningScore >= 4) confidence = 'high';
+        if (reasoningScore >= 3) confidence = 'high';
         break;
       }
     }
@@ -199,12 +212,30 @@ function extractByHeuristic(content: string): { content: string; confidence: Rea
       reasoningScore++;
     }
 
+    // Bonus pour les lignes longues et détaillées (indicateur de raisonnement approfondi)
+    if (trimmedLine.length > 80 && /\b(parce que|car|puisque|étant donné|considering|because|since)\b/i.test(trimmedLine)) {
+      reasoningScore++;
+    }
+
+    // Bonus pour les connecteurs logiques multiples
+    const logicalConnectors = (trimmedLine.match(/\b(donc|ainsi|par conséquent|cependant|néanmoins|toutefois|moreover|however|therefore)\b/gi) || []).length;
+    if (logicalConnectors >= 2) {
+      reasoningScore += logicalConnectors;
+    }
+
     reasoningLines.push(line);
     foundContent = true;
   }
 
-  if (reasoningLines.length < 3 || reasoningScore === 0) {
+  // Critères plus flexibles pour accepter plus de raisonnements
+  if (reasoningLines.length < 2 || (reasoningLines.length < 5 && reasoningScore === 0)) {
     return null;
+  }
+
+  // Bonus de confiance pour les raisonnements longs
+  if (reasoningLines.length > 15) {
+    if (confidence === 'low') confidence = 'medium';
+    else if (confidence === 'medium') confidence = 'high';
   }
 
   return {
@@ -224,6 +255,7 @@ function extractSmartFallback(content: string): { content: string; confidence: R
   // Chercher les premiers paragraphes qui semblent être du raisonnement
   let currentParagraph: string[] = [];
   let paragraphCount = 0;
+  let totalReasoningLength = 0;
   
   for (const line of lines) {
     const trimmedLine = line.trim();
@@ -234,7 +266,9 @@ function extractSmartFallback(content: string): { content: string; confidence: R
         if (isLikelyReasoning(paragraphText)) {
           reasoningLines.push(...currentParagraph, '');
           paragraphCount++;
-          if (paragraphCount >= 3) break; // Limiter à 3 paragraphes
+          totalReasoningLength += paragraphText.length;
+          // Augmenter la limite pour capturer plus de raisonnement
+          if (paragraphCount >= 15 || totalReasoningLength > 8000) break;
         }
         currentParagraph = [];
       }
@@ -243,23 +277,25 @@ function extractSmartFallback(content: string): { content: string; confidence: R
       
       // Arrêter si on trouve des indicateurs de code ou de réponse finale
       if (trimmedLine.startsWith('```') || 
-          /^(Voici|Here's|Solution|Résultat)/.test(trimmedLine)) {
+          /^(Voici|Here's|Solution|Résultat|Implémentation|Code)/.test(trimmedLine)) {
         break;
       }
     }
   }
   
   // Traiter le dernier paragraphe
-  if (currentParagraph.length > 0 && paragraphCount < 3) {
+  if (currentParagraph.length > 0 && paragraphCount < 15) {
     const paragraphText = currentParagraph.join('\n');
     if (isLikelyReasoning(paragraphText)) {
       reasoningLines.push(...currentParagraph);
       paragraphCount++;
+      totalReasoningLength += paragraphText.length;
     }
   }
   
-  if (paragraphCount >= 2) confidence = 'medium';
-  if (paragraphCount >= 3) confidence = 'high';
+  // Ajuster la confiance basée sur la quantité et la qualité
+  if (paragraphCount >= 2 || totalReasoningLength > 500) confidence = 'medium';
+  if (paragraphCount >= 4 || totalReasoningLength > 1500) confidence = 'high';
   
   return reasoningLines.length > 0 ? {
     content: reasoningLines.join('\n').trim(),
@@ -288,33 +324,68 @@ function enhanceReasoningContent(content: string): string {
   let enhanced = cleanReasoningContent(content);
   
   // Ajouter des sections si le contenu est long et non structuré
-  if (enhanced.length > 500 && !enhanced.includes('##') && !enhanced.includes('**')) {
-    const paragraphs = enhanced.split('\n\n').filter(p => p.trim());
+  if (enhanced.length > 300 && !enhanced.includes('##') && !enhanced.includes('**')) {
+    const paragraphs = enhanced.split('\n\n').filter(p => p.trim() && p.length > 20);
     
-    if (paragraphs.length >= 3) {
-      // Structurer en sections logiques
+    if (paragraphs.length >= 2) {
+      // Structurer en sections logiques plus détaillées
       const sections = [];
       
-      // Première section : Analyse
-      if (paragraphs[0]) {
-        sections.push(`**🔍 Analyse**\n${paragraphs[0]}`);
-      }
+      // Analyser le contenu pour identifier les types de sections
+      const hasQuestions = enhanced.includes('?');
+      const hasSteps = /\b(étape|step|d'abord|ensuite|puis|enfin|premièrement|deuxièmement)\b/i.test(enhanced);
+      const hasOptions = /\b(option|alternative|possibilité|choix)\b/i.test(enhanced);
       
-      // Sections intermédiaires : Réflexion
-      for (let i = 1; i < paragraphs.length - 1; i++) {
-        if (paragraphs[i]) {
-          sections.push(`**💭 Réflexion ${i}**\n${paragraphs[i]}`);
+      if (paragraphs.length >= 4) {
+        // Pour les raisonnements longs, créer plus de sections
+        sections.push(`**🎯 Compréhension du problème**\n${paragraphs[0]}`);
+        
+        if (hasOptions && paragraphs[1]) {
+          sections.push(`**⚖️ Analyse des options**\n${paragraphs[1]}`);
+        } else if (hasSteps && paragraphs[1]) {
+          sections.push(`**📋 Approche méthodologique**\n${paragraphs[1]}`);
+        } else {
+          sections.push(`**🔍 Analyse approfondie**\n${paragraphs[1]}`);
         }
-      }
-      
-      // Dernière section : Conclusion
-      if (paragraphs[paragraphs.length - 1]) {
-        sections.push(`**✅ Conclusion**\n${paragraphs[paragraphs.length - 1]}`);
+        
+        // Sections intermédiaires
+        for (let i = 2; i < paragraphs.length - 1; i++) {
+          if (paragraphs[i]) {
+            const sectionTitle = hasSteps ? `**⚙️ Étape ${i - 1}**` : `**💭 Réflexion ${i - 1}**`;
+            sections.push(`${sectionTitle}\n${paragraphs[i]}`);
+          }
+        }
+        
+        // Dernière section
+        if (paragraphs[paragraphs.length - 1]) {
+          sections.push(`**✅ Décision finale**\n${paragraphs[paragraphs.length - 1]}`);
+        }
+      } else {
+        // Pour les raisonnements plus courts
+        sections.push(`**🔍 Analyse**\n${paragraphs[0]}`);
+        
+        if (paragraphs[1]) {
+          const conclusionTitle = hasQuestions ? '**❓ Évaluation**' : '**✅ Conclusion**';
+          sections.push(`${conclusionTitle}\n${paragraphs[1]}`);
+        }
+        
+        // Ajouter les paragraphes restants
+        for (let i = 2; i < paragraphs.length; i++) {
+          if (paragraphs[i]) {
+            sections.push(`**💡 Considération supplémentaire**\n${paragraphs[i]}`);
+          }
+        }
       }
       
       enhanced = sections.join('\n\n');
     }
   }
+  
+  // Améliorer la lisibilité avec des espaces et formatage
+  enhanced = enhanced
+    .replace(/([.!?])([A-Z])/g, '$1 $2') // Ajouter des espaces après la ponctuation
+    .replace(/\n{3,}/g, '\n\n') // Normaliser les sauts de ligne
+    .trim();
   
   return enhanced;
 }

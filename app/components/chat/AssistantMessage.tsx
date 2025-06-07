@@ -25,6 +25,7 @@ interface AssistantMessageProps {
   setChatMode?: (mode: 'discuss' | 'build') => void;
   model?: string;
   provider?: ProviderInfo;
+  isStreaming?: boolean;
 }
 
 function openArtifactInWorkbench(filePath: string) {
@@ -50,6 +51,37 @@ function normalizedFilePath(path: string) {
 
   return normalizedPath;
 }
+
+// Composant pour afficher l'indicateur de thinking en attente
+const ThinkingIndicator = () => {
+  return (
+    <div className="mb-4">
+      <div className="relative overflow-hidden bg-gradient-to-r from-indigo-50 to-violet-50 dark:from-indigo-900/30 dark:to-violet-900/30 border border-indigo-200/70 dark:border-indigo-700/70 rounded-lg shadow-sm backdrop-blur-sm">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-3">
+            <div className="flex-shrink-0 w-6 h-6 rounded-md bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
+              <div className="i-ph:brain text-white text-sm animate-pulse" />
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-indigo-700 dark:text-indigo-200">Thinking...</span>
+              
+              <div className="flex items-center gap-1">
+                <div className="w-1 h-1 rounded-full bg-indigo-500 animate-bounce" style={{animationDelay: '0ms'}} />
+                <div className="w-1 h-1 rounded-full bg-indigo-500 animate-bounce" style={{animationDelay: '150ms'}} />
+                <div className="w-1 h-1 rounded-full bg-indigo-500 animate-bounce" style={{animationDelay: '300ms'}} />
+              </div>
+            </div>
+          </div>
+          
+          <span className="text-xs text-indigo-600 dark:text-indigo-400">
+            Génération du raisonnement...
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Composant pour afficher le raisonnement avec design moderne et amélioré
 const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string; reasoningMetadata: any }) => {
@@ -313,6 +345,7 @@ export const AssistantMessage = memo(
     setChatMode,
     model,
     provider,
+    isStreaming = false,
   }: AssistantMessageProps) => {
     const filteredAnnotations = (annotations?.filter(
       (annotation: JSONValue) =>
@@ -421,7 +454,10 @@ export const AssistantMessage = memo(
           )}
         </div>
 
-        {/* Section de raisonnement */}
+        {/* Section de raisonnement - Affichée AVANT le contenu principal */}
+        {isStreaming && !reasoning && (
+          <ThinkingIndicator />
+        )}
         {reasoning && (
           <ReasoningSection 
             reasoning={reasoning} 
