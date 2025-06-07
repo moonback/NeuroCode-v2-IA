@@ -14,6 +14,7 @@ import {
 } from '~/components/ui/UIImageAnalyzerModal';
 import { IconButton } from '~/components/ui/IconButton';
 import type { Message } from 'ai';
+import { CustomTemplateManager, useCustomTemplates, type CustomTemplate } from './CustomTemplateManager';
 import styles from './UIImageAnalyzer.module.scss';
 
 interface UIImageAnalyzerProps {
@@ -25,7 +26,7 @@ interface UIImageAnalyzerProps {
   onChatStart?: () => void;
 }
 
-type AnalysisType = 'reproduce' | 'improve' | 'explain';
+type AnalysisType = 'reproduce' | 'improve' | 'explain' | 'custom';
 
 interface AnalysisOption {
   id: AnalysisType;
@@ -208,8 +209,16 @@ For each point:
 ☐ Recommendations prioritized
 ☐ Guidelines established`
   },
-   
-  ];
+  {
+    id: 'custom',
+    title: 'Templates personnalisés',
+    description: 'Utilisez vos propres prompts d\'analyse adaptés à vos besoins spécifiques',
+    icon: 'i-ph:gear-six',
+    gradient: 'from-bolt-elements-item-backgroundAccent to-bolt-elements-background-depth-3',
+    color: 'text-bolt-elements-item-contentAccent',
+    prompt: 'CUSTOM_TEMPLATE_PLACEHOLDER' // Ce prompt sera remplacé par le template sélectionné
+  }
+];
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
@@ -397,7 +406,12 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [currentStep, setCurrentStep] = useState<1 | 2>(1);
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
+  const [showCustomTemplates, setShowCustomTemplates] = useState(false);
+  const [selectedCustomTemplate, setSelectedCustomTemplate] = useState<CustomTemplate | null>(null);
+  
+  // Hook pour gérer les templates personnalisés
+  const { templates, createTemplate, updateTemplate, deleteTemplate } = useCustomTemplates();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Optimisation du FileReader avec useMemo
@@ -480,8 +494,16 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
   const analysisMessage = useMemo(() => {
     if (!selectedFile || !selectedAnalysis) return null;
     
-    const analysisOption = ANALYSIS_OPTIONS.find(option => option.id === selectedAnalysis);
-    if (!analysisOption) return null;
+    let prompt = '';
+    
+    if (selectedAnalysis === 'custom') {
+      if (!selectedCustomTemplate) return null;
+      prompt = selectedCustomTemplate.prompt;
+    } else {
+      const analysisOption = ANALYSIS_OPTIONS.find(option => option.id === selectedAnalysis);
+      if (!analysisOption) return null;
+      prompt = analysisOption.prompt;
+    }
 
     return {
       id: `ui-analyzer-${Date.now()}`,
@@ -489,7 +511,7 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
       content: [
         {
           type: 'text',
-          text: `[Model: ${model || 'Unknown'}]\n\n[Provider: ${provider?.name || 'Unknown'}]\n\n${analysisOption.prompt}`
+          text: `[Model: ${model || 'Unknown'}]\n\n[Provider: ${provider?.name || 'Unknown'}]\n\n${prompt}`
         },
         {
           type: 'image',
@@ -497,7 +519,7 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
         }
       ] as any
     } as Message;
-  }, [selectedFile, selectedAnalysis, imagePreview, model, provider?.name]);
+  }, [selectedFile, selectedAnalysis, selectedCustomTemplate, imagePreview, model, provider?.name]);
 
   const handleAnalyze = useCallback(async () => {
     if (!selectedFile || !selectedAnalysis || !imagePreview) {
@@ -508,8 +530,22 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
     setIsAnalyzing(true);
     
     try {
-      const analysisOption = ANALYSIS_OPTIONS.find(option => option.id === selectedAnalysis);
-      if (!analysisOption) return;
+      let prompt = '';
+      let title = '';
+      
+      if (selectedAnalysis === 'custom') {
+        if (!selectedCustomTemplate) {
+          toast.error('Veuillez sélectionner un template personnalisé.');
+          return;
+        }
+        prompt = selectedCustomTemplate.prompt;
+        title = selectedCustomTemplate.title;
+      } else {
+        const analysisOption = ANALYSIS_OPTIONS.find(option => option.id === selectedAnalysis);
+        if (!analysisOption) return;
+        prompt = analysisOption.prompt;
+        title = analysisOption.title;
+      }
 
       if (append) {
         console.log('UIImageAnalyzer: Envoi du message avec append');
@@ -520,7 +556,7 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
           content: [
             {
               type: 'text',
-              text: `[Model: ${model || 'Unknown'}]\n\n[Provider: ${provider?.name || 'Unknown'}]\n\n${analysisOption.prompt}`
+              text: `[Model: ${model || 'Unknown'}]\n\n[Provider: ${provider?.name || 'Unknown'}]\n\n${prompt}`
             },
             {
               type: 'image',
@@ -546,12 +582,12 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
         }
         
         const event = new Event('click') as any;
-        sendMessage(event, `[Model: ${model || 'Unknown'}]\n\n[Provider: ${provider?.name || 'Unknown'}]\n\n${analysisOption.prompt}`);
+        sendMessage(event, `[Model: ${model || 'Unknown'}]\n\n[Provider: ${provider?.name || 'Unknown'}]\n\n${prompt}`);
       }
 
-      onAnalysisComplete?.(selectedAnalysis, imagePreview, analysisOption.prompt);
+      onAnalysisComplete?.(selectedAnalysis, imagePreview, prompt);
 
-      toast.success(`Analyse "${analysisOption.title}" lancée avec succès!`);
+      toast.success(`Analyse "${title}" lancée avec succès!`);
       
       setIsOpen(false);
       resetState();
@@ -571,6 +607,8 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
     setIsDragOver(false);
     setIsAnalyzing(false);
     setCurrentStep(1);
+    setShowCustomTemplates(false);
+    setSelectedCustomTemplate(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -584,6 +622,25 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
   const handleBackToStep1 = useCallback(() => {
     setSelectedAnalysis(null);
     setCurrentStep(1);
+  }, []);
+
+  const handleAnalysisSelect = useCallback((analysisType: AnalysisType) => {
+    setSelectedAnalysis(analysisType);
+    if (analysisType === 'custom') {
+      setCurrentStep(3);
+      setShowCustomTemplates(true);
+    }
+  }, []);
+
+  const handleCustomTemplateSelect = useCallback((template: CustomTemplate) => {
+    setSelectedCustomTemplate(template);
+    setSelectedAnalysis('custom');
+  }, []);
+
+  const handleBackToStep2 = useCallback(() => {
+    setShowCustomTemplates(false);
+    setSelectedCustomTemplate(null);
+    setCurrentStep(2);
   }, []);
 
   const handleUrlSubmit = useCallback(async (url: string) => {
@@ -934,10 +991,70 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
                               key={option.id}
                               option={option}
                               isSelected={selectedAnalysis === option.id}
-                              onClick={() => setSelectedAnalysis(option.id)}
+                              onClick={() => handleAnalysisSelect(option.id)}
                             />
                           ))}
                         </div>
+                      </motion.div>
+                    )}
+
+                    {/* Étape 3: Templates personnalisés */}
+                    {currentStep === 3 && showCustomTemplates && (
+                      <motion.div
+                        key="step3"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <div className="flex items-center justify-between mb-6">
+                          <h3 className="text-xl font-semibold text-bolt-elements-textPrimary flex items-center gap-2">
+                            <div className="i-ph:gear-six text-bolt-elements-item-contentAccent" />
+                            Templates personnalisés
+                          </h3>
+                          <motion.button
+                            onClick={handleBackToStep2}
+                            className={classNames(
+                              "flex items-center gap-2 px-4 py-2.5",
+                              "bg-bolt-elements-background-depth-3",
+                              "text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary",
+                              "transition-all duration-200 ease-out",
+                              "rounded-lg border border-bolt-elements-borderColor",
+                              "hover:border-bolt-elements-borderColorActive",
+                              "hover:bg-bolt-elements-background-depth-3",
+                              "hover:shadow-md",
+                              "active:scale-95"
+                            )}
+                            whileHover={{ 
+                              x: -4,
+                              scale: 1.02
+                            }}
+                            whileTap={{
+                              scale: 0.95
+                            }}
+                            transition={{
+                              type: "spring",
+                              stiffness: 400,
+                              damping: 25
+                            }}
+                          >
+                            <motion.div 
+                              className="i-ph:arrow-left"
+                              initial={{ x: 0 }}
+                              whileHover={{ x: -2 }}
+                            />
+                            <span className="text-sm font-medium">Retour aux options</span>
+                          </motion.button>
+                        </div>
+                        
+                        <CustomTemplateManager
+                          templates={templates}
+                          onTemplateCreate={createTemplate}
+                          onTemplateUpdate={updateTemplate}
+                          onTemplateDelete={deleteTemplate}
+                          onTemplateSelect={handleCustomTemplateSelect}
+                          selectedTemplateId={selectedCustomTemplate?.id}
+                        />
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -945,19 +1062,21 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
               
               <UIImageAnalyzerModalFooter
                 currentStep={currentStep}
-                totalSteps={2}
+                totalSteps={showCustomTemplates ? 3 : 2}
                 stepLabel={
                   currentStep === 1 
-                    ? "Étape 1 sur 2 - Sélectionnez votre image"
-                    : "Étape 2 sur 2 - Choisissez votre analyse"
+                    ? "Étape 1 - Sélectionnez votre image"
+                    : currentStep === 2
+                    ? "Étape 2 - Choisissez votre analyse"
+                    : "Étape 3 - Templates personnalisés"
                 }
                 onCancel={handleClose}
                 onNext={currentStep === 1 ? () => setCurrentStep(2) : handleAnalyze}
-                onPrevious={currentStep === 2 ? handleBackToStep1 : undefined}
-                nextLabel={currentStep === 2 ? "Lancer l'analyse" : "Suivant"}
-                previousLabel="Modifier l'image"
+                onPrevious={currentStep === 2 ? handleBackToStep1 : currentStep === 3 ? handleBackToStep2 : undefined}
+                nextLabel={currentStep === 2 || currentStep === 3 ? "Lancer l'analyse" : "Suivant"}
+                previousLabel={currentStep === 3 ? "Retour aux options" : "Modifier l'image"}
                 cancelLabel="Annuler"
-                isNextDisabled={!selectedFile || (currentStep === 2 && !selectedAnalysis)}
+                isNextDisabled={!selectedFile || ((currentStep === 2 || currentStep === 3) && (!selectedAnalysis || (selectedAnalysis === 'custom' && !selectedCustomTemplate)))}
                 isLoading={isAnalyzing}
               />
             </UIImageAnalyzerModal>
