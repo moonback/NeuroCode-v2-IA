@@ -293,7 +293,7 @@ const PromptSelector = () => {
               <span className="i-ph:book text-white text-xs" />
             </div>
             <span className="font-medium text-slate-800 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-slate-100 truncate max-w-[140px]">
-              {currentPrompt.label}
+              {/* {currentPrompt.label} */}
             </span>
             <div className="i-ph:caret-down text-slate-600 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-300 text-xs ml-auto" />
           </button>
@@ -379,7 +379,7 @@ export const AssistantMessage = memo(
     return (
       <div className="overflow-hidden w-full">
         {/* Header avec statistiques cohérent */}
-        <div className="flex gap-3 items-center justify-between mb-4 p-3 bg-bolt-elements-bg-depth-2 rounded-lg border border-bolt-elements-borderColor">
+        <div className="flex gap-3 items-center justify-between mb-4 p-3 bg-bolt-elements-bg-depth-2 ">
           <div className="flex items-center gap-4 min-w-0 flex-1">
             {usage && (
               <>
