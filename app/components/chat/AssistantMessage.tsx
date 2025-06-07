@@ -12,6 +12,7 @@ import { useSettings } from '~/lib/hooks/useSettings';
 import { PromptLibrary } from '~/lib/common/prompt-library';
 import { toast } from 'react-toastify';
 import type { ProviderInfo } from '~/types/model';
+
 interface AssistantMessageProps {
   content: string;
   annotations?: JSONValue[];
@@ -50,22 +51,33 @@ function normalizedFilePath(path: string) {
   return normalizedPath;
 }
 
-// Composant pour afficher le raisonnement avec possibilité de l'afficher/masquer
+// Composant pour afficher le raisonnement avec design moderne
 const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string; reasoningMetadata: any }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div className="mb-4">
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-lg shadow-sm">
-        <div className="flex items-center justify-between p-4 cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
-          <div className="flex items-center gap-2">
-            <div className="i-ph:brain text-blue-600 dark:text-blue-400 text-lg" />
-            <span className="text-sm font-medium text-blue-800 dark:text-blue-300">Raisonnement</span>
+    <div className="mb-6">
+      <div className="relative overflow-hidden bg-gradient-to-br from-violet-50/80 via-indigo-50/80 to-purple-50/80 dark:from-violet-950/40 dark:via-indigo-950/40 dark:to-purple-950/40 border border-violet-200/60 dark:border-violet-800/60 rounded-xl shadow-sm backdrop-blur-sm">
+        {/* Effet de brillance subtil */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500" />
+        
+        <div className="relative flex items-center justify-between p-5 cursor-pointer group" onClick={() => setIsExpanded(!isExpanded)}>
+          <div className="flex items-center gap-3">
+            <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-sm">
+              <div className="i-ph:brain text-white text-lg" />
+            </div>
+            <div>
+              <span className="text-sm font-semibold text-violet-900 dark:text-violet-100">Raisonnement</span>
+              <p className="text-xs text-violet-600 dark:text-violet-300 mt-0.5">Processus de réflexion de l'IA</p>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2 text-xs text-blue-600 dark:text-blue-400">
+          
+          <div className="flex items-center gap-3">
+            {/* Badges de métadonnées redesignés */}
+            <div className="flex items-center gap-2">
               {reasoningMetadata?.extractionMethod && (
-                <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 rounded text-blue-700 dark:text-blue-300">
+                <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-gradient-to-r from-violet-100 to-indigo-100 dark:from-violet-900/80 dark:to-indigo-900/80 text-violet-700 dark:text-violet-200 border border-violet-200/50 dark:border-violet-700/50">
+                  <div className="w-1.5 h-1.5 rounded-full bg-violet-500 mr-2" />
                   {reasoningMetadata.extractionMethod === 'explicit' ? 'Balises explicites' :
                    reasoningMetadata.extractionMethod === 'structured' ? 'Structure détectée' :
                    reasoningMetadata.extractionMethod === 'heuristic' ? 'Analyse heuristique' :
@@ -74,35 +86,47 @@ const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string;
                 </span>
               )}
               {reasoningMetadata?.confidence && (
-                <span className={`px-2 py-1 rounded ${
-                  reasoningMetadata.confidence === 'high' ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300' :
-                  reasoningMetadata.confidence === 'medium' ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300' :
-                  'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300'
+                <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium border ${
+                  reasoningMetadata.confidence === 'high' 
+                    ? 'bg-gradient-to-r from-emerald-100 to-green-100 dark:from-emerald-900/80 dark:to-green-900/80 text-emerald-700 dark:text-emerald-200 border-emerald-200/50 dark:border-emerald-700/50' :
+                  reasoningMetadata.confidence === 'medium' 
+                    ? 'bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-900/80 dark:to-yellow-900/80 text-amber-700 dark:text-amber-200 border-amber-200/50 dark:border-amber-700/50' :
+                    'bg-gradient-to-r from-red-100 to-rose-100 dark:from-red-900/80 dark:to-rose-900/80 text-red-700 dark:text-red-200 border-red-200/50 dark:border-red-700/50'
                 }`}>
-                  Confiance: {reasoningMetadata.confidence === 'high' ? 'Élevée' :
-                             reasoningMetadata.confidence === 'medium' ? 'Moyenne' : 'Faible'}
+                  <div className={`w-1.5 h-1.5 rounded-full mr-2 ${
+                    reasoningMetadata.confidence === 'high' ? 'bg-emerald-500' :
+                    reasoningMetadata.confidence === 'medium' ? 'bg-amber-500' : 'bg-red-500'
+                  }`} />
+                  {reasoningMetadata.confidence === 'high' ? 'Élevée' :
+                   reasoningMetadata.confidence === 'medium' ? 'Moyenne' : 'Faible'}
                 </span>
               )}
             </div>
+            
             <WithTooltip tooltip={isExpanded ? "Masquer le raisonnement" : "Afficher le raisonnement"}>
-              <button className={`transition-transform duration-200 ${
+              <button className={`flex-shrink-0 w-8 h-8 rounded-lg bg-white/80 dark:bg-gray-800/80 border border-violet-200/50 dark:border-violet-700/50 flex items-center justify-center transition-all duration-300 group-hover:scale-105 ${
                 isExpanded ? 'rotate-180' : ''
               }`}>
-                <div className="i-ph:caret-down text-blue-600 dark:text-blue-400 text-lg" />
+                <div className="i-ph:caret-down text-violet-600 dark:text-violet-400 text-sm" />
               </button>
             </WithTooltip>
           </div>
         </div>
+        
         {isExpanded && (
-          <div className="px-4 pb-4">
-            <div className="text-sm text-blue-700 dark:text-blue-200 whitespace-pre-wrap leading-relaxed border-l-2 border-blue-300 dark:border-blue-600 pl-3">
-              {reasoning}
-            </div>
-            {reasoning.includes('[Raisonnement tronqué...]') && (
-              <div className="mt-2 text-xs text-blue-600 dark:text-blue-400 italic">
-                💡 Le raisonnement complet a été tronqué pour l'affichage
+          <div className="px-5 pb-5">
+            <div className="relative bg-white/60 dark:bg-gray-900/60 rounded-lg p-4 border border-violet-200/30 dark:border-violet-800/30 backdrop-blur-sm">
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-violet-400 to-indigo-600 rounded-l-lg" />
+              <div className="text-sm text-violet-800 dark:text-violet-100 whitespace-pre-wrap leading-relaxed pl-4">
+                {reasoning}
               </div>
-            )}
+              {reasoning.includes('[Raisonnement tronqué...]') && (
+                <div className="mt-3 flex items-center gap-2 text-xs text-violet-600 dark:text-violet-400 pl-4">
+                  <div className="i-ph:info text-sm" />
+                  <span className="italic">Le raisonnement complet a été tronqué pour l'affichage</span>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -110,7 +134,7 @@ const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string;
   );
 };
 
-// Composant pour sélectionner un prompt
+// Composant pour sélectionner un prompt avec design amélioré
 const PromptSelector = () => {
   const { promptId, setPromptId } = useSettings();
   const prompts = PromptLibrary.getList();
@@ -118,31 +142,42 @@ const PromptSelector = () => {
   const currentPrompt = prompts.find(p => p.id === promptId) || prompts[0];
   
   return (
-    <Dropdown
-      trigger={
-        <button className="flex bg-transparent items-center gap-1 text-sm text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary transition-colors">
-          <span className="i-ph:book text-lg" />
-          <span className="hidden md:inline">{currentPrompt.label}</span>
-          <span className="i-ph:caret-down text-xs" />
-        </button>
-      }
-    >
-      {prompts.map((prompt) => (
-        <DropdownItem
-          key={prompt.id}
-          className={promptId === prompt.id ? 'bg-bolt-elements-background-depth-3' : ''}
-          onSelect={() => {
-            setPromptId(prompt.id);
-            toast.success(`Prompt "${prompt.label}" sélectionné`);
-          }}
-        >
-          <div className="flex flex-col">
-            <span>{prompt.label}</span>
-            <span className="text-xs text-bolt-elements-textTertiary">{prompt.description}</span>
-          </div>
-        </DropdownItem>
-      ))}
-    </Dropdown>
+    <div className="mt-6 pt-4 border-t border-bolt-elements-borderColor/30">
+      <Dropdown
+        trigger={
+          <button className="group flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 hover:from-violet-50 hover:to-indigo-50 dark:hover:from-violet-900/20 dark:hover:to-indigo-900/20 border border-gray-200 dark:border-gray-600 hover:border-violet-300 dark:hover:border-violet-600 rounded-lg transition-all duration-200 hover:shadow-sm">
+            <div className="flex-shrink-0 w-6 h-6 rounded-md bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center">
+              <span className="i-ph:book text-white text-sm" />
+            </div>
+            <div className="flex-1 text-left">
+              <span className="text-sm font-medium text-bolt-elements-textPrimary group-hover:text-violet-700 dark:group-hover:text-violet-300">
+                {currentPrompt.label}
+              </span>
+              <p className="text-xs text-bolt-elements-textSecondary mt-0.5 hidden md:block">
+                {currentPrompt.description}
+              </p>
+            </div>
+            <div className="i-ph:caret-down text-xs text-bolt-elements-textSecondary group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors" />
+          </button>
+        }
+      >
+        {prompts.map((prompt) => (
+          <DropdownItem
+            key={prompt.id}
+            className={`${promptId === prompt.id ? 'bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-violet-900/30 dark:to-indigo-900/30 border-l-2 border-violet-500' : 'hover:bg-gray-50 dark:hover:bg-gray-800'} transition-all duration-150`}
+            onSelect={() => {
+              setPromptId(prompt.id);
+              toast.success(`Prompt "${prompt.label}" sélectionné`);
+            }}
+          >
+            <div className="flex flex-col p-2">
+              <span className="font-medium text-sm">{prompt.label}</span>
+              <span className="text-xs text-bolt-elements-textTertiary mt-1 leading-relaxed">{prompt.description}</span>
+            </div>
+          </DropdownItem>
+        ))}
+      </Dropdown>
+    </div>
   );
 };
 
@@ -194,78 +229,96 @@ export const AssistantMessage = memo(
 
     return (
       <div className="overflow-hidden w-full">
-        <>
-          <div className=" flex gap-2 items-center text-sm text-bolt-elements-textSecondary mb-2">
-            
-            
-            <div className="flex w-full items-center justify-between">
-              {usage && (
-                <div className="flex items-center min-w-0 flex-1">
-                  <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20">
-                    <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 animate-pulse" />
-                    <span className="text-xs text-bolt-elements-textSecondary font-medium whitespace-nowrap">
-                      {usage.totalTokens.toLocaleString()} tokens
+        {/* Header avec statistiques redesigné */}
+        <div className="flex gap-3 items-center justify-between mb-4 p-3 bg-gradient-to-r from-gray-50/80 to-violet-50/80 dark:from-gray-800/50 dark:to-violet-900/20 rounded-lg border border-gray-200/50 dark:border-gray-700/50">
+          <div className="flex items-center gap-4 min-w-0 flex-1">
+            {usage && (
+              <>
+                {/* Badge principal des tokens */}
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-violet-500/10 via-purple-500/10 to-indigo-500/10 border border-violet-500/20 backdrop-blur-sm">
+                  <div className="relative">
+                    <div className="w-2 h-2 rounded-full bg-gradient-to-r from-violet-500 to-purple-600" />
+                    <div className="absolute inset-0 w-2 h-2 rounded-full bg-gradient-to-r from-violet-500 to-purple-600 animate-ping opacity-75" />
+                  </div>
+                  <span className="text-sm font-semibold text-violet-700 dark:text-violet-300 whitespace-nowrap">
+                    {usage.totalTokens.toLocaleString()}
+                  </span>
+                  <span className="text-xs text-violet-600 dark:text-violet-400 hidden sm:inline">tokens</span>
+                </div>
+                
+                {/* Détails des tokens avec design moderne */}
+                <div className="hidden lg:flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200/50 dark:border-emerald-700/50">
+                    <div className="i-ph:arrow-right text-emerald-600 dark:text-emerald-400 text-xs" />
+                    <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                      {usage.promptTokens.toLocaleString()}
                     </span>
                   </div>
-                
-                {/* Détails des tokens avec style moderne */}
-                <div className="hidden sm:flex items-center gap-2 text-xs text-bolt-elements-textTertiary">
-                  <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-bolt-elements-background-depth-2/50 border border-bolt-elements-borderColor/20">
-                    <div className="i-ph:arrow-right text-emerald-500 text-xs" />
-                    <span>{usage.promptTokens.toLocaleString()}</span>
-                  </div>
-                  <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-bolt-elements-background-depth-2/50 border border-bolt-elements-borderColor/20">
-                    <div className="i-ph:arrow-left text-blue-500 text-xs" />
-                    <span>{usage.completionTokens.toLocaleString()}</span>
+                  <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-violet-50 dark:bg-violet-900/30 border border-violet-200/50 dark:border-violet-700/50">
+                    <div className="i-ph:arrow-left text-violet-600 dark:text-violet-400 text-xs" />
+                    <span className="text-xs font-medium text-violet-700 dark:text-violet-300">
+                      {usage.completionTokens.toLocaleString()}
+                    </span>
                   </div>
                 </div>
-              </div>
+              </>
+            )}
+          </div>
+          
+          {/* Actions redesignées */}
+          {(onRewind || onFork || onReply) && messageId && (
+            <div className="flex gap-1">
+              {onReply && (
+                <WithTooltip tooltip="Répondre à ce message">
+                  <button
+                    onClick={() => onReply(messageId, content)}
+                    className="w-8 h-8 rounded-lg bg-white/80 dark:bg-gray-800/80 hover:bg-violet-50 dark:hover:bg-violet-900/30 border border-gray-200 dark:border-gray-600 hover:border-violet-300 dark:hover:border-violet-600 flex items-center justify-center transition-all duration-200 hover:scale-105"
+                  >
+                    <div className="i-ph:arrow-bend-up-left text-sm text-bolt-elements-textSecondary hover:text-violet-600 dark:hover:text-violet-400" />
+                  </button>
+                </WithTooltip>
               )}
-              {(onRewind || onFork || onReply) && messageId && (
-                <div className="flex gap-2 flex-col lg:flex-row ml-auto">
-                  {onReply && (
-                    <WithTooltip tooltip="Répondre à ce message">
-                      <button
-                        onClick={() => onReply(messageId, content)}
-                        key="i-ph:arrow-bend-up-left"
-                        className="i-ph:arrow-bend-up-left text-xl text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary transition-colors"
-                      />
-                    </WithTooltip>
-                  )}
-                  {onRewind && (
-                    <WithTooltip tooltip="Revert to this message">
-                      <button
-                        onClick={() => onRewind(messageId)}
-                        key="i-ph:arrow-u-up-left"
-                        className="i-ph:arrow-u-up-left text-xl text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary transition-colors"
-                      />
-                    </WithTooltip>
-                  )}
-                  {onFork && (
-                    <WithTooltip tooltip="Fork chat from this message">
-                      <button
-                        onClick={() => onFork(messageId)}
-                        key="i-ph:git-fork"
-                        className="i-ph:git-fork text-xl text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary transition-colors"
-                      />
-                    </WithTooltip>
-                  )}
-                </div>
+              {onRewind && (
+                <WithTooltip tooltip="Revert to this message">
+                  <button
+                    onClick={() => onRewind(messageId)}
+                    className="w-8 h-8 rounded-lg bg-white/80 dark:bg-gray-800/80 hover:bg-amber-50 dark:hover:bg-amber-900/30 border border-gray-200 dark:border-gray-600 hover:border-amber-300 dark:hover:border-amber-600 flex items-center justify-center transition-all duration-200 hover:scale-105"
+                  >
+                    <div className="i-ph:arrow-u-up-left text-sm text-bolt-elements-textSecondary hover:text-amber-600 dark:hover:text-amber-400" />
+                  </button>
+                </WithTooltip>
+              )}
+              {onFork && (
+                <WithTooltip tooltip="Fork chat from this message">
+                  <button
+                    onClick={() => onFork(messageId)}
+                    className="w-8 h-8 rounded-lg bg-white/80 dark:bg-gray-800/80 hover:bg-purple-50 dark:hover:bg-purple-900/30 border border-gray-200 dark:border-gray-600 hover:border-purple-300 dark:hover:border-purple-600 flex items-center justify-center transition-all duration-200 hover:scale-105"
+                  >
+                    <div className="i-ph:git-fork text-sm text-bolt-elements-textSecondary hover:text-purple-600 dark:hover:text-purple-400" />
+                  </button>
+                </WithTooltip>
               )}
             </div>
-          </div>
-        </>
+          )}
+        </div>
+
+        {/* Section de raisonnement */}
         {reasoning && provider?.name === 'Google' && (
           <ReasoningSection 
             reasoning={reasoning} 
             reasoningMetadata={reasoningMetadata} 
           />
         )}
-        <Markdown append={append} chatMode={chatMode} setChatMode={setChatMode} model={model} provider={provider} html>
-          {content}
-        </Markdown>
-        <PromptSelector />
 
+        {/* Contenu principal */}
+        <div className="prose prose-sm dark:prose-invert max-w-none">
+          <Markdown append={append} chatMode={chatMode} setChatMode={setChatMode} model={model} provider={provider} html>
+            {content}
+          </Markdown>
+        </div>
+
+        {/* Sélecteur de prompt */}
+        <PromptSelector />
       </div>
     );
   },
