@@ -521,15 +521,15 @@ function assessComplexity(message: string): string {
                   }
                 }
                 
-                // Traiter le raisonnement à la fin de la génération
-                if (isGoogleThinkingModel && part.type === 'finish' && fullContent.trim()) {
+                // Traiter le raisonnement à la fin de la génération pour tous les modèles
+                if (part.type === 'finish' && fullContent.trim()) {
                   const reasoningResult = extractReasoning(fullContent, 2500);
                   
-                  if (reasoningResult && reasoningResult.confidence !== 'low') {
+                  if (reasoningResult) {
                     dataStream.writeMessageAnnotation({
                       type: 'reasoning',
                       content: reasoningResult.content,
-                      provider: 'Google',
+                      provider: provider,
                       metadata: {
                         originalLength: reasoningResult.originalLength,
                         model: model,
@@ -597,15 +597,15 @@ function assessComplexity(message: string): string {
               }
             }
             
-            // Traiter le raisonnement à la fin de la génération
-            if (isGoogleThinkingModel && part.type === 'finish' && fullContent.trim()) {
+            // Traiter le raisonnement à la fin de la génération pour tous les modèles
+            if (part.type === 'finish' && fullContent.trim()) {
               const reasoningResult = extractReasoning(fullContent, 2500);
               
-              if (reasoningResult && reasoningResult.confidence !== 'low') {
+              if (reasoningResult) {
                 dataStream.writeMessageAnnotation({
                   type: 'reasoning',
                   content: reasoningResult.content,
-                  provider: 'Google',
+                  provider: provider,
                   metadata: {
                     originalLength: reasoningResult.originalLength,
                     model: model,

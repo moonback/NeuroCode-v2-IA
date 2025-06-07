@@ -5,63 +5,93 @@
 export interface ReasoningExtractionResult {
   content: string;
   originalLength: number;
-  extractionMethod: 'pattern' | 'heuristic' | 'fallback';
+  extractionMethod: 'explicit' | 'pattern' | 'heuristic' | 'fallback';
   confidence: 'high' | 'medium' | 'low';
 }
 
 /**
  * Extrait le raisonnement d'un contenu de réponse de modèle thinking
- * @param fullContent Le contenu complet de la réponse
+ * @param content Le contenu complet de la réponse
  * @param maxLength Longueur maximale du raisonnement extrait
- * @returns Résultat de l'extraction avec métadonnées
+ * @returns Le raisonnement extrait avec métadonnées ou null si aucun raisonnement trouvé
  */
 export function extractReasoning(
-  fullContent: string,
+  content: string,
   maxLength: number = 2000
 ): ReasoningExtractionResult | null {
-  if (!fullContent || fullContent.trim().length < 50) {
+  if (!content || content.trim().length === 0) {
     return null;
   }
 
-  const originalLength = fullContent.length;
+  const originalLength = content.length;
   let extractedContent = '';
   let extractionMethod: ReasoningExtractionResult['extractionMethod'] = 'fallback';
   let confidence: ReasoningExtractionResult['confidence'] = 'low';
 
-  // 1. Rechercher des balises de raisonnement explicites
+  // 1. Recherche de balises explicites de raisonnement (améliorée)
   const explicitPatterns = [
     /<thinking[^>]*>([\s\S]*?)<\/thinking>/gi,
-    /<think[^>]*>([\s\S]*?)<\/think>/gi,
+    /<thought[^>]*>([\s\S]*?)<\/thought>/gi,
     /<reasoning[^>]*>([\s\S]*?)<\/reasoning>/gi,
+    /<analyse[^>]*>([\s\S]*?)<\/analyse>/gi,
+    /<reflection[^>]*>([\s\S]*?)<\/reflection>/gi,
     /\[THINKING\]([\s\S]*?)\[\/THINKING\]/gi,
-    /\[REASONING\]([\s\S]*?)\[\/REASONING\]/gi
+    /\[REASONING\]([\s\S]*?)\[\/REASONING\]/gi,
+    /\[ANALYSE\]([\s\S]*?)\[\/ANALYSE\]/gi
   ];
 
   for (const pattern of explicitPatterns) {
-    const matches = [...fullContent.matchAll(pattern)];
+    const matches = Array.from(content.matchAll(pattern));
     if (matches.length > 0) {
-      extractedContent = matches.map(match => match[1].trim()).join('\n\n');
-      extractionMethod = 'pattern';
+      extractedContent = matches.map(match => match[1]).join('\n\n').trim();
+      extractionMethod = 'explicit';
       confidence = 'high';
       break;
     }
   }
 
-  // 2. Rechercher des marqueurs de raisonnement structurés
+  // 2. Si pas de balises explicites, chercher au début du contenu (amélioré)
   if (!extractedContent) {
-    const structuredPatterns = [
-      /\*\*Raisonnement\*\*:?([\s\S]*?)(?=\n\n\*\*|\n\n[A-Z]|$)/gi,
+    const fullContent = content.trim();
+    // Vérifier si le contenu commence par une balise thinking ou analyse
+    const startPatterns = [
+      /^\s*<thinking[^>]*>([\s\S]*?)<\/thinking>/i,
+      /^\s*<reasoning[^>]*>([\s\S]*?)<\/reasoning>/i,
+      /^\s*<analyse[^>]*>([\s\S]*?)<\/analyse>/i,
+      /^\s*<reflection[^>]*>([\s\S]*?)<\/reflection>/i
+    ];
+    
+    for (const pattern of startPatterns) {
+      const match = fullContent.match(pattern);
+      if (match) {
+        extractedContent = match[1].trim();
+        extractionMethod = 'explicit';
+        confidence = 'high';
+        break;
+      }
+    }
+  }
+
+  // 3. Recherche de patterns de structure (étendue)
+  if (!extractedContent) {
+    const structurePatterns = [
       /\*\*Thinking\*\*:?([\s\S]*?)(?=\n\n\*\*|\n\n[A-Z]|$)/gi,
+      /\*\*Raisonnement\*\*:?([\s\S]*?)(?=\n\n\*\*|\n\n[A-Z]|$)/gi,
       /\*\*Analyse\*\*:?([\s\S]*?)(?=\n\n\*\*|\n\n[A-Z]|$)/gi,
-      /Raisonnement:([\s\S]*?)(?=\n\n(?:Réponse|Solution|Conclusion):|$)/gi,
-      /Thinking:([\s\S]*?)(?=\n\n(?:Response|Solution|Answer):|$)/gi,
-      /Analyse:([\s\S]*?)(?=\n\n(?:Réponse|Solution|Conclusion):|$)/gi
+      /\*\*Réflexion\*\*:?([\s\S]*?)(?=\n\n\*\*|\n\n[A-Z]|$)/gi,
+      /\*\*Approche\*\*:?([\s\S]*?)(?=\n\n\*\*|\n\n[A-Z]|$)/gi,
+      /Thinking:([\s\S]*?)(?=\n\n(?:Response|Solution|Answer|Implementation):|$)/gi,
+      /Raisonnement:([\s\S]*?)(?=\n\n(?:Réponse|Solution|Résultat|Implémentation):|$)/gi,
+      /Analyse:([\s\S]*?)(?=\n\n(?:Réponse|Solution|Résultat|Implémentation):|$)/gi,
+      /## Analyse([\s\S]*?)(?=\n\n##|$)/gi,
+      /## Raisonnement([\s\S]*?)(?=\n\n##|$)/gi,
+      /# Thinking([\s\S]*?)(?=\n\n#|$)/gi
     ];
 
-    for (const pattern of structuredPatterns) {
-      const matches = [...fullContent.matchAll(pattern)];
+    for (const pattern of structurePatterns) {
+      const matches = Array.from(content.matchAll(pattern));
       if (matches.length > 0) {
-        extractedContent = matches.map(match => match[1].trim()).join('\n\n');
+        extractedContent = matches.map(match => match[1]).join('\n\n').trim();
         extractionMethod = 'pattern';
         confidence = 'medium';
         break;
@@ -69,26 +99,32 @@ export function extractReasoning(
     }
   }
 
-  // 3. Heuristique : analyser la structure du contenu
+  // 4. Extraction heuristique améliorée
   if (!extractedContent) {
-    const result = extractByHeuristic(fullContent);
-    if (result) {
-      extractedContent = result.content;
+    const heuristicResult = extractByHeuristic(content);
+    if (heuristicResult) {
+      extractedContent = heuristicResult.content;
       extractionMethod = 'heuristic';
-      confidence = result.confidence;
+      confidence = heuristicResult.confidence;
     }
   }
 
-  // 4. Fallback : prendre le début du contenu
-  if (!extractedContent) {
-    const lines = fullContent.split('\n').slice(0, 10);
-    extractedContent = lines.join('\n').trim();
-    extractionMethod = 'fallback';
-    confidence = 'low';
+  // 5. Fallback intelligent : analyser la structure du début
+  if (!extractedContent && isLikelyReasoning(content)) {
+    const smartFallback = extractSmartFallback(content);
+    if (smartFallback) {
+      extractedContent = smartFallback.content;
+      extractionMethod = 'fallback';
+      confidence = smartFallback.confidence;
+    }
   }
 
-  // Nettoyer et limiter la taille
-  extractedContent = cleanReasoningContent(extractedContent);
+  if (!extractedContent) {
+    return null;
+  }
+
+  // Nettoyer et structurer le contenu
+  extractedContent = enhanceReasoningContent(extractedContent);
   
   if (extractedContent.length > maxLength) {
     extractedContent = extractedContent.substring(0, maxLength) + '\n\n[Raisonnement tronqué...]';
@@ -103,22 +139,26 @@ export function extractReasoning(
 }
 
 /**
- * Extraction par heuristique basée sur la structure du contenu
+ * Extraction par heuristique basée sur la structure du contenu (améliorée)
  */
 function extractByHeuristic(content: string): { content: string; confidence: ReasoningExtractionResult['confidence'] } | null {
   const lines = content.split('\n');
   const reasoningLines: string[] = [];
   let foundContent = false;
-  let confidence: ReasoningExtractionResult['confidence'] = 'medium';
+  let confidence: ReasoningExtractionResult['confidence'] = 'low';
+  let reasoningScore = 0;
 
-  for (let i = 0; i < lines.length && reasoningLines.length < 20; i++) {
+  for (let i = 0; i < lines.length && reasoningLines.length < 25; i++) {
     const line = lines[i];
     const trimmedLine = line.trim();
     
-    if (!trimmedLine) continue;
+    if (!trimmedLine) {
+      if (foundContent) reasoningLines.push(line); // Préserver les lignes vides dans le raisonnement
+      continue;
+    }
 
-    // Indicateurs de fin de raisonnement
-    if (/^(Réponse|Response|Solution|Conclusion|Résultat|Result):/i.test(trimmedLine)) {
+    // Indicateurs de fin de raisonnement (étendus)
+    if (/^(Réponse|Response|Solution|Conclusion|Résultat|Result|Implémentation|Implementation|Code|Voici|Here's):/i.test(trimmedLine)) {
       break;
     }
 
@@ -126,24 +166,44 @@ function extractByHeuristic(content: string): { content: string; confidence: Rea
     if (trimmedLine.startsWith('```') || 
         trimmedLine.startsWith('##') ||
         /^\d+\.|^[a-z]\)|^-\s|^\*\s/.test(trimmedLine)) {
-      if (foundContent && reasoningLines.length > 3) {
-        break; // On a déjà du contenu de raisonnement, on s'arrête
+      if (foundContent && reasoningLines.length > 5) {
+        break; // On a déjà du contenu de raisonnement substantiel, on s'arrête
       }
       if (!foundContent) {
         continue; // On n'a pas encore trouvé de raisonnement, on continue
       }
     }
 
-    // Indicateurs de raisonnement de qualité
-    if (/\b(analyser?|considérer|examiner|évaluer|réfléchir|penser|donc|ainsi|par conséquent|en effet)\b/i.test(trimmedLine)) {
-      confidence = 'medium';
+    // Indicateurs de raisonnement de qualité (étendus)
+    const qualityIndicators = [
+      /\b(analyser?|considérer|examiner|évaluer|réfléchir|penser)\b/i,
+      /\b(donc|ainsi|par conséquent|en effet|cependant|néanmoins|toutefois)\b/i,
+      /\b(premièrement|deuxièmement|d'abord|ensuite|enfin|finalement)\b/i,
+      /\b(il faut|je dois|nous devons|il convient|il est important)\b/i,
+      /\b(problème|défi|enjeu|difficulté|solution|approche|stratégie)\b/i,
+      /\b(thinking|reasoning|analysis|consideration|approach|strategy)\b/i,
+      /\b(L'utilisateur|The user|La demande|The request|L'objectif|The goal)\b/i
+    ];
+
+    for (const indicator of qualityIndicators) {
+      if (indicator.test(trimmedLine)) {
+        reasoningScore++;
+        if (reasoningScore >= 2) confidence = 'medium';
+        if (reasoningScore >= 4) confidence = 'high';
+        break;
+      }
+    }
+
+    // Détecter les questions rhétoriques (indicateur de réflexion)
+    if (/\?\s*$/.test(trimmedLine) && trimmedLine.length > 10) {
+      reasoningScore++;
     }
 
     reasoningLines.push(line);
     foundContent = true;
   }
 
-  if (reasoningLines.length < 3) {
+  if (reasoningLines.length < 3 || reasoningScore === 0) {
     return null;
   }
 
@@ -154,6 +214,60 @@ function extractByHeuristic(content: string): { content: string; confidence: Rea
 }
 
 /**
+ * Extraction intelligente de fallback
+ */
+function extractSmartFallback(content: string): { content: string; confidence: ReasoningExtractionResult['confidence'] } | null {
+  const lines = content.split('\n');
+  const reasoningLines: string[] = [];
+  let confidence: ReasoningExtractionResult['confidence'] = 'low';
+  
+  // Chercher les premiers paragraphes qui semblent être du raisonnement
+  let currentParagraph: string[] = [];
+  let paragraphCount = 0;
+  
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+    
+    if (!trimmedLine) {
+      if (currentParagraph.length > 0) {
+        const paragraphText = currentParagraph.join('\n');
+        if (isLikelyReasoning(paragraphText)) {
+          reasoningLines.push(...currentParagraph, '');
+          paragraphCount++;
+          if (paragraphCount >= 3) break; // Limiter à 3 paragraphes
+        }
+        currentParagraph = [];
+      }
+    } else {
+      currentParagraph.push(line);
+      
+      // Arrêter si on trouve des indicateurs de code ou de réponse finale
+      if (trimmedLine.startsWith('```') || 
+          /^(Voici|Here's|Solution|Résultat)/.test(trimmedLine)) {
+        break;
+      }
+    }
+  }
+  
+  // Traiter le dernier paragraphe
+  if (currentParagraph.length > 0 && paragraphCount < 3) {
+    const paragraphText = currentParagraph.join('\n');
+    if (isLikelyReasoning(paragraphText)) {
+      reasoningLines.push(...currentParagraph);
+      paragraphCount++;
+    }
+  }
+  
+  if (paragraphCount >= 2) confidence = 'medium';
+  if (paragraphCount >= 3) confidence = 'high';
+  
+  return reasoningLines.length > 0 ? {
+    content: reasoningLines.join('\n').trim(),
+    confidence
+  } : null;
+}
+
+/**
  * Nettoie le contenu du raisonnement
  */
 function cleanReasoningContent(content: string): string {
@@ -161,20 +275,91 @@ function cleanReasoningContent(content: string): string {
     .replace(/^\s*[-*]\s*/gm, '') // Supprimer les puces en début de ligne
     .replace(/\n{3,}/g, '\n\n') // Réduire les sauts de ligne multiples
     .replace(/^\s+|\s+$/g, '') // Trim global
-    .replace(/\t/g, '  '); // Remplacer les tabs par des espaces
+    .replace(/\t/g, '  ') // Remplacer les tabs par des espaces
+    .replace(/\*\*(.*?)\*\*/g, '**$1**') // Normaliser le gras
+    .replace(/_{2,}/g, '') // Supprimer les underscores multiples
+    .replace(/\s+([.!?])/g, '$1'); // Corriger l'espacement avant la ponctuation
 }
 
 /**
- * Détermine si un contenu semble contenir du raisonnement
+ * Améliore et structure le contenu du raisonnement
+ */
+function enhanceReasoningContent(content: string): string {
+  let enhanced = cleanReasoningContent(content);
+  
+  // Ajouter des sections si le contenu est long et non structuré
+  if (enhanced.length > 500 && !enhanced.includes('##') && !enhanced.includes('**')) {
+    const paragraphs = enhanced.split('\n\n').filter(p => p.trim());
+    
+    if (paragraphs.length >= 3) {
+      // Structurer en sections logiques
+      const sections = [];
+      
+      // Première section : Analyse
+      if (paragraphs[0]) {
+        sections.push(`**🔍 Analyse**\n${paragraphs[0]}`);
+      }
+      
+      // Sections intermédiaires : Réflexion
+      for (let i = 1; i < paragraphs.length - 1; i++) {
+        if (paragraphs[i]) {
+          sections.push(`**💭 Réflexion ${i}**\n${paragraphs[i]}`);
+        }
+      }
+      
+      // Dernière section : Conclusion
+      if (paragraphs[paragraphs.length - 1]) {
+        sections.push(`**✅ Conclusion**\n${paragraphs[paragraphs.length - 1]}`);
+      }
+      
+      enhanced = sections.join('\n\n');
+    }
+  }
+  
+  return enhanced;
+}
+
+/**
+ * Détermine si un contenu semble contenir du raisonnement (amélioré)
  */
 export function isLikelyReasoning(content: string): boolean {
   const reasoningIndicators = [
-    /\b(analyser?|considérer|examiner|évaluer|réfléchir|penser)\b/i,
-    /\b(donc|ainsi|par conséquent|en effet|cependant|néanmoins)\b/i,
-    /\b(premièrement|deuxièmement|d'abord|ensuite|enfin)\b/i,
-    /\b(thinking|reasoning|analysis|consideration)\b/i,
-    /<thinking|<reasoning|\[THINKING\]|\[REASONING\]/i
+    // Verbes de réflexion français
+    /\b(analyser?|considérer|examiner|évaluer|réfléchir|penser|comprendre|déterminer)\b/i,
+    // Connecteurs logiques français
+    /\b(donc|ainsi|par conséquent|en effet|cependant|néanmoins|toutefois|d'ailleurs)\b/i,
+    // Marqueurs de séquence français
+    /\b(premièrement|deuxièmement|d'abord|ensuite|enfin|finalement|en premier lieu)\b/i,
+    // Verbes de réflexion anglais
+    /\b(thinking|reasoning|analysis|consideration|examining|evaluating|determining)\b/i,
+    // Balises explicites
+    /<thinking[^>]*>|<reasoning[^>]*>|<analyse[^>]*>|\[THINKING\]|\[REASONING\]|\[ANALYSE\]/i,
+    // Détection spécifique des balises en début
+    /^\s*<(thinking|reasoning|analyse)/i,
+    // Patterns français typiques de raisonnement
+    /L'utilisateur demande|Je dois analyser|Les options sont|La meilleure approche|Il faut considérer/i,
+    // Patterns anglais typiques
+    /The user is asking|I need to analyze|The options are|The best approach|We should consider/i,
+    // Questions rhétoriques (indicateur de réflexion)
+    /\b(Comment|Pourquoi|Que|Quel|How|Why|What|Which).{10,}\?/i,
+    // Expressions de problématique
+    /\b(problème|défi|enjeu|difficulté|challenge|issue|problem)\b/i,
+    // Expressions de solution
+    /\b(solution|approche|stratégie|méthode|approach|strategy|method)\b/i,
+    // Marqueurs d'objectifs
+    /\b(objectif|but|goal|aim|purpose|intention)\b/i
   ];
 
-  return reasoningIndicators.some(pattern => pattern.test(content));
+  // Compter le nombre d'indicateurs trouvés
+  const matchCount = reasoningIndicators.reduce((count, pattern) => {
+    return count + (pattern.test(content) ? 1 : 0);
+  }, 0);
+
+  // Vérifier la longueur minimale et le ratio de mots de raisonnement
+  const words = content.split(/\s+/);
+  const hasMinLength = words.length >= 10;
+  const hasMultipleIndicators = matchCount >= 2;
+  const hasSingleStrongIndicator = matchCount >= 1 && content.length > 100;
+
+  return hasMinLength && (hasMultipleIndicators || hasSingleStrongIndicator);
 }
