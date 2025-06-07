@@ -47,7 +47,7 @@ type DialogContent =
   | { type: 'bulkDelete'; items: ChatHistoryItem[] }
   | null;
 
-function ConnectionStatus() {
+function ConnectionStatus({ onSettingsClick }: { onSettingsClick: () => void }) {
   const supabaseConn = useStore(supabaseConnection);
   const netlifyConn = useStore(netlifyConnection);
   const vercelConn = useStore(vercelConnection);
@@ -169,8 +169,9 @@ function ConnectionStatus() {
           {connections.map((conn) => (
             <div
               key={conn.name}
-              className="group relative"
+              className="group relative cursor-pointer"
               title={`${conn.name} - ${conn.connected ? 'Connecté' : 'Déconnecté'}${conn.user ? ` (${conn.user})` : ''}`}
+              onClick={onSettingsClick}
             >
               {/* Service indicator */}
               <div className={`w-5 h-5 rounded-lg flex items-center justify-center transition-all duration-300 ${
@@ -239,6 +240,7 @@ export const Menu = () => {
   const [open, setOpen] = useState(false);
   const [dialogContent, setDialogContent] = useState<DialogContent>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [initialSettingsTab, setInitialSettingsTab] = useState<string | undefined>(undefined);
   const profile = useStore(profileStore);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
@@ -485,8 +487,15 @@ export const Menu = () => {
     setOpen(false);
   };
 
+  const handleConnectionsClick = () => {
+    setInitialSettingsTab('connection');
+    setIsSettingsOpen(true);
+    setOpen(false);
+  };
+
   const handleSettingsClose = () => {
     setIsSettingsOpen(false);
+    setInitialSettingsTab(undefined);
   };
 
   const setDialogContentWithLogging = useCallback((content: DialogContent) => {
@@ -770,7 +779,7 @@ export const Menu = () => {
               </Dialog>
             </DialogRoot>
           </div>
-          <ConnectionStatus />
+          <ConnectionStatus onSettingsClick={handleConnectionsClick} />
 
           {/* Conditionally render SidebarTemplates based on showTemplates state */}
             {showTemplates && <SidebarTemplates />}
@@ -787,7 +796,7 @@ export const Menu = () => {
         </div>
       </motion.div>
 
-      <ControlPanel open={isSettingsOpen} onClose={handleSettingsClose} />
+      <ControlPanel open={isSettingsOpen} onClose={handleSettingsClose} initialTab={initialSettingsTab as any} />
       
     </>
   );
