@@ -150,7 +150,7 @@ function ConnectionStatus({ onSettingsClick }: { onSettingsClick: () => void }) 
           {/* Status text */}
           <div className="flex flex-col">
             <span className="text-sm font-semibold bg-gradient-to-br from-gray-800 to-gray-600 dark:from-gray-200 dark:to-gray-400 bg-clip-text text-transparent">
-              Connexions
+              Services
             </span>
             <span className={`text-xs font-medium transition-colors duration-300 ${
               allConnected 
