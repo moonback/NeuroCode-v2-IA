@@ -71,8 +71,9 @@ const getInitialProviderSettings = (): ProviderSetting => {
     initialSettings[provider.name] = {
       ...provider,
       settings: {
+        // Only Google should be enabled by default for cloud providers
         // Local providers should be disabled by default
-        enabled: !LOCAL_PROVIDERS.includes(provider.name),
+        enabled: provider.name === 'Google' && !LOCAL_PROVIDERS.includes(provider.name),
       },
     };
   });
