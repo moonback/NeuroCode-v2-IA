@@ -149,7 +149,7 @@ const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string;
                 </span> */}
                 
                 {/* Confidence badge */}
-                {reasoningMetadata?.confidence && (
+                {/* {reasoningMetadata?.confidence && (
                   <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
                     reasoningMetadata.confidence === 'high' 
                       ? 'bg-bolt-elements-item-backgroundAccent/80 text-bolt-elements-item-contentAccent group-hover:bg-bolt-elements-item-backgroundAccent' :
@@ -164,7 +164,7 @@ const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string;
                     {reasoningMetadata.confidence === 'high' ? 'Élevée' :
                      reasoningMetadata.confidence === 'medium' ? 'Moyenne' : 'Faible'}
                   </span>
-                )}
+                )} */}
                 
                 {/* Sections count badge */}
                 {reasoningSections.length > 1 && (
