@@ -8,6 +8,7 @@ import type { IProviderSetting } from '~/types/model';
 import { createScopedLogger } from '~/utils/logger';
 import { getFilePaths, selectContext } from '~/lib/.server/llm/select-context';
 import type { ContextAnnotation, DataStreamError, ProgressAnnotation, SegmentsGroupAnnotation } from '~/types/context';
+import { extractReasoning, isLikelyReasoning, removeReasoningFromContent } from '~/utils/reasoning-extractor';
 
 
 import { WORK_DIR } from '~/utils/constants';
@@ -494,12 +495,67 @@ function assessComplexity(message: string): string {
             result.mergeIntoDataStream(dataStream);
 
             (async () => {
+              let fullContent = '';
+              
+              // Extraire le modèle et le fournisseur du dernier message utilisateur
+              const lastUserMessage = messages.filter((x) => x.role == 'user').slice(-1)[0];
+              const { model, provider } = extractPropertiesFromMessage(lastUserMessage);
+              
+              // 1) Déterminer une fois pour toutes si l'on doit tenter l'extraction
+              const isGoogleModel = provider === 'Google';
+              
+              // 2) Toujours accumuler le flux (avec plafond ajustable)
+              const MAX_CAPTURE_LEN = 20000;   // 20 k – suffit pour ~8k tokens
+              
               for await (const part of result.fullStream) {
                 if (part.type === 'error') {
                   const error: any = part.error;
                   logger.error(`${error}`);
-
                   return;
+                }
+                
+                // Capturer tout le contenu pour les modèles Google
+                if (isGoogleModel && part.type === 'text-delta' && part.textDelta) {
+                  if (fullContent.length < MAX_CAPTURE_LEN) {
+                    fullContent += part.textDelta;
+                  }
+                }
+                
+                // 3) Déclencher l'extraction plus tôt : dès qu'on voit la balise ouvrante
+                const hasThinkingTag = fullContent.includes('<thinking>');
+                const hasClosingTag = 
+                  fullContent.includes('</thinking>') || 
+                  fullContent.includes('</reasoning>') || 
+                  fullContent.includes('</analyse>');
+                const shouldExtractReasoning = 
+                  (hasClosingTag || (hasThinkingTag && fullContent.length > 20000) || fullContent.length > MAX_CAPTURE_LEN / 2);
+                
+                if (shouldExtractReasoning && isGoogleModel && fullContent.trim()) {
+                  const reasoningResult = extractReasoning(fullContent, MAX_CAPTURE_LEN);
+                  
+                  if (reasoningResult && reasoningResult.content.trim().length > 200) {
+                    // Ajouter l'annotation de raisonnement
+                    dataStream.writeMessageAnnotation({
+                      type: 'reasoning',
+                      content: reasoningResult.content,
+                      provider: provider,
+                      metadata: {
+                        originalLength: reasoningResult.originalLength,
+                        model: model,
+                        extractionMethod: reasoningResult.extractionMethod,
+                        confidence: reasoningResult.confidence
+                      }
+                    });
+                    
+                    // Nettoyer le contenu principal en supprimant le raisonnement
+                    const cleanedContent = removeReasoningFromContent(fullContent, reasoningResult.content);
+                    
+                    // Remplacer le contenu du message par la version nettoyée
+                    if (cleanedContent && cleanedContent.trim() && cleanedContent !== fullContent) {
+                      // Mettre à jour le contenu du message pour ne garder que le résultat
+                      fullContent = cleanedContent;
+                    }
+                  }
                 }
               }
             })();
@@ -533,12 +589,144 @@ function assessComplexity(message: string): string {
         });
 
         (async () => {
+          let fullContent = '';
+          let reasoningProcessed = false; // Variable pour suivre l'état du raisonnement
+          
+          // Extraire le modèle et le fournisseur du dernier message utilisateur
+          const lastUserMessage = messages.filter((x) => x.role == 'user').slice(-1)[0];
+          const { model, provider } = extractPropertiesFromMessage(lastUserMessage);
+          
+          // 1) Déterminer une fois pour toutes si l'on doit tenter l'extraction
+          const isGoogleModel = provider === 'Google';
+          
+          // 2) Toujours accumuler le flux (avec plafond ajustable)
+          const MAX_CAPTURE_LEN = 20000;   // 20 k – suffit pour ~8k tokens
+          
           for await (const part of result.fullStream) {
             if (part.type === 'error') {
               const error: any = part.error;
               logger.error(`${error}`);
-
               return;
+            }
+            
+            // Capturer tout le contenu pour les modèles Google
+            if (isGoogleModel && part.type === 'text-delta' && part.textDelta) {
+              if (fullContent.length < MAX_CAPTURE_LEN) {
+                fullContent += part.textDelta;
+              }
+            }
+            
+            // 3) Déclencher l'extraction plus tôt : dès qu'on voit la balise ouvrante
+            if (part.type === 'text-delta' && part.textDelta && isGoogleModel) {
+              const hasThinkingTag = fullContent.includes('<thinking>');
+              const hasClosingTag = 
+                fullContent.includes('</thinking>') || 
+                fullContent.includes('</reasoning>') || 
+                fullContent.includes('</analyse>');
+              const shouldExtractReasoning = 
+                !reasoningProcessed && 
+                (hasClosingTag || (hasThinkingTag && fullContent.length > 20000) || fullContent.length > MAX_CAPTURE_LEN / 2);
+              
+              if (shouldExtractReasoning) {
+                const reasoningResult = extractReasoning(fullContent, MAX_CAPTURE_LEN);
+                
+                if (reasoningResult && reasoningResult.content.trim().length > 200) { // Seuil de contenu plus permissif
+                  reasoningProcessed = true;
+                  
+                  // Ajouter un message de progression pour l'extraction du raisonnement
+                  dataStream.writeData({
+                    type: 'progress',
+                    label: 'thinking-extraction',
+                    status: 'in-progress',
+                    order: progressCounter++,
+                    message: '🧠 Extraction du processus de réflexion <thinking>...',
+                  } satisfies ProgressAnnotation);
+                  
+                  // Ajouter l'annotation de raisonnement immédiatement
+                  dataStream.writeMessageAnnotation({
+                    type: 'reasoning',
+                    content: reasoningResult.content,
+                    provider: provider,
+                    metadata: {
+                      originalLength: reasoningResult.originalLength,
+                      model: model,
+                      extractionMethod: reasoningResult.extractionMethod,
+                      confidence: reasoningResult.confidence
+                    }
+                  });
+                  
+                  // Marquer l'extraction comme terminée
+                  dataStream.writeData({
+                    type: 'progress',
+                    label: 'thinking-extraction',
+                    status: 'complete',
+                    order: progressCounter++,
+                    message: '✅ Processus de réflexion ',
+                  } satisfies ProgressAnnotation);
+                  
+                  // Nettoyer le contenu et continuer avec la réponse propre
+                  const cleanedContent = removeReasoningFromContent(fullContent, reasoningResult.content);
+                  if (cleanedContent && cleanedContent.trim() && cleanedContent !== fullContent) {
+                    fullContent = cleanedContent;
+                  }
+                }
+              }
+            }
+            
+            // Traitement final à la fin de la génération (fallback)
+            if (part.type === 'finish' && fullContent.trim() && !reasoningProcessed && isGoogleModel) {
+              // Ajouter un message de progression pour l'extraction fallback
+              dataStream.writeData({
+                type: 'progress',
+                label: 'thinking-fallback',
+                status: 'in-progress',
+                order: progressCounter++,
+                message: '🔍 Recherche de processus de réflexion <thinking> non détecté...',
+              } satisfies ProgressAnnotation);
+              
+              const reasoningResult = extractReasoning(fullContent, MAX_CAPTURE_LEN);
+              
+              if (reasoningResult) {
+                // Marquer l'extraction fallback comme réussie
+                dataStream.writeData({
+                  type: 'progress',
+                  label: 'thinking-fallback',
+                  status: 'complete',
+                  order: progressCounter++,
+                  message: '✅ Processus de réflexion <thinking> trouvé et extrait',
+                } satisfies ProgressAnnotation);
+                
+                // Ajouter l'annotation de raisonnement
+                dataStream.writeMessageAnnotation({
+                  type: 'reasoning',
+                  content: reasoningResult.content,
+                  provider: provider,
+                  metadata: {
+                    originalLength: reasoningResult.originalLength,
+                    model: model,
+                    extractionMethod: reasoningResult.extractionMethod,
+                    confidence: reasoningResult.confidence
+                  }
+                });
+                
+                // Nettoyer le contenu principal en supprimant le raisonnement
+                const cleanedContent = removeReasoningFromContent(fullContent, reasoningResult.content);
+                
+                // Remplacer le contenu du message par la version nettoyée
+                if (cleanedContent && cleanedContent.trim() && cleanedContent !== fullContent) {
+                  // Mettre à jour le contenu du message pour ne garder que le résultat
+                  fullContent = cleanedContent;
+                }
+              } else {
+                // Marquer l'extraction fallback comme échouée
+                dataStream.writeData({
+                  type: 'progress',
+                  label: 'thinking-fallback',
+                  status: 'complete',
+                  order: progressCounter++,
+                  message: '⚪ Aucun processus de réflexion <thinking> détecté',
+                } satisfies ProgressAnnotation);
+              }
             }
           }
         })();

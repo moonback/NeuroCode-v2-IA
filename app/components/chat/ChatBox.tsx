@@ -16,7 +16,7 @@ import GitCloneButton from './GitCloneButton';
 import { ColorSchemeDialog } from '~/components/ui/ColorSchemeDialog';
 import type { DesignScheme } from '~/types/design-scheme';
 import type { ElementInfo } from '~/components/workbench/Inspector';
-import { SupabaseConnection } from './SupabaseConnection';
+
 import { ExpoQrModal } from '~/components/workbench/ExpoQrModal';
 import { UIImageAnalyzer } from './UIImageAnalyzer';
 import { PromptEnhancer } from './PromptEnhancer';
@@ -631,7 +631,7 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
               <kbd className="kdb px-1.5 py-0.5 rounded bg-bolt-elements-background-depth-2">Entrée</kbd> pour une nouvelle ligne
             </div>
           ) : null} */}
-          <SupabaseConnection />
+
           <ExpoQrModal open={props.qrModalOpen} onClose={() => props.setQrModalOpen(false)} />
         </div>
       </div>

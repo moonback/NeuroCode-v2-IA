@@ -98,6 +98,7 @@ export const Messages = forwardRef<HTMLDivElement, MessagesProps>(
                         setChatMode={props.setChatMode}
                         model={props.model}
                         provider={props.provider}
+                        isStreaming={isStreaming && isLast}
                         />
                     )}
                   </div>

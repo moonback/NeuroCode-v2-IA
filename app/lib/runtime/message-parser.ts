@@ -7,6 +7,20 @@ const ARTIFACT_TAG_OPEN = '<boltArtifact';
 const ARTIFACT_TAG_CLOSE = '</boltArtifact>';
 const ARTIFACT_ACTION_TAG_OPEN = '<boltAction';
 const ARTIFACT_ACTION_TAG_CLOSE = '</boltAction>';
+
+// Patterns for malformed artifact tags
+const MALFORMED_ARTIFACT_PATTERNS = [
+  '<boltArtifacs',
+  '<oltArtfiact', 
+  '<boltArtifactt',
+  '<boltartifact', // lowercase
+  '<BoltArtifact', // wrong case
+];
+
+// Function to check if a tag is malformed
+function isMalformedArtifactTag(tag: string): boolean {
+  return MALFORMED_ARTIFACT_PATTERNS.some(pattern => tag.startsWith(pattern));
+}
 const BOLT_QUICK_ACTIONS_OPEN = '<bolt-quick-actions>';
 const BOLT_QUICK_ACTIONS_CLOSE = '</bolt-quick-actions>';
 
@@ -239,6 +253,27 @@ export class StreamingMessageParser {
         while (j < input.length && potentialTag.length < ARTIFACT_TAG_OPEN.length) {
           potentialTag += input[j];
 
+          // Check for malformed artifact tags first
+          if (isMalformedArtifactTag(potentialTag)) {
+            // Find the end of the malformed tag
+            const tagEnd = input.indexOf('>', j);
+            if (tagEnd !== -1) {
+              // Log warning about malformed tag
+              const malformedTag = input.slice(i, tagEnd + 1);
+              logger.warn(`Malformed artifact tag detected: ${malformedTag}`);
+              
+              // Escape the malformed tag and add it to output as plain text
+              const escapedTag = malformedTag.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+              output += escapedTag;
+              i = tagEnd + 1;
+            } else {
+              // Incomplete malformed tag, treat as regular text
+              output += input[i];
+              i++;
+            }
+            break;
+          }
+
           if (potentialTag === ARTIFACT_TAG_OPEN) {
             const nextChar = input[j + 1];
 
@@ -287,7 +322,7 @@ export class StreamingMessageParser {
             }
 
             break;
-          } else if (!ARTIFACT_TAG_OPEN.startsWith(potentialTag)) {
+          } else if (!ARTIFACT_TAG_OPEN.startsWith(potentialTag) && !MALFORMED_ARTIFACT_PATTERNS.some(pattern => pattern.startsWith(potentialTag))) {
             output += input.slice(i, j + 1);
             i = j + 1;
             break;

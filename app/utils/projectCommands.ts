@@ -94,39 +94,103 @@ ${commandString}
 }
 
 export function escapeBoltArtifactTags(input: string) {
-  // Regular expression to match boltArtifact tags and their content
-  const regex = /(<boltArtifact[^>]*>)([\s\S]*?)(<\/boltArtifact>)/g;
-
-  return input.replace(regex, (match, openTag, content, closeTag) => {
+  // Regular expression to match correctly formed boltArtifact tags and their content
+  const validRegex = /(<boltArtifact[^>]*>)([\s\S]*?)(<\/boltArtifact>)/g;
+  
+  // Regular expression to match malformed boltArtifact tags (typos, incomplete tags)
+  const malformedRegex = /(<(?:boltArtifacs|oltArtfiact|boltArtifactt|bolt[A-Za-z]*)[^>]*>)([\s\S]*?)(<\/(?:boltArtifacs|oltArtfiact|boltArtifactt|bolt[A-Za-z]*|boltArtifact)>)/g;
+  
+  // First, handle malformed tags by escaping them completely
+  let result = input.replace(malformedRegex, (match, openTag, content, closeTag) => {
+    const escapedOpenTag = openTag.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const escapedCloseTag = closeTag.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return `${escapedOpenTag}${content}${escapedCloseTag}`;
+  });
+  
+  // Then handle valid boltArtifact tags
+  result = result.replace(validRegex, (match, openTag, content, closeTag) => {
     // Escape the opening tag
     const escapedOpenTag = openTag.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
+    
     // Escape the closing tag
     const escapedCloseTag = closeTag.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
+    
     // Return the escaped version
     return `${escapedOpenTag}${content}${escapedCloseTag}`;
   });
+  
+  return result;
 }
 
 export function escapeBoltAActionTags(input: string) {
-  // Regular expression to match boltArtifact tags and their content
-  const regex = /(<boltAction[^>]*>)([\s\S]*?)(<\/boltAction>)/g;
-
-  return input.replace(regex, (match, openTag, content, closeTag) => {
+  // Regular expression to match correctly formed boltAction tags and their content
+  const validRegex = /(<boltAction[^>]*>)([\s\S]*?)(<\/boltAction>)/g;
+  
+  // Regular expression to match malformed boltAction tags
+  const malformedRegex = /(<(?:boltActions|oltAction|boltActionn|bolt[A-Za-z]*Action[A-Za-z]*)[^>]*>)([\s\S]*?)(<\/(?:boltActions|oltAction|boltActionn|bolt[A-Za-z]*Action[A-Za-z]*|boltAction)>)/g;
+  
+  // First, handle malformed tags by escaping them completely
+  let result = input.replace(malformedRegex, (match, openTag, content, closeTag) => {
+    const escapedOpenTag = openTag.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const escapedCloseTag = closeTag.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return `${escapedOpenTag}${content}${escapedCloseTag}`;
+  });
+  
+  // Then handle valid boltAction tags
+  result = result.replace(validRegex, (match, openTag, content, closeTag) => {
     // Escape the opening tag
     const escapedOpenTag = openTag.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
+    
     // Escape the closing tag
     const escapedCloseTag = closeTag.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
+    
     // Return the escaped version
     return `${escapedOpenTag}${content}${escapedCloseTag}`;
   });
+  
+  return result;
+}
+
+/**
+ * Validates and fixes common boltArtifact tag formatting issues
+ * @param input - The input string to validate
+ * @returns The input with corrected boltArtifact tags
+ */
+export function validateBoltArtifactTags(input: string): string {
+  if (!input) return input;
+  
+  let result = input;
+  
+  // Fix common typos in opening tags
+  const typoFixes = [
+    { from: /<boltArtifacs([^>]*)>/g, to: '<boltArtifact$1>' },
+    { from: /<oltArtfiact([^>]*)>/g, to: '<boltArtifact$1>' },
+    { from: /<boltArtifactt([^>]*)>/g, to: '<boltArtifact$1>' },
+    { from: /<boltartifact([^>]*)>/g, to: '<boltArtifact$1>' }, // lowercase
+    { from: /<BoltArtifact([^>]*)>/g, to: '<boltArtifact$1>' }, // wrong case
+  ];
+  
+  // Fix common typos in closing tags
+  const closingTypoFixes = [
+    { from: /<\/boltArtifacs>/g, to: '</boltArtifact>' },
+    { from: /<\/oltArtfiact>/g, to: '</boltArtifact>' },
+    { from: /<\/boltArtifactt>/g, to: '</boltArtifact>' },
+    { from: /<\/boltartifact>/g, to: '</boltArtifact>' },
+    { from: /<\/BoltArtifact>/g, to: '</boltArtifact>' },
+  ];
+  
+  // Apply all fixes
+  [...typoFixes, ...closingTypoFixes].forEach(({ from, to }) => {
+    result = result.replace(from, to);
+  });
+  
+  return result;
 }
 
 export function escapeBoltTags(input: string) {
-  return escapeBoltArtifactTags(escapeBoltAActionTags(input));
+  // First validate and fix common issues, then escape
+  const validatedInput = validateBoltArtifactTags(input);
+  return escapeBoltArtifactTags(escapeBoltAActionTags(validatedInput));
 }
 
 // We have this seperate function to simplify the restore snapshot process in to one single artifact.

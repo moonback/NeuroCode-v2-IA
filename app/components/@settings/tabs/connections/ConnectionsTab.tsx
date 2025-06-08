@@ -8,6 +8,7 @@ import VercelConnection from './VercelConnection';
 // Use React.lazy for dynamic imports
 const GitHubConnection = React.lazy(() => import('./GithubConnection'));
 const NetlifyConnection = React.lazy(() => import('./NetlifyConnection'));
+const SupabaseConnection = React.lazy(() => import('./SupabaseConnection'));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -122,6 +123,12 @@ export default function ConnectionsTab() {
                 <div className="text-bolt-elements-textPrimary dark:text-bolt-elements-textPrimary">
                   VITE_NETLIFY_ACCESS_TOKEN=your_token_here
                 </div>
+                <div className="text-bolt-elements-textSecondary dark:text-bolt-elements-textSecondary mt-2">
+                  # Authentification Supabase
+                </div>
+                <div className="text-bolt-elements-textPrimary dark:text-bolt-elements-textPrimary">
+                  VITE_SUPABASE_ACCESS_TOKEN=your_token_here
+                </div>
               </div>
               <div className="mt-3 text-xs text-bolt-elements-textSecondary dark:text-bolt-elements-textSecondary space-y-1">
                 <p>
@@ -158,6 +165,9 @@ export default function ConnectionsTab() {
         </Suspense>
         <Suspense fallback={<LoadingFallback />}>
           <VercelConnection />
+        </Suspense>
+        <Suspense fallback={<LoadingFallback />}>
+          <SupabaseConnection />
         </Suspense>
       </div>
 

@@ -47,7 +47,7 @@ type DialogContent =
   | { type: 'bulkDelete'; items: ChatHistoryItem[] }
   | null;
 
-function ConnectionStatus() {
+function ConnectionStatus({ onSettingsClick }: { onSettingsClick: () => void }) {
   const supabaseConn = useStore(supabaseConnection);
   const netlifyConn = useStore(netlifyConnection);
   const vercelConn = useStore(vercelConnection);
@@ -169,8 +169,9 @@ function ConnectionStatus() {
           {connections.map((conn) => (
             <div
               key={conn.name}
-              className="group relative"
+              className="group relative cursor-pointer"
               title={`${conn.name} - ${conn.connected ? 'Connecté' : 'Déconnecté'}${conn.user ? ` (${conn.user})` : ''}`}
+              onClick={onSettingsClick}
             >
               {/* Service indicator */}
               <div className={`w-5 h-5 rounded-lg flex items-center justify-center transition-all duration-300 ${
@@ -239,6 +240,7 @@ export const Menu = () => {
   const [open, setOpen] = useState(false);
   const [dialogContent, setDialogContent] = useState<DialogContent>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [initialSettingsTab, setInitialSettingsTab] = useState<string | undefined>(undefined);
   const profile = useStore(profileStore);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
@@ -485,8 +487,15 @@ export const Menu = () => {
     setOpen(false);
   };
 
+  const handleConnectionsClick = () => {
+    setInitialSettingsTab('connection');
+    setIsSettingsOpen(true);
+    setOpen(false);
+  };
+
   const handleSettingsClose = () => {
     setIsSettingsOpen(false);
+    setInitialSettingsTab(undefined);
   };
 
   const setDialogContentWithLogging = useCallback((content: DialogContent) => {
@@ -553,6 +562,7 @@ export const Menu = () => {
         {/* <CurrentDateTime /> */}
         
         <div className="flex-1 flex flex-col h-full w-full overflow-hidden">
+
 <div className="p-3">
   <div className="flex items-center gap-1.5">
     {/* New Project Button */}
@@ -602,6 +612,7 @@ export const Menu = () => {
             <div className="font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2.5 mb-3">
               <div className="w-5 h-5 bg-gradient-to-br from-purple-500 to-violet-600 rounded-lg flex items-center justify-center shadow-md shadow-purple-500/20 dark:shadow-purple-500/10">
                 <div className="i-ph:chat text-white text-sm" />
+
               </div>
               <span className="text-sm bg-gradient-to-r from-gray-900 to-purple-800 dark:from-gray-100 dark:to-purple-300 bg-clip-text text-transparent font-bold">Projets</span>
               <span className="px-2 py-0.5 bg-gradient-to-br from-purple-100 to-violet-100 dark:from-purple-900/50 dark:to-violet-900/50 text-purple-700 dark:text-purple-300 rounded-full text-xs font-medium border border-purple-200/50 dark:border-purple-700/30 shadow-sm">
@@ -785,7 +796,7 @@ export const Menu = () => {
               </Dialog>
             </DialogRoot>
           </div>
-          <ConnectionStatus />
+          <ConnectionStatus onSettingsClick={handleConnectionsClick} />
 
           {/* Conditionally render SidebarTemplates based on showTemplates state */}
             {showTemplates && <SidebarTemplates />}
@@ -802,7 +813,7 @@ export const Menu = () => {
         </div>
       </motion.div>
 
-      <ControlPanel open={isSettingsOpen} onClose={handleSettingsClose} />
+      <ControlPanel open={isSettingsOpen} onClose={handleSettingsClose} initialTab={initialSettingsTab as any} />
       
     </>
   );

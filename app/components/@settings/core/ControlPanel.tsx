@@ -43,6 +43,7 @@ import TaskManagerTab from '~/components/@settings/tabs/task-manager/TaskManager
 interface ControlPanelProps {
   open: boolean;
   onClose: () => void;
+  initialTab?: TabType;
 }
 
 interface TabWithDevType extends TabVisibilityConfig {
@@ -135,9 +136,9 @@ const AnimatedSwitch = ({ checked, onCheckedChange, id, label }: AnimatedSwitchP
   );
 };
 
-export const ControlPanel = ({ open, onClose }: ControlPanelProps) => {
+export const ControlPanel = ({ open, onClose, initialTab }: ControlPanelProps) => {
   // State
-  const [activeTab, setActiveTab] = useState<TabType | null>(null);
+  const [activeTab, setActiveTab] = useState<TabType | null>(initialTab || null);
   const [loadingTab, setLoadingTab] = useState<TabType | null>(null);
   const [showTabManagement, setShowTabManagement] = useState(false);
 
@@ -254,10 +255,10 @@ export const ControlPanel = ({ open, onClose }: ControlPanelProps) => {
       setLoadingTab(null);
       setShowTabManagement(false);
     } else {
-      // When opening, set to null to show the main view
-      setActiveTab(null);
+      // When opening, set to initialTab or null to show the main view
+      setActiveTab(initialTab || null);
     }
-  }, [open]);
+  }, [open, initialTab]);
 
   // Handle closing
   const handleClose = () => {

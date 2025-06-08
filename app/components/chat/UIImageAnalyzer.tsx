@@ -513,6 +513,7 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
 
       if (append) {
         console.log('UIImageAnalyzer: Envoi du message avec append');
+        console.log('UIImageAnalyzer: append function exists:', typeof append);
         
         const message: Message = {
           id: `ui-analyzer-${Date.now()}`,
@@ -529,10 +530,22 @@ export const UIImageAnalyzer: React.FC<UIImageAnalyzerProps> = memo(({
           ] as any
         } as Message;
         
-        append(message);
+        console.log('UIImageAnalyzer: Message créé:', message);
         
+        try {
+          console.log('UIImageAnalyzer: Appel de append...');
+          append(message);
+          console.log('UIImageAnalyzer: append appelé avec succès');
+        } catch (error) {
+          console.error('UIImageAnalyzer: Erreur lors de l\'appel à append:', error);
+          throw error;
+        }
+        
+        console.log('UIImageAnalyzer: Vérification onChatStart:', typeof onChatStart);
         if (onChatStart) {
+          console.log('UIImageAnalyzer: Appel de onChatStart...');
           onChatStart();
+          console.log('UIImageAnalyzer: onChatStart appelé avec succès');
         }
       } else if (sendMessage) {
         const setUploadedFiles = (window as any).__BOLT_SET_UPLOADED_FILES__;
