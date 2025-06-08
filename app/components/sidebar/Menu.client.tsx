@@ -554,55 +554,42 @@ export const Menu = () => {
         
         <div className="flex-1 flex flex-col h-full w-full overflow-hidden">
           <div className="p-4 space-y-4">
-            {/* Bouton Nouveau projet amélioré */}
-            <a
-              href="/"
-              className="relative flex gap-3 items-center bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 hover:from-purple-700 hover:via-violet-700 hover:to-indigo-700 text-white rounded-xl px-4 py-3 transition-all duration-300 group shadow-lg hover:shadow-xl overflow-hidden"
-            >
-              {/* Effet de brillance */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-              
-              <div className="relative w-6 h-6 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 group-hover:scale-110 transition-all duration-300 shadow-sm">
-                <span className="i-ph:plus h-4 w-4 font-bold" />
-              </div>
-              <div className="relative flex flex-col">
-                <span className="text-sm font-semibold">Nouveau projet</span>
-                <span className="text-xs text-white/80">Créer un nouveau projet IA</span>
-              </div>
-              
-              {/* Icône flèche */}
-              <div className="relative ml-auto opacity-60 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300">
-                <span className="i-ph:arrow-right h-4 w-4" />
-              </div>
-            </a>
+            {/* Trois boutons alignés sur la même ligne */}
             <div className="flex gap-2">
+              <a
+                href="/"
+                className="flex-1 relative flex gap-2 items-center justify-center bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 hover:from-purple-700 hover:via-violet-700 hover:to-indigo-700 text-white rounded-lg px-3 py-2.5 transition-all duration-300 group shadow-md hover:shadow-lg overflow-hidden text-xs font-medium"
+              >
+                {/* Effet de brillance */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                
+                <div className="relative w-4 h-4 bg-white/20 rounded flex items-center justify-center group-hover:bg-white/30 transition-all duration-300">
+                  <span className="i-ph:plus h-3 w-3 font-bold" />
+                </div>
+                <span className="relative">Nouveau projet</span>
+              </a>
+              
               <button
                 onClick={() => setShowTemplates(!showTemplates)}
                 className={classNames(
-                  'flex-1 flex gap-1.5 items-center justify-center rounded-lg px-3 py-2 transition-all duration-200 text-xs font-medium',
+                  'flex-1 flex gap-2 items-center justify-center rounded-lg px-3 py-2.5 transition-all duration-300 text-xs font-medium shadow-md hover:shadow-lg',
                   showTemplates
-                    ? 'bg-violet-600 dark:bg-violet-500 text-white'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700',
+                    ? 'bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white'
+                    : 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 text-gray-700 dark:text-gray-300 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-700 dark:hover:to-gray-600',
                 )}
                 aria-label={showTemplates ? 'Masquer les projets' : 'Afficher les projets'}
                 title={showTemplates ? 'Masquer les projets' : 'Afficher les projets'}
               >
-                <span className="i-ph:folder h-3.5 w-3.5" />
+                <div className={classNames(
+                  'w-4 h-4 rounded flex items-center justify-center transition-all duration-300',
+                  showTemplates ? 'bg-white/20' : 'bg-gray-300/50 dark:bg-gray-600/50'
+                )}>
+                  <span className="i-ph:folder h-3 w-3" />
+                </div>
                 <span>Projets</span>
               </button>
-              <button
-                onClick={toggleSelectionMode}
-                className={classNames(
-                  'flex-1 flex gap-1.5 items-center justify-center rounded-lg px-3 py-2 transition-all duration-200 text-xs font-medium',
-                  selectionMode
-                    ? 'bg-red-600 dark:bg-red-500 text-white'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700',
-                )}
-                aria-label={selectionMode ? 'Quitter le mode sélection' : 'Entrer en mode sélection'}
-              >
-                <span className={selectionMode ? 'i-ph:x h-3.5 w-3.5' : 'i-ph:check-square h-3.5 w-3.5'} />
-                <span>{selectionMode ? 'Annuler' : 'Sélection'}</span>
-              </button>
+              
+              
             </div>
             <div className="relative w-full">
               <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10">
@@ -617,37 +604,69 @@ export const Menu = () => {
               />
             </div>
           </div>
-          <div className="flex items-center justify-between text-sm px-4 py-2.5 bg-gray-50/60 dark:bg-gray-800/40 border-b border-gray-200/40 dark:border-gray-700/30">
-            <div className="font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
-              <div className="w-4 h-4 bg-gradient-to-br from-purple-600 to-violet-600 rounded flex items-center justify-center">
-                <div className="i-ph:chat text-white text-xs" />
+          <div className="px-4 py-3 bg-gradient-to-r from-gray-50/80 via-purple-50/30 to-violet-50/30 dark:from-gray-800/80 dark:via-purple-900/20 dark:to-violet-900/20 border-b border-gray-200/40 dark:border-gray-700/30 backdrop-blur-sm">
+            <div className="font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2.5 mb-3">
+              <div className="w-5 h-5 bg-gradient-to-br from-purple-500 to-violet-600 rounded-lg flex items-center justify-center shadow-md shadow-purple-500/20 dark:shadow-purple-500/10">
+                <div className="i-ph:chat text-white text-sm" />
               </div>
-              <span className="text-sm">Projets</span>
-              <span className="px-1.5 py-0.5 bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 rounded text-xs font-medium">
+              <span className="text-sm bg-gradient-to-r from-gray-900 to-purple-800 dark:from-gray-100 dark:to-purple-300 bg-clip-text text-transparent font-bold">Projets</span>
+              <span className="px-2 py-0.5 bg-gradient-to-br from-purple-100 to-violet-100 dark:from-purple-900/50 dark:to-violet-900/50 text-purple-700 dark:text-purple-300 rounded-full text-xs font-medium border border-purple-200/50 dark:border-purple-700/30 shadow-sm">
                 {filteredList.length}
               </span>
             </div>
-            {selectionMode && (
-              <div className="flex items-center gap-1.5">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={selectAll}
-                  className="text-xs px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
-                >
-                  {selectedItems.length === filteredList.length ? 'Désélectionner' : 'Tout'}
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={handleBulkDeleteClick}
-                  disabled={selectedItems.length === 0}
-                  className="text-xs px-2 py-1 rounded bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                >
-                  Supprimer ({selectedItems.length})
-                </Button>
-              </div>
-            )}
+            
+            {/* Boutons de gestion sous le titre */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={toggleSelectionMode}
+                className={classNames(
+                  'flex gap-2 items-center justify-center rounded-lg px-3 py-2 transition-all duration-200 text-xs font-medium',
+                  selectionMode
+                    ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800/40'
+                    : 'bg-gray-50 dark:bg-gray-800/50 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-gray-200',
+                  'border border-transparent',
+                  selectionMode 
+                    ? 'border-red-200 dark:border-red-700/30' 
+                    : 'border-gray-200/50 dark:border-gray-700/30',
+                )}
+                aria-label={selectionMode ? 'Exit selection mode' : 'Enter selection mode'}
+              >
+                <div className={classNames(
+                  'w-4 h-4 rounded flex items-center justify-center transition-colors duration-200',
+                  selectionMode 
+                    ? 'text-red-600 dark:text-red-400' 
+                    : 'text-gray-500 dark:text-gray-400'
+                )}>
+                  <span className={selectionMode ? 'i-ph:x h-3 w-3' : 'i-ph:check-square h-3 w-3'} />
+                </div>
+                <span>Sélection</span>
+              </button>
+              
+              {selectionMode && (
+                <>
+                  <button
+                    onClick={selectAll}
+                    className="flex-1 flex gap-2 items-center justify-center rounded-lg px-3 py-2 transition-all duration-300 text-xs font-medium shadow-md hover:shadow-lg bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 text-gray-700 dark:text-gray-300 hover:from-purple-100 hover:to-purple-200 dark:hover:from-purple-900/30 dark:hover:to-purple-800/30 hover:text-purple-700 dark:hover:text-purple-300"
+                  >
+                    <div className="w-4 h-4 rounded flex items-center justify-center bg-gray-300/50 dark:bg-gray-600/50 transition-all duration-300">
+                      <span className="i-ph:check-circle h-3 w-3" />
+                    </div>
+                    <span>{selectedItems.length === filteredList.length ? 'Désélectionner' : 'Tout'}</span>
+                  </button>
+                  
+                  <button
+                    onClick={handleBulkDeleteClick}
+                    disabled={selectedItems.length === 0}
+                    className="flex-1 flex gap-2 items-center justify-center rounded-lg px-3 py-2 transition-all duration-300 text-xs font-medium shadow-md hover:shadow-lg bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <div className="w-4 h-4 rounded flex items-center justify-center bg-white/20 transition-all duration-300">
+                      <span className="i-ph:trash h-3 w-3" />
+                    </div>
+                    <span>Supprimer ({selectedItems.length})</span>
+                  </button>
+                </>
+              )}
+            </div>
           </div>
           <div className="flex-1 overflow-auto px-3 pb-3">
             {filteredList.length === 0 && (
