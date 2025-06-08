@@ -67,7 +67,7 @@ export const DeployButton = ({ onVercelDeploy, onNetlifyDeploy }: DeployButtonPr
           disabled={isDeploying || !activePreview || isStreaming}
           className="rounded-md items-center justify-center [&:is(:disabled,.disabled)]:cursor-not-allowed [&:is(:disabled,.disabled)]:opacity-60 px-3 py-1.5 text-xs bg-accent-500 text-white hover:text-bolt-elements-item-contentAccent [&:not(:disabled,.disabled)]:hover:bg-bolt-elements-button-primary-backgroundHover outline-accent-500 flex gap-1.7"
         >
-          {isDeploying ? `Deploying to ${deployingTo}...` : 'Deploy'}
+          {isDeploying ? `Deploying to ${deployingTo}...` : 'Deployer'}
           <span className={classNames('i-ph:caret-down transition-transform')} />
         </DropdownMenu.Trigger>
         <DropdownMenu.Content
@@ -99,7 +99,7 @@ export const DeployButton = ({ onVercelDeploy, onNetlifyDeploy }: DeployButtonPr
               crossOrigin="anonymous"
               src="https://cdn.simpleicons.org/netlify"
             />
-            <span className="mx-auto">{!netlifyConn.user ? 'No Netlify Account Connected' : 'Deploy to Netlify'}</span>
+            <span className="mx-auto">{!netlifyConn.user ? 'Aucun compte Netlify connecté' : 'Déployer sur Netlify'}</span>
             {netlifyConn.user && <NetlifyDeploymentLink />}
           </DropdownMenu.Item>
 
@@ -121,11 +121,11 @@ export const DeployButton = ({ onVercelDeploy, onNetlifyDeploy }: DeployButtonPr
               src="https://cdn.simpleicons.org/vercel/white"
               alt="vercel"
             />
-            <span className="mx-auto">{!vercelConn.user ? 'No Vercel Account Connected' : 'Deploy to Vercel'}</span>
+            <span className="mx-auto">{!vercelConn.user ? 'Aucun compte Vercel connecté' : 'Déployer sur Vercel'}</span>
             {vercelConn.user && <VercelDeploymentLink />}
           </DropdownMenu.Item>
 
-          <DropdownMenu.Item
+          {/* <DropdownMenu.Item
             disabled
             className="flex items-center w-full rounded-md px-4 py-2 text-sm text-bolt-elements-textTertiary gap-2 opacity-60 cursor-not-allowed"
           >
@@ -137,8 +137,8 @@ export const DeployButton = ({ onVercelDeploy, onNetlifyDeploy }: DeployButtonPr
               src="https://cdn.simpleicons.org/cloudflare"
               alt="cloudflare"
             />
-            <span className="mx-auto">Deploy to Cloudflare (Coming Soon)</span>
-          </DropdownMenu.Item>
+            <span className="mx-auto">Déployer sur Cloudflare (Bientôt disponible)</span>
+          </DropdownMenu.Item> */}
         </DropdownMenu.Content>
       </DropdownMenu.Root>
     </div>
