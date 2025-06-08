@@ -28,15 +28,6 @@ interface AssistantMessageProps {
   isStreaming?: boolean;
 }
 
-function openArtifactInWorkbench(filePath: string) {
-  filePath = normalizedFilePath(filePath);
-
-  if (workbenchStore.currentView.get() !== 'code') {
-    workbenchStore.currentView.set('code');
-  }
-
-  workbenchStore.setSelectedFile(`${WORK_DIR}/${filePath}`);
-}
 
 function normalizedFilePath(path: string) {
   let normalizedPath = path;
@@ -52,12 +43,11 @@ function normalizedFilePath(path: string) {
   return normalizedPath;
 }
 
-// Composant pour afficher l'indicateur de thinking en attente
 
 
 // Composant pour afficher le raisonnement avec design cohérent
 const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string; reasoningMetadata: any }) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [showReasoningToggle, setShowReasoningToggle] = useState(false);
 
   const handleToggle = () => {
@@ -124,19 +114,7 @@ const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string;
   const wordCount = reasoning.split(/\s+/).length;
   const estimatedReadTime = Math.max(1, Math.ceil(wordCount / 200)); // ~200 mots par minute
 
-  if (!showReasoningToggle) {
-    return (
-      <div className="mb-2">
-        <button 
-          onClick={() => setShowReasoningToggle(true)}
-          className="inline-flex bg-bolt-elements-item-backgroundAccent items-center gap-2 px-3 py-1.5 text-xs text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary bg-bolt-elements-bg-depth-2 hover:bg-bolt-elements-bg-depth-3 rounded-lg transition-colors duration-200 border border-bolt-elements-borderColor"
-        >
-          <div className="i-ph:brain text-sm" />
-          {/* <span>Afficher le raisonnement</span> */}
-        </button>
-      </div>
-    );
-  }
+  // Affichage direct du composant de raisonnement
 
   return (
     <div className="mb-4">
@@ -189,16 +167,7 @@ const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string;
             <span className="text-xs text-bolt-elements-textTertiary hidden sm:block">
               {wordCount} mots
             </span>
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowReasoningToggle(false);
-              }}
-              className="flex-shrink-0 w-6 h-6 rounded bg-bolt-elements-item-backgroundDanger hover:bg-bolt-elements-button-danger-backgroundHover flex items-center justify-center transition-colors"
-              title="Masquer le raisonnement"
-            >
-              <div className="i-ph:x text-bolt-elements-item-contentDanger text-xs" />
-            </button>
+            
             <button className={`flex-shrink-0 w-6 h-6 rounded bg-bolt-elements-bg-depth-3 hover:bg-bolt-elements-bg-depth-4 flex items-center justify-center transition-all duration-200 ${
               isExpanded ? 'rotate-180' : ''
             }`}>
@@ -277,58 +246,8 @@ const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string;
   );
 };
 
-// Composant pour sélectionner un prompt avec design amélioré
-const PromptSelector = () => {
-  const { promptId, setPromptId } = useSettings();
-  const prompts = PromptLibrary.getList();
-  
-  const currentPrompt = prompts.find(p => p.id === promptId) || prompts[0];
-  
-  return (
-    <div className="mt-3 pt-2 border-t border-slate-200/50 dark:border-slate-700/50">
-      <Dropdown
-        trigger={
-          <button className="group flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-900/50 dark:to-gray-900/50 hover:from-slate-100 hover:to-gray-100 dark:hover:from-slate-800/60 dark:hover:to-gray-800/60 border border-slate-200/70 dark:border-slate-700/70 hover:border-slate-300/70 dark:hover:border-slate-600/70 rounded-lg transition-all duration-200 text-sm shadow-sm hover:shadow-md">
-            <div className="w-4 h-4 rounded bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
-              <span className="i-ph:book text-white text-xs" />
-            </div>
-            <span className="font-medium text-slate-800 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-slate-100 truncate max-w-[140px]">
-              {/* {currentPrompt.label} */}
-            </span>
-            <div className="i-ph:caret-down text-slate-600 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-300 text-xs ml-auto" />
-          </button>
-        }
-      >
-        <div className="py-1">
-          {prompts.map((prompt) => (
-            <DropdownItem
-              key={prompt.id}
-              className={`px-3 py-2 text-sm flex items-center gap-3 transition-colors duration-200 ${
-                promptId === prompt.id 
-                  ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100' 
-                  : 'hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-700 dark:text-slate-300'
-              }`}
-              onSelect={() => {
-                setPromptId(prompt.id);
-                toast.success(`Prompt "${prompt.label}" selected`);
-              }}
-            >
-              <div className="w-4 h-4 flex-shrink-0 flex items-center justify-center">
-                {promptId === prompt.id ? (
-                  <div className="i-ph:check-circle-fill text-purple-500" />
-                ) : (
-                  <div className="i-ph:circle text-slate-400" />
-                )}
-              </div>
-              <span className="truncate">{prompt.label}</span>
-            </DropdownItem>
-          ))}
-        </div>
-      </Dropdown>
-    </div>
-  );
-};
 
+              
 export const AssistantMessage = memo(
   ({
     content,
@@ -421,7 +340,7 @@ export const AssistantMessage = memo(
                 <WithTooltip tooltip="Répondre à ce message">
                   <button
                     onClick={() => onReply(messageId, content)}
-                    className="w-8 h-8 rounded-lg bg-bolt-elements-bg-depth-1 hover:bg-bolt-elements-item-backgroundActive border border-bolt-elements-borderColor hover:border-bolt-elements-borderColorActive flex items-center justify-center transition-all duration-200"
+                    className="w-8 h-8 bg-bolt-elements-background-depth-1 rounded-lg bg-bolt-elements-bg-depth-1 hover:bg-bolt-elements-item-backgroundActive border border-bolt-elements-borderColor hover:border-bolt-elements-borderColorActive flex items-center justify-center transition-all duration-200"
                   >
                     <div className="i-ph:arrow-bend-up-left text-sm text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary" />
                   </button>
@@ -501,8 +420,7 @@ export const AssistantMessage = memo(
           </Markdown>
         </div>
 
-        {/* Sélecteur de prompt */}
-        <PromptSelector />
+
       </div>
     );
   },
