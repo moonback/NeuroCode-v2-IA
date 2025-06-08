@@ -121,30 +121,43 @@ const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string;
       <div className="bg-bolt-elements-bg-depth-1 border border-bolt-elements-borderColor rounded-lg overflow-hidden">
         
         {/* En-tête */}
-        <div className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-bolt-elements-bg-depth-2 transition-colors" onClick={handleToggle}>
-          <div className="flex items-center gap-3">
-            <div className="flex-shrink-0 w-6 h-6 rounded bg-bolt-elements-button-primary-background flex items-center justify-center">
-              <div className="i-ph:brain text-bolt-elements-button-primary-text text-sm" />
+        <div 
+          className="group flex items-center justify-between px-4 py-3.5 cursor-pointer transition-all duration-200 hover:bg-bolt-elements-bg-depth-2" 
+          onClick={handleToggle}
+        >
+          <div className="flex items-center gap-4">
+            {/* Icon container with animated background */}
+            <div className="relative flex-shrink-0">
+              <div className="absolute inset-0 bg-gradient-to-br from-bolt-elements-button-primary-background to-bolt-elements-button-primary-background/80 rounded-lg blur-[2px] opacity-50 group-hover:opacity-75 transition-opacity" />
+              <div className="relative w-7 h-7 rounded-lg bg-bolt-elements-button-primary-background flex items-center justify-center shadow-sm">
+                <div className="i-ph:brain text-bolt-elements-button-primary-text text-lg group-hover:scale-110 transition-transform" />
+              </div>
             </div>
             
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-bolt-elements-textPrimary">Réflexion</span>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+              {/* Title with hover effect */}
+              <span className="text-sm font-semibold text-bolt-elements-textPrimary group-hover:text-bolt-elements-textPrimary/90">
+                Réflexion
+              </span>
           
-              {/* Badges */}
-              <div className="flex items-center gap-1.5">
-                <span className="inline-flex items-center px-2 py-0.5 bg-bolt-elements-bg-depth-3 text-bolt-elements-textSecondary rounded text-xs font-medium">
-                  {estimatedReadTime}min
-                </span>
+              {/* Badges container with improved spacing */}
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Read time badge
+                <span className="inline-flex items-center px-2.5 py-1 bg-bolt-elements-bg-depth-3 text-bolt-elements-textSecondary rounded-md text-xs font-medium transition-colors group-hover:bg-bolt-elements-bg-depth-4">
+                  <div className="i-ph:clock-clockwise mr-1.5 text-xs opacity-70" />
+                  {estimatedReadTime} min
+                </span> */}
                 
+                {/* Confidence badge */}
                 {reasoningMetadata?.confidence && (
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                  <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
                     reasoningMetadata.confidence === 'high' 
-                      ? 'bg-bolt-elements-item-backgroundAccent text-bolt-elements-item-contentAccent' :
+                      ? 'bg-bolt-elements-item-backgroundAccent/80 text-bolt-elements-item-contentAccent group-hover:bg-bolt-elements-item-backgroundAccent' :
                     reasoningMetadata.confidence === 'medium' 
-                      ? 'bg-bolt-elements-bg-depth-3 text-bolt-elements-textSecondary' :
-                      'bg-bolt-elements-item-backgroundDanger text-bolt-elements-item-contentDanger'
+                      ? 'bg-bolt-elements-bg-depth-3 text-bolt-elements-textSecondary group-hover:bg-bolt-elements-bg-depth-4' :
+                      'bg-bolt-elements-item-backgroundDanger/80 text-bolt-elements-item-contentDanger group-hover:bg-bolt-elements-item-backgroundDanger'
                   }`}>
-                    <div className={`w-1 h-1 rounded-full mr-1.5 ${
+                    <div className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
                       reasoningMetadata.confidence === 'high' ? 'bg-bolt-elements-icon-success' :
                       reasoningMetadata.confidence === 'medium' ? 'bg-bolt-elements-textSecondary' : 'bg-bolt-elements-icon-error'
                     }`} />
@@ -153,8 +166,10 @@ const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string;
                   </span>
                 )}
                 
+                {/* Sections count badge */}
                 {reasoningSections.length > 1 && (
-                  <span className="inline-flex items-center px-2 py-0.5 bg-bolt-elements-item-backgroundAccent text-bolt-elements-item-contentAccent rounded text-xs font-medium">
+                  <span className="inline-flex items-center px-2.5 py-1 bg-bolt-elements-item-backgroundAccent/80 text-bolt-elements-item-contentAccent rounded-md text-xs font-medium group-hover:bg-bolt-elements-item-backgroundAccent transition-colors">
+                    <div className="i-ph:list-numbers mr-1.5 text-xs opacity-70" />
                     {reasoningSections.length} sections
                   </span>
                 )}
@@ -162,16 +177,19 @@ const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string;
             </div>
           </div>
           
-          {/* Boutons de contrôle */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-bolt-elements-textTertiary hidden sm:block">
+          {/* Control buttons with improved interaction */}
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-bolt-elements-textTertiary hidden sm:block group-hover:text-bolt-elements-textSecondary transition-colors">
               {wordCount} mots
             </span>
             
-            <button className={`flex-shrink-0 w-6 h-6 rounded bg-bolt-elements-bg-depth-3 hover:bg-bolt-elements-bg-depth-4 flex items-center justify-center transition-all duration-200 ${
-              isExpanded ? 'rotate-180' : ''
-            }`}>
-              <div className="i-ph:caret-down text-bolt-elements-textSecondary text-xs" />
+            <button 
+              className={`flex-shrink-0 w-7 h-7 bg-bolt-elements-background-depth-3 rounded-lg bg-bolt-elements-bg-depth-3 group-hover:bg-bolt-elements-bg-depth-4 flex items-center justify-center transition-all duration-300 ${
+                isExpanded ? 'rotate-180' : ''
+              }`}
+              aria-label={isExpanded ? 'Collapse section' : 'Expand section'}
+            >
+              <div className="i-ph:caret-down text-bolt-elements-textSecondary group-hover:text-bolt-elements-textPrimary text-sm transition-colors" />
             </button>
           </div>
         </div>
@@ -340,7 +358,7 @@ export const AssistantMessage = memo(
                 <WithTooltip tooltip="Répondre à ce message">
                   <button
                     onClick={() => onReply(messageId, content)}
-                    className="w-8 h-8 bg-bolt-elements-background-depth-1 rounded-lg bg-bolt-elements-bg-depth-1 hover:bg-bolt-elements-item-backgroundActive border border-bolt-elements-borderColor hover:border-bolt-elements-borderColorActive flex items-center justify-center transition-all duration-200"
+                    className="w-8 h-8 bg-bolt-elements-background-depth-3 rounded-lg bg-bolt-elements-bg-depth-1 hover:bg-bolt-elements-item-backgroundActive border border-bolt-elements-borderColor hover:border-bolt-elements-borderColorActive flex items-center justify-center transition-all duration-200"
                   >
                     <div className="i-ph:arrow-bend-up-left text-sm text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary" />
                   </button>
@@ -350,7 +368,7 @@ export const AssistantMessage = memo(
                 <WithTooltip tooltip="Revert to this message">
                   <button
                     onClick={() => onRewind(messageId)}
-                    className="w-8 h-8 rounded-lg bg-bolt-elements-bg-depth-1 hover:bg-bolt-elements-item-backgroundActive border border-bolt-elements-borderColor hover:border-bolt-elements-borderColorActive flex items-center justify-center transition-all duration-200"
+                    className="w-8 h-8 rounded-lg bg-bolt-elements-background-depth-3 hover:bg-bolt-elements-item-backgroundActive border border-bolt-elements-borderColor hover:border-bolt-elements-borderColorActive flex items-center justify-center transition-all duration-200"
                   >
                     <div className="i-ph:arrow-u-up-left text-sm text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary" />
                   </button>
@@ -360,7 +378,7 @@ export const AssistantMessage = memo(
                 <WithTooltip tooltip="Fork chat from this message">
                   <button
                     onClick={() => onFork(messageId)}
-                    className="w-8 h-8 rounded-lg bg-bolt-elements-bg-depth-1 hover:bg-bolt-elements-item-backgroundActive border border-bolt-elements-borderColor hover:border-bolt-elements-borderColorActive flex items-center justify-center transition-all duration-200"
+                    className="w-8 h-8 rounded-lg bg-bolt-elements-background-depth-3 hover:bg-bolt-elements-item-backgroundActive border border-bolt-elements-borderColor hover:border-bolt-elements-borderColorActive flex items-center justify-center transition-all duration-200"
                   >
                     <div className="i-ph:git-fork text-sm text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary" />
                   </button>
