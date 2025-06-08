@@ -5,6 +5,10 @@ import type { ActionAlert, BoltAction, DeployAlert, FileHistory, SupabaseAction,
 import { unreachable } from '~/utils/unreachable';
 import type { ActionCallbackData } from './message-parser';
 import type { BoltShell } from '~/utils/shell';
+import { isFileLocked } from '~/utils/fileLocks';
+import { createScopedLogger } from '~/utils/logger';
+
+const logger = createScopedLogger('ActionRunner');
 
 export type ActionStatus = 'pending' | 'running' | 'complete' | 'aborted' | 'failed';
 
@@ -298,6 +302,28 @@ export class ActionRunner {
     const webcontainer = await this.#webcontainer;
     const relativePath = nodePath.relative(webcontainer.workdir, action.filePath);
 
+    // Check if the file is locked
+    const lockStatus = isFileLocked(action.filePath);
+    if (lockStatus.locked) {
+      logger.warn(`Attempted to write to locked file: ${action.filePath} (locked by: ${lockStatus.lockedBy})`);
+      throw new Error(`Cannot write to locked file: ${action.filePath}`);
+    }
+
+    // Check if the file already exists and has the same content
+    let existingContent: string | null = null;
+    try {
+      existingContent = await webcontainer.fs.readFile(relativePath, 'utf-8');
+    } catch (error) {
+      // File doesn't exist, which is fine
+      existingContent = null;
+    }
+
+    // If the content is identical, skip the write operation
+    if (existingContent !== null && existingContent === action.content) {
+      logger.info(`Skipping write to ${relativePath} - content is identical`);
+      return;
+    }
+
     let folder = nodePath.dirname(relativePath);
 
     // remove trailing slashes
@@ -307,14 +333,16 @@ export class ActionRunner {
       try {
         await webcontainer.fs.mkdir(folder, { recursive: true });
       } catch (error) {
-        // Failed to create folder
+        logger.error(`Failed to create folder: ${folder}`, error);
       }
     }
 
     try {
       await webcontainer.fs.writeFile(relativePath, action.content);
+      logger.info(`Successfully wrote file: ${relativePath}`);
     } catch (error) {
-      // Failed to write file
+      logger.error(`Failed to write file: ${relativePath}`, error);
+      throw error;
     }
   }
 
