@@ -216,10 +216,32 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
       <FilePreview
         files={props.uploadedFiles}
         imageDataList={props.imageDataList}
-        onRemove={(index) => {
-          props.setUploadedFiles?.(props.uploadedFiles.filter((_, i) => i !== index));
-          props.setImageDataList?.(props.imageDataList.filter((_, i) => i !== index));
-        }}
+        onRemove={(fileToRemove: File) => {
+          const newUploadedFiles = props.uploadedFiles.filter(f => f !== fileToRemove);
+          props.setUploadedFiles?.(newUploadedFiles);
+
+          if (fileToRemove.type.startsWith('image/')) {
+            // Attempt to find the corresponding image data URL to remove.
+            // This is complex because imageDataList is just an array of strings.
+            // We need to determine which index in imageDataList corresponded to fileToRemove.
+            let imageIndexToRemove = -1;
+            let currentImageIdx = 0;
+            for (let i = 0; i < props.uploadedFiles.length; i++) {
+              const currentFile = props.uploadedFiles[i];
+              if (currentFile.type.startsWith('image/')) {
+                if (currentFile === fileToRemove) {
+                  imageIndexToRemove = currentImageIdx;
+                  break;
+                }
+                currentImageIdx++;
+              }
+            }
+
+            if (imageIndexToRemove !== -1 && props.imageDataList) {
+              const newImageDataList = props.imageDataList.filter((_, idx) => idx !== imageIndexToRemove);
+              props.setImageDataList?.(newImageDataList);
+            }
+          }}}
       />
       <ClientOnly>
         {() => (
@@ -253,23 +275,38 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
             e.preventDefault();
             e.currentTarget.style.border = '1px solid var(--bolt-elements-borderColor)';
           }}
-          onDrop={(e) => {
+          onDrop={async (e) => {
             e.preventDefault();
             e.currentTarget.style.border = '1px solid var(--bolt-elements-borderColor)';
 
             const files = Array.from(e.dataTransfer.files);
-            files.forEach((file) => {
-              if (file.type.startsWith('image/')) {
-                const reader = new FileReader();
+            const currentUploadedFiles = props.uploadedFiles || [];
+            const currentImageDataList = props.imageDataList || [];
+            
+            // Add all files to uploadedFiles immediately
+            const newUploadedFiles = [...currentUploadedFiles, ...files];
+            props.setUploadedFiles?.(newUploadedFiles);
 
-                reader.onload = (e) => {
-                  const base64Image = e.target?.result as string;
-                  props.setUploadedFiles?.([...props.uploadedFiles, file]);
-                  props.setImageDataList?.([...props.imageDataList, base64Image]);
-                };
-                reader.readAsDataURL(file);
+            // Process images asynchronously
+            const imageFiles = files.filter(file => file.type.startsWith('image/'));
+            if (imageFiles.length > 0) {
+              const newImageDataPromises = imageFiles.map(file => {
+                return new Promise<string>((resolve) => {
+                  const reader = new FileReader();
+                  reader.onload = (readEvent) => {
+                    resolve(readEvent.target?.result as string);
+                  };
+                  reader.readAsDataURL(file);
+                });
+              });
+
+              try {
+                const newImageData = await Promise.all(newImageDataPromises);
+                props.setImageDataList?.([...currentImageDataList, ...newImageData]);
+              } catch (error) {
+                console.error('Error processing dropped images:', error);
               }
-            });
+            }
           }}
           onKeyDown={(event) => {
             if (event.key === 'Enter') {

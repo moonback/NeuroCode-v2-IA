@@ -335,13 +335,53 @@ export const ChatImpl = memo(
     const sendMessage = async (_event: React.UIEvent, messageInput?: string) => {
       const messageContent = messageInput || input;
 
-      if (!messageContent?.trim()) {
+      if (!messageContent?.trim() && uploadedFiles.length === 0) {
         return;
       }
 
       if (isLoading) {
         abort();
         return;
+      }
+
+      // Upload files if any
+      let uploadedFileInfo = '';
+      if (uploadedFiles.length > 0) {
+        try {
+          const uploadPromises = uploadedFiles.map(async (file) => {
+            const formData = new FormData();
+            formData.append('document', file);
+            
+            const response = await fetch('/api/upload', {
+              method: 'POST',
+              body: formData,
+            });
+            
+            if (!response.ok) {
+              throw new Error(`Failed to upload ${file.name}`);
+            }
+            
+            const result = await response.json();
+            return {
+              name: file.name,
+              type: file.type,
+              size: file.size,
+              uploadResult: result
+            };
+          });
+          
+          const uploadResults = await Promise.all(uploadPromises);
+          
+          uploadedFileInfo = '\n\n--- FICHIERS UPLOADÉS ---\n';
+          uploadResults.forEach((fileInfo, index) => {
+            uploadedFileInfo += `\n**Fichier ${index + 1}**: ${fileInfo.name} (${fileInfo.type}, ${Math.round(fileInfo.size / 1024)}KB)\n`;
+          });
+          uploadedFileInfo += '--- FIN FICHIERS ---\n\n';
+        } catch (error) {
+          console.error('Error uploading files:', error);
+          toast.error('Erreur lors de l\'upload des fichiers');
+          return;
+        }
       }
 
       // Récupérer les éléments de contexte
@@ -357,7 +397,7 @@ export const ChatImpl = memo(
         });
         contextSection += '\n--- FIN CONTEXTE ---\n\n';
       }
-      let finalMessageContent = messageContent;
+      let finalMessageContent = (messageContent || '') + uploadedFileInfo + contextSection;
 
       // Add reply context if replying to a message
       if (replyToMessage) {

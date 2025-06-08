@@ -518,8 +518,8 @@ function FileContextMenu({
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            className={classNames('relative', {
-              'bg-bolt-elements-background-depth-2 border border-dashed border-bolt-elements-item-contentAccent rounded-md':
+            className={classNames('relative transition-all duration-200', {
+              'bg-bolt-elements-background-depth-2 border-2 border-dashed border-bolt-elements-item-contentAccent rounded-lg shadow-lg':
                 isDragging,
             })}
           >
@@ -529,80 +529,87 @@ function FileContextMenu({
         <ContextMenu.Portal>
           <ContextMenu.Content
             style={{ zIndex: 998 }}
-            className="border border-bolt-elements-borderColor rounded-md z-context-menu bg-bolt-elements-background-depth-1 dark:bg-bolt-elements-background-depth-2 data-[state=open]:animate-in animate-duration-100 data-[state=open]:fade-in-0 data-[state=open]:zoom-in-98 w-56"
+            className="border border-bolt-elements-borderColor rounded-lg shadow-lg z-context-menu bg-bolt-elements-background-depth-1 dark:bg-bolt-elements-background-depth-2 data-[state=open]:animate-in animate-duration-200 data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 w-64"
           >
-            <ContextMenu.Group className="p-1 border-b-px border-solid border-bolt-elements-borderColor">
+            <ContextMenu.Group className="p-2 border-b border-solid border-bolt-elements-borderColor">
               <ContextMenuItem onSelect={() => setIsCreatingFile(true)}>
-                <div className="flex items-center gap-2">
-                  <div className="i-ph:file-plus" />
-                  Nouveau fichier
+                <div className="flex items-center gap-3 hover:translate-x-1 transition-transform">
+                  <div className="i-ph:file-plus text-blue-500" />
+                  <span className="font-medium">Nouveau fichier</span>
                 </div>
               </ContextMenuItem>
               <ContextMenuItem onSelect={() => setIsCreatingFolder(true)}>
-                <div className="flex items-center gap-2">
-                  <div className="i-ph:folder-plus" />
-                  Nouveau dossier
+                <div className="flex items-center gap-3 hover:translate-x-1 transition-transform">
+                  <div className="i-ph:folder-plus text-yellow-500" />
+                  <span className="font-medium">Nouveau dossier</span>
                 </div>
               </ContextMenuItem>
             </ContextMenu.Group>
-            <ContextMenu.Group className="p-1">
-              <ContextMenuItem onSelect={onCopyPath}>Copier le chemin</ContextMenuItem>
-              <ContextMenuItem onSelect={onCopyRelativePath}>Copier le chemin relatif</ContextMenuItem>
+            <ContextMenu.Group className="p-2">
+              <ContextMenuItem onSelect={onCopyPath}>
+                <div className="flex items-center gap-3 hover:translate-x-1 transition-transform">
+                  <div className="i-ph:copy text-gray-500" />
+                  <span>Copier le chemin</span>
+                </div>
+              </ContextMenuItem>
+              <ContextMenuItem onSelect={onCopyRelativePath}>
+                <div className="flex items-center gap-3 hover:translate-x-1 transition-transform">
+                  <div className="i-ph:copy-simple text-gray-500" />
+                  <span>Copier le chemin relatif</span>
+                </div>
+              </ContextMenuItem>
             </ContextMenu.Group>
-            {/* Add AI targeting option for files */}
             {!isFolder && (
-              <ContextMenu.Group className="p-1 border-t-px border-solid border-bolt-elements-borderColor">
+              <ContextMenu.Group className="p-2 border-t border-solid border-bolt-elements-borderColor">
                 <ContextMenuItem onSelect={handleTargetForAI}>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3 hover:translate-x-1 transition-transform">
                     <div className={classNames('i-ph:target', {
                       'text-blue-500': workbenchStore.isAITargetFile(fullPath),
-                      'text-gray-500': !workbenchStore.isAITargetFile(fullPath)
+                      'text-gray-400': !workbenchStore.isAITargetFile(fullPath)
                     })} />
-                    {workbenchStore.isAITargetFile(fullPath) ? 'Retirer fichier cibler' : 'Cibler le fichier'}
+                    <span>{workbenchStore.isAITargetFile(fullPath) ? 'Retirer fichier ciblé' : 'Cibler le fichier'}</span>
                   </div>
                 </ContextMenuItem>
               </ContextMenu.Group>
             )}
-            {/* Add lock/unlock options for files and folders */}
-            <ContextMenu.Group className="p-1 border-t-px border-solid border-bolt-elements-borderColor">
+            <ContextMenu.Group className="p-2 border-t border-solid border-bolt-elements-borderColor">
               {!isFolder ? (
                 <>
                   <ContextMenuItem onSelect={handleLockFile}>
-                    <div className="flex items-center gap-2">
-                      <div className="i-ph:lock-simple" />
-                      Verrouiller fichier
+                    <div className="flex items-center gap-3 hover:translate-x-1 transition-transform">
+                      <div className="i-ph:lock-simple text-orange-500" />
+                      <span>Verrouiller fichier</span>
                     </div>
                   </ContextMenuItem>
                   <ContextMenuItem onSelect={handleUnlockFile}>
-                    <div className="flex items-center gap-2">
-                      <div className="i-ph:lock-key-open" />
-                      Déverrouiller fichier
-                      </div>
+                    <div className="flex items-center gap-3 hover:translate-x-1 transition-transform">
+                      <div className="i-ph:lock-key-open text-green-500" />
+                      <span>Déverrouiller fichier</span>
+                    </div>
                   </ContextMenuItem>
                 </>
               ) : (
                 <>
                   <ContextMenuItem onSelect={handleLockFolder}>
-                    <div className="flex items-center gap-2">
-                      <div className="i-ph:lock-simple" />
-                      Verrouiller dossier
+                    <div className="flex items-center gap-3 hover:translate-x-1 transition-transform">
+                      <div className="i-ph:lock-simple text-orange-500" />
+                      <span>Verrouiller dossier</span>
                     </div>
                   </ContextMenuItem>
                   <ContextMenuItem onSelect={handleUnlockFolder}>
-                    <div className="flex items-center gap-2">
-                      <div className="i-ph:lock-key-open" />
-                      Déverrouiller dossier
+                    <div className="flex items-center gap-3 hover:translate-x-1 transition-transform">
+                      <div className="i-ph:lock-key-open text-green-500" />
+                      <span>Déverrouiller dossier</span>
                     </div>
                   </ContextMenuItem>
                 </>
               )}
             </ContextMenu.Group>
-            {/* Add delete option in a new group */}
-            <ContextMenu.Group className="p-1 border-t-px border-solid border-bolt-elements-borderColor">
+            <ContextMenu.Group className="p-2 border-t border-solid border-bolt-elements-borderColor">
               <ContextMenuItem onSelect={handleDelete}>
-                <div className="flex items-center gap-2 text-red-500">
-                  <div className="i-ph:trash" />
-                  Supprimer {isFolder ? 'Folder' : 'File'}
+                <div className="flex items-center gap-3 hover:translate-x-1 transition-transform group">
+                  <div className="i-ph:trash text-red-500 group-hover:animate-shake" />
+                  <span className="text-red-500 font-medium">Supprimer {isFolder ? 'le dossier' : 'le fichier'}</span>
                 </div>
               </ContextMenuItem>
             </ContextMenu.Group>

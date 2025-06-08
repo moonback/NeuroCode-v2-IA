@@ -312,52 +312,65 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
     const handleFileUpload = () => {
       const input = document.createElement('input');
       input.type = 'file';
-      input.accept = 'image/*';
+      input.accept = '*/*'; // Accept all file types
+      input.multiple = true; // Allow multiple file selection
 
       input.onchange = async (e) => {
-        const file = (e.target as HTMLInputElement).files?.[0];
+        const files = Array.from((e.target as HTMLInputElement).files || []);
 
-        if (file) {
-          const reader = new FileReader();
+        if (files.length > 0) {
+          const newUploadedFiles = [...uploadedFiles];
+          const newImageDataList = [...imageDataList];
 
-          reader.onload = (e) => {
-            const base64Image = e.target?.result as string;
-            setUploadedFiles?.([...uploadedFiles, file]);
-            setImageDataList?.([...imageDataList, base64Image]);
-          };
-          reader.readAsDataURL(file);
+          for (const file of files) {
+            newUploadedFiles.push(file);
+            
+            // Only create base64 data for images
+            if (file.type.startsWith('image/')) {
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                const base64Image = e.target?.result as string;
+                newImageDataList.push(base64Image);
+                setImageDataList?.([...newImageDataList]);
+              };
+              reader.readAsDataURL(file);
+            }
+          }
+          
+          setUploadedFiles?.(newUploadedFiles);
         }
       };
 
       input.click();
     };
 
-    const handlePaste = async (e: React.ClipboardEvent) => {
-      const items = e.clipboardData?.items;
+    const handlePaste = (e: React.ClipboardEvent) => {
+      const items = Array.from(e.clipboardData?.items || []);
+      const fileItems = items.filter((item) => item.kind === 'file');
 
-      if (!items) {
-        return;
-      }
+      if (fileItems.length > 0) {
+        const newUploadedFiles = [...uploadedFiles];
+        const newImageDataList = [...imageDataList];
 
-      for (const item of items) {
-        if (item.type.startsWith('image/')) {
-          e.preventDefault();
-
+        fileItems.forEach((item) => {
           const file = item.getAsFile();
-
           if (file) {
-            const reader = new FileReader();
-
-            reader.onload = (e) => {
-              const base64Image = e.target?.result as string;
-              setUploadedFiles?.([...uploadedFiles, file]);
-              setImageDataList?.([...imageDataList, base64Image]);
-            };
-            reader.readAsDataURL(file);
+            newUploadedFiles.push(file);
+            
+            // Only process images for preview
+            if (file.type.startsWith('image/')) {
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                const base64Image = e.target?.result as string;
+                newImageDataList.push(base64Image);
+                setImageDataList?.([...newImageDataList]);
+              };
+              reader.readAsDataURL(file);
+            }
           }
-
-          break;
-        }
+        });
+        
+        setUploadedFiles?.(newUploadedFiles);
       }
     };
 
