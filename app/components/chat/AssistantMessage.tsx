@@ -1,16 +1,10 @@
-import { memo, Fragment, useState } from 'react';
+import { memo, useState } from 'react';
 import { Markdown } from './Markdown';
 import type { JSONValue } from 'ai';
-import Popover from '~/components/ui/Popover';
-import { workbenchStore } from '~/lib/stores/workbench';
 import { WORK_DIR } from '~/utils/constants';
 import WithTooltip from '~/components/ui/Tooltip';
 import type { Message } from 'ai';
 
-import { Dropdown, DropdownItem } from '~/components/ui/Dropdown';
-import { useSettings } from '~/lib/hooks/useSettings';
-import { PromptLibrary } from '~/lib/common/prompt-library';
-import { toast } from 'react-toastify';
 import type { ProviderInfo } from '~/types/model';
 
 interface AssistantMessageProps {
@@ -118,57 +112,51 @@ const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string;
 
   return (
     <div className="mb-4">
-      <div className="bg-bolt-elements-bg-depth-1 border border-bolt-elements-borderColor rounded-lg overflow-hidden">
+      <div className="relative overflow-hidden bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-900/50 dark:to-gray-900/50 border border-slate-200/70 dark:border-slate-700/70 rounded-lg shadow-sm backdrop-blur-sm">
         
-        {/* En-tête */}
+        {/* Header */}
         <div 
-          className="group flex items-center justify-between px-4 py-3.5 cursor-pointer transition-all duration-200 hover:bg-bolt-elements-bg-depth-2" 
+          className="group flex items-center justify-between px-4 py-3.5 cursor-pointer transition-all duration-200" 
           onClick={handleToggle}
         >
           <div className="flex items-center gap-4">
             {/* Icon container with animated background */}
-            <div className="relative flex-shrink-0">
-              <div className="absolute inset-0 bg-gradient-to-br from-bolt-elements-button-primary-background to-bolt-elements-button-primary-background/80 rounded-lg blur-[2px] opacity-50 group-hover:opacity-75 transition-opacity" />
-              <div className="relative w-7 h-7 rounded-lg bg-bolt-elements-button-primary-background flex items-center justify-center shadow-sm">
-                <div className="i-ph:brain text-bolt-elements-button-primary-text text-lg group-hover:scale-110 transition-transform" />
-              </div>
+            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
+              <div className="i-ph:brain text-white text-sm group-hover:scale-110 transition-transform" />
             </div>
             
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-              {/* Title with hover effect */}
-              <span className="text-sm font-semibold text-bolt-elements-textPrimary group-hover:text-bolt-elements-textPrimary/90">
+              {/* Title */}
+              <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
                 Réflexion
               </span>
           
-              {/* Badges container with improved spacing */}
+              {/* Badges */}
               <div className="flex flex-wrap items-center gap-2">
-                {/* Read time badge
-                <span className="inline-flex items-center px-2.5 py-1 bg-bolt-elements-bg-depth-3 text-bolt-elements-textSecondary rounded-md text-xs font-medium transition-colors group-hover:bg-bolt-elements-bg-depth-4">
+                <span className="inline-flex items-center px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-md text-xs font-medium">
                   <div className="i-ph:clock-clockwise mr-1.5 text-xs opacity-70" />
                   {estimatedReadTime} min
-                </span> */}
+                </span>
                 
-                {/* Confidence badge */}
-                {/* {reasoningMetadata?.confidence && (
-                  <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                {reasoningMetadata?.confidence && (
+                  <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${
                     reasoningMetadata.confidence === 'high' 
-                      ? 'bg-bolt-elements-item-backgroundAccent/80 text-bolt-elements-item-contentAccent group-hover:bg-bolt-elements-item-backgroundAccent' :
+                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' :
                     reasoningMetadata.confidence === 'medium' 
-                      ? 'bg-bolt-elements-bg-depth-3 text-bolt-elements-textSecondary group-hover:bg-bolt-elements-bg-depth-4' :
-                      'bg-bolt-elements-item-backgroundDanger/80 text-bolt-elements-item-contentDanger group-hover:bg-bolt-elements-item-backgroundDanger'
+                      ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' :
+                      'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
                   }`}>
                     <div className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
-                      reasoningMetadata.confidence === 'high' ? 'bg-bolt-elements-icon-success' :
-                      reasoningMetadata.confidence === 'medium' ? 'bg-bolt-elements-textSecondary' : 'bg-bolt-elements-icon-error'
+                      reasoningMetadata.confidence === 'high' ? 'bg-green-500' :
+                      reasoningMetadata.confidence === 'medium' ? 'bg-slate-500' : 'bg-red-500'
                     }`} />
                     {reasoningMetadata.confidence === 'high' ? 'Élevée' :
                      reasoningMetadata.confidence === 'medium' ? 'Moyenne' : 'Faible'}
                   </span>
-                )} */}
+                )}
                 
-                {/* Sections count badge */}
                 {reasoningSections.length > 1 && (
-                  <span className="inline-flex items-center px-2.5 py-1 bg-bolt-elements-item-backgroundAccent/80 text-bolt-elements-item-contentAccent rounded-md text-xs font-medium group-hover:bg-bolt-elements-item-backgroundAccent transition-colors">
+                  <span className="inline-flex items-center px-2.5 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-md text-xs font-medium">
                     <div className="i-ph:list-numbers mr-1.5 text-xs opacity-70" />
                     {reasoningSections.length} sections
                   </span>
@@ -177,40 +165,40 @@ const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string;
             </div>
           </div>
           
-          {/* Control buttons with improved interaction */}
+          {/* Controls */}
           <div className="flex items-center gap-3">
-            <span className="text-xs text-bolt-elements-textTertiary hidden sm:block group-hover:text-bolt-elements-textSecondary transition-colors">
+            <span className="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">
               {wordCount} mots
             </span>
             
             <button 
-              className={`flex-shrink-0 w-7 h-7 bg-bolt-elements-background-depth-3 rounded-lg bg-bolt-elements-bg-depth-3 group-hover:bg-bolt-elements-bg-depth-4 flex items-center justify-center transition-all duration-300 ${
+              className={`flex-shrink-0 w-6 h-6 bg-slate-100 dark:bg-slate-800 rounded-md flex items-center justify-center transition-all duration-300 ${
                 isExpanded ? 'rotate-180' : ''
               }`}
               aria-label={isExpanded ? 'Collapse section' : 'Expand section'}
             >
-              <div className="i-ph:caret-down text-bolt-elements-textSecondary group-hover:text-bolt-elements-textPrimary text-sm transition-colors" />
+              <div className="i-ph:caret-down text-slate-600 dark:text-slate-300 text-sm" />
             </button>
           </div>
         </div>
         
-        {/* Contenu expansible */}
+        {/* Expandable content */}
         {isExpanded && (
-          <div className="border-t border-bolt-elements-borderColor bg-bolt-elements-bg-depth-2">
+          <div className="border-t border-slate-200/70 dark:border-slate-700/70 bg-white/50 dark:bg-slate-800/50">
             <div className="p-4">
               
-              {/* Métadonnées d'extraction */}
+              {/* Extraction metadata */}
               {reasoningMetadata?.extractionMethod && (
-                <div className="mb-3 pb-2 border-b border-bolt-elements-borderColor">
-                  <span className="inline-flex items-center text-xs text-bolt-elements-textTertiary">
-                    <div className="w-1.5 h-1.5 rounded-full bg-bolt-elements-textSecondary mr-2" />
+                <div className="mb-3 pb-2 border-b border-slate-200/70 dark:border-slate-700/70">
+                  <span className="inline-flex items-center text-xs text-slate-500 dark:text-slate-400">
+                    <div className="w-1.5 h-1.5 rounded-full bg-slate-400 mr-2" />
                     Méthode : {reasoningMetadata.extractionMethod === 'explicit' ? 'Balises explicites' :
                               reasoningMetadata.extractionMethod === 'pattern' ? 'Structure détectée' :
                               reasoningMetadata.extractionMethod === 'heuristic' ? 'Analyse heuristique' :
                               reasoningMetadata.extractionMethod === 'fallback' ? 'Début du contenu' :
                               reasoningMetadata.extractionMethod}
                     {reasoningMetadata?.originalLength && (
-                      <span className="ml-3 text-bolt-elements-textTertiary">
+                      <span className="ml-3 text-slate-400 dark:text-slate-500">
                         • {Math.round((reasoning.length / reasoningMetadata.originalLength) * 100)}% extrait
                       </span>
                     )}
@@ -218,20 +206,20 @@ const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string;
                 </div>
               )}
               
-              {/* Contenu du raisonnement */}
+              {/* Reasoning content */}
               {reasoningSections.length > 1 ? (
                 <div className="space-y-3">
                   {reasoningSections.map((section, index) => (
                     <div key={index}>
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-sm">{section.icon}</span>
-                        <h4 className="font-medium text-bolt-elements-textPrimary text-sm">
+                        <h4 className="font-medium text-slate-700 dark:text-slate-200 text-sm">
                           {section.title}
                         </h4>
-                        <div className="flex-1 h-px bg-bolt-elements-borderColor"></div>
+                        <div className="flex-1 h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
                       </div>
-                      <div className="ml-5 p-3 rounded bg-bolt-elements-bg-depth-1 border border-bolt-elements-borderColor">
-                        <div className="text-sm text-bolt-elements-textPrimary leading-relaxed whitespace-pre-wrap">
+                      <div className="ml-5 p-3 rounded bg-white/80 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/70">
+                        <div className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed whitespace-pre-wrap">
                           {section.content.join('\n').trim()}
                         </div>
                       </div>
@@ -239,17 +227,17 @@ const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string;
                   ))}
                 </div>
               ) : (
-                <div className="p-3 rounded bg-bolt-elements-bg-depth-1 border border-bolt-elements-borderColor">
-                  <div className="text-sm text-bolt-elements-textPrimary leading-relaxed whitespace-pre-wrap">
+                <div className="p-3 rounded bg-white/80 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/70">
+                  <div className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed whitespace-pre-wrap">
                     {reasoning}
                   </div>
                 </div>
               )}
               
-              {/* Footer avec avertissement si tronqué */}
+              {/* Truncation warning */}
               {reasoning.includes('[Raisonnement tronqué...]') && (
-                <div className="mt-3 pt-2 border-t border-bolt-elements-borderColor">
-                  <div className="flex items-center gap-1.5 text-xs text-bolt-elements-textSecondary">
+                <div className="mt-3 pt-2 border-t border-slate-200/70 dark:border-slate-700/70">
+                  <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
                     <div className="i-ph:warning text-sm" />
                     <span>Contenu partiellement affiché</span>
                   </div>
