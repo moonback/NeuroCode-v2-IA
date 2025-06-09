@@ -73,12 +73,14 @@ interface ChatBoxProps {
   runAnimation?: () => void;
   replyToMessage?: {id: string, content: string} | null;
   setReplyToMessage?: (reply: {id: string, content: string} | null) => void;
+  onGenerateProjectPlan?: () => void;
 }
 
 export const ChatBox: React.FC<ChatBoxProps> = (props) => {
   const aiTargetFiles = useStore(workbenchStore.aiTargetFiles);
   const aiContext = useStore(workbenchStore.aiContext);
   const files = useStore(workbenchStore.files);
+  const [isProjectPlanEnabled, setIsProjectPlanEnabled] = React.useState(false);
 
   const handleEnhancedPrompt = (enhancedPrompt: string) => {
     if (props.textareaRef?.current) {
@@ -578,6 +580,67 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
                   provider={props.provider}
                   model={props.model}
                 />
+              )}
+              
+              {/* Bouton de génération de plan de projet */}
+              {!props.chatStarted && props.chatMode === 'build' && (
+                <IconButton
+                  title={isProjectPlanEnabled ? "Désactiver la génération automatique du plan de projet" : "Activer la génération automatique du plan de projet"}
+                  className={classNames(
+                    'group relative transition-all duration-300 transform-gpu',
+                    'hover:scale-110 hover:shadow-lg',
+                    'backdrop-blur-sm rounded-lg',
+                    'active:scale-95',
+                    isProjectPlanEnabled ? [
+                      'bg-gradient-to-br from-green-500/20 to-emerald-500/20',
+                      'border border-green-500/40 hover:border-green-400/60',
+                      'hover:from-green-500/30 hover:to-emerald-500/30',
+                      'hover:shadow-green-500/20'
+                    ] : [
+                      'bg-gradient-to-br from-blue-500/10 to-cyan-500/10',
+                      'border border-blue-500/20 hover:border-blue-400/40',
+                      'hover:from-blue-500/20 hover:to-cyan-500/20',
+                      'hover:shadow-blue-500/20'
+                    ]
+                  )}
+                  onClick={() => {
+                    const newState = !isProjectPlanEnabled;
+                    setIsProjectPlanEnabled(newState);
+                    
+                    if (newState) {
+                      props.onGenerateProjectPlan?.();
+                      toast.success('✅ Plan de projet activé ! Il sera généré automatiquement avec votre prochaine demande.', {
+                        position: "bottom-right",
+                        autoClose: 3000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true
+                      });
+                    } else {
+                      toast.info('❌ Plan de projet désactivé.', {
+                        position: "bottom-right",
+                        autoClose: 2000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true
+                      });
+                    }
+                  }}
+                >
+                  <div className={classNames(
+                    'text-xl transition-all duration-300 group-hover:scale-125 drop-shadow-sm',
+                    isProjectPlanEnabled 
+                      ? 'i-ph:check-circle-duotone text-green-400 group-hover:text-green-300'
+                      : 'i-ph:file-text-duotone text-blue-400 group-hover:text-blue-300'
+                  )}></div>
+                  
+                  
+                  
+                  {/* Effet de brillance */}
+                  <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform -skew-x-12 group-hover:animate-pulse"></div>
+                </IconButton>
               )}
 
             </div>

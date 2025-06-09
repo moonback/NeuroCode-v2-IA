@@ -148,6 +148,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
     const [progressAnnotations, setProgressAnnotations] = useState<ProgressAnnotation[]>([]);
     const expoUrl = useStore(expoUrlAtom);
     const [qrModalOpen, setQrModalOpen] = useState(false);
+    const [shouldGenerateProjectPlan, setShouldGenerateProjectPlan] = useState(false);
 
     // Extract context data from the latest assistant message
     const latestAssistantMessage = messages?.filter(m => m.role === 'assistant').pop();
@@ -274,6 +275,10 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
       setIsModelLoading(undefined);
     };
 
+    const handleGenerateProjectPlan = () => {
+      setShouldGenerateProjectPlan(true);
+    };
+
     const startListening = () => {
       if (recognition) {
         recognition.start();
@@ -290,8 +295,17 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
 
     const handleSendMessage = (event: React.UIEvent, messageInput?: string) => {
       if (sendMessage) {
-        sendMessage(event, messageInput);
+        // Include project plan generation flag in the message
+        const messageWithPlanFlag = {
+          ...event,
+          generateProjectPlan: shouldGenerateProjectPlan
+        };
+
+        sendMessage(messageWithPlanFlag, messageInput);
         setSelectedElement?.(null);
+        
+        // Reset project plan flag after sending
+        setShouldGenerateProjectPlan(false);
 
         if (recognition) {
           recognition.abort(); // Stop current recognition
@@ -529,6 +543,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                         runAnimation={runAnimation}
                         replyToMessage={replyToMessage}
                         setReplyToMessage={setReplyToMessage}
+                        onGenerateProjectPlan={handleGenerateProjectPlan}
                       />
               </div>
             </StickToBottom>

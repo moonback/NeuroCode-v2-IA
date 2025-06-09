@@ -126,6 +126,7 @@ export const ChatImpl = memo(
     const [imageDataList, setImageDataList] = useState<string[]>([]);
     const [searchParams, setSearchParams] = useSearchParams();
     const [fakeLoading, setFakeLoading] = useState(false);
+    const [shouldGenerateProjectPlan, setShouldGenerateProjectPlan] = useState(false);
     const files = useStore(workbenchStore.files);
     const [designScheme, setDesignScheme] = useState<DesignScheme>(defaultDesignScheme);
     const actionAlert = useStore(workbenchStore.alert);
@@ -171,23 +172,24 @@ export const ChatImpl = memo(
       data: chatData,
       setData,
     } = useChat({
-      api: '/api/chat',
-      body: {
-        apiKeys,
-        files,
-        promptId,
-        contextOptimization: contextOptimizationEnabled,
-        chatMode,
-        designScheme,
-        supabase: {
-          isConnected: supabaseConn.isConnected,
-          hasSelectedProject: !!selectedProject,
-          credentials: {
-            supabaseUrl: supabaseConn?.credentials?.supabaseUrl,
-            anonKey: supabaseConn?.credentials?.anonKey,
+        api: '/api/chat',
+        body: {
+          apiKeys,
+          files,
+          promptId,
+          contextOptimization: contextOptimizationEnabled,
+          chatMode,
+          designScheme,
+          generateProjectPlan: shouldGenerateProjectPlan,
+          supabase: {
+            isConnected: supabaseConn.isConnected,
+            hasSelectedProject: !!selectedProject,
+            credentials: {
+              supabaseUrl: supabaseConn?.credentials?.supabaseUrl,
+              anonKey: supabaseConn?.credentials?.anonKey,
+            },
           },
         },
-      },
       sendExtraMessageFields: true,
       onError: (e) => {
         logger.error('Request failed\n\n', e, error);
@@ -332,7 +334,12 @@ export const ChatImpl = memo(
       }
     };
 
-    const sendMessage = async (_event: React.UIEvent, messageInput?: string) => {
+    const sendMessage = async (_event: React.UIEvent & { generateProjectPlan?: boolean }, messageInput?: string) => {
+      // Set the project plan flag if provided in the event
+      if ((_event as any)?.generateProjectPlan) {
+        setShouldGenerateProjectPlan(true);
+      }
+      
       const messageContent = messageInput || input;
 
       if (!messageContent?.trim() && uploadedFiles.length === 0) {
@@ -559,6 +566,9 @@ export const ChatImpl = memo(
 
       setUploadedFiles([]);
       setImageDataList([]);
+      
+      // Reset project plan flag after sending
+      setShouldGenerateProjectPlan(false);
 
       resetEnhancer();
 

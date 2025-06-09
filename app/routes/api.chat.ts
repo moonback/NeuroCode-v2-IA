@@ -40,13 +40,14 @@ function parseCookies(cookieHeader: string): Record<string, string> {
 }
 
 async function chatAction({ context, request }: ActionFunctionArgs) {
-  const { messages, files, promptId, contextOptimization, supabase, chatMode, designScheme } = await request.json<{
+  const { messages, files, promptId, contextOptimization, supabase, chatMode, designScheme, generateProjectPlan } = await request.json<{
     messages: Messages;
     files: any;
     promptId?: string;
     contextOptimization: boolean;
     chatMode: 'discuss' | 'build';
     designScheme?: DesignScheme;
+    generateProjectPlan?: boolean;
     supabase?: {
       isConnected: boolean;
       hasSelectedProject: boolean;
@@ -107,11 +108,12 @@ const hasComplexityIndicators = /\b(app|application|website|system|platform|dash
 const isEarlyConversation = messages.length < 5;
 const hasNoPreviousPlan = !assistantMessages.some(msg => msg.content.includes('PROJECT_PLAN.md') || msg.content.includes('## Project Goals'));
 
-// Determine if planning is required
-const requiresPlanning = isBuildMode && isEarlyConversation && hasProjectKeywords && hasComplexityIndicators && hasNoPreviousPlan;
+// Determine if planning is required - now controlled by user choice
+const shouldGeneratePlan = generateProjectPlan === true;
+const requiresPlanning = shouldGeneratePlan && isBuildMode && isEarlyConversation && hasProjectKeywords && hasComplexityIndicators && hasNoPreviousPlan;
 
 // Enhanced planning for discussion mode when appropriate
-const requiresDiscussionPlanning = isDiscussMode && hasProjectKeywords && hasComplexityIndicators && isEarlyConversation && hasNoPreviousPlan;
+const requiresDiscussionPlanning = shouldGeneratePlan && isDiscussMode && hasProjectKeywords && hasComplexityIndicators && isEarlyConversation && hasNoPreviousPlan;
 
 if (requiresPlanning || requiresDiscussionPlanning) {
     // Add progress message for project planning start
