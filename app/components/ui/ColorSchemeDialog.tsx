@@ -97,6 +97,57 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
     setFont(defaultDesignScheme.font);
   };
 
+  // Fonction pour générer une couleur aléatoire en HSL
+  const generateRandomColor = () => {
+    const hue = Math.floor(Math.random() * 360);
+    const saturation = Math.floor(Math.random() * 50) + 50; // 50-100%
+    const lightness = Math.floor(Math.random() * 40) + 30; // 30-70%
+    return { h: hue, s: saturation, l: lightness };
+  };
+
+  // Fonction pour convertir HSL en HEX
+  const hslToHex = (h: number, s: number, l: number) => {
+    l /= 100;
+    const a = s * Math.min(l, 1 - l) / 100;
+    const f = (n: number) => {
+      const k = (n + h / 30) % 12;
+      const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+      return Math.round(255 * color).toString(16).padStart(2, '0');
+    };
+    return `#${f(0)}${f(8)}${f(4)}`;
+  };
+
+  // Fonction pour générer des couleurs aléatoires harmonieuses
+  const handleGenerateRandomColors = () => {
+    const baseColor = generateRandomColor();
+    
+    // Générer des couleurs harmonieuses basées sur la couleur de base
+    const newPalette = { ...palette };
+    
+    // Couleurs principales avec variations de teinte
+    newPalette.primary = hslToHex(baseColor.h, baseColor.s, baseColor.l);
+    newPalette.secondary = hslToHex((baseColor.h + 120) % 360, baseColor.s - 10, baseColor.l + 10);
+    newPalette.accent = hslToHex((baseColor.h + 240) % 360, baseColor.s + 10, baseColor.l - 10);
+    
+    // Couleurs de statut avec des teintes appropriées
+    newPalette.success = hslToHex(120, 60, 45); // Vert
+    newPalette.warning = hslToHex(45, 80, 55); // Orange
+    newPalette.error = hslToHex(0, 70, 50); // Rouge
+    newPalette.info = hslToHex(210, 70, 55); // Bleu
+    
+    // Couleurs de fond et de texte avec des variations subtiles
+    newPalette.background = hslToHex(baseColor.h, 10, 95);
+    newPalette.surface = hslToHex(baseColor.h, 15, 90);
+    newPalette.text = hslToHex(baseColor.h, 20, 15);
+    newPalette.textSecondary = hslToHex(baseColor.h, 15, 40);
+    
+    // Couleurs de bordure
+    newPalette.border = hslToHex(baseColor.h, 20, 80);
+    newPalette.borderSecondary = hslToHex(baseColor.h, 15, 85);
+    
+    setPalette(newPalette);
+  };
+
   const handlePresetSelect = (preset: typeof colorPresets[0]) => {
     setPalette(preset.scheme.palette);
     setFeatures(preset.scheme.features);
@@ -210,6 +261,7 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
       });
   }, []);
 
+ 
 
   // Filtrage des rôles de couleur basé sur la recherche
   const filteredPaletteRoles = useMemo(() => {
@@ -540,6 +592,16 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
         <span className={`i-ph:${showAdvanced ? 'eye-slash' : 'eye'} text-base group-hover:scale-110 transition-transform duration-200`} />
         <span className="font-medium">{showAdvanced ? 'Mode Simple' : 'Mode Avancé'}</span>
+      </button>
+      
+      <button
+        onClick={handleGenerateRandomColors}
+        className="group relative overflow-hidden flex-1 sm:flex-initial text-sm bg-bolt-elements-button-primary-background hover:from-bolt-elements-bg-depth-1  text-purple-400 hover:text-purple-300 rounded-xl flex items-center justify-center gap-2 px-4 py-2.5 transition-all duration-300 border border-purple-500/30 hover:border-purple-400/50 shadow-sm hover:shadow-md hover:shadow-purple-500/20 transform hover:scale-105"
+        title="Générer des couleurs aléatoires"
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-400/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+        <span className="i-ph:shuffle text-base group-hover:rotate-180 transition-transform duration-300" />
+        <span className="font-medium">Aléatoire</span>
       </button>
       
       <button
