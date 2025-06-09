@@ -510,6 +510,52 @@ function FileContextMenu({
     }
   };
 
+  // Handler for downloading a file
+  const handleDownloadFile = async () => {
+    try {
+      if (isFolder) {
+        return;
+      }
+
+      const files = workbenchStore.files.get();
+      const fileEntry = files[fullPath];
+
+      if (!fileEntry || fileEntry.type === 'folder') {
+        toast.error('Cannot download folder or invalid file');
+        return;
+      }
+
+      // Get file content
+      const content = fileEntry.content;
+      let blob: Blob;
+
+      if (ArrayBuffer.isView(content)) {
+        // Binary file
+        blob = new Blob([content]);
+      } else {
+        // Text file
+        blob = new Blob([content || ''], { type: 'text/plain' });
+      }
+
+      // Create download link
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success(`File "${fileName}" downloaded successfully`, {
+        icon: <div className="i-ph:download text-green-500" />,
+      });
+    } catch (error) {
+      toast.error(`Error downloading file`);
+      logger.error(error);
+    }
+  };
+
   return (
     <>
       <ContextMenu.Root>
@@ -532,6 +578,14 @@ function FileContextMenu({
             className="border border-bolt-elements-borderColor rounded-lg shadow-lg z-context-menu bg-bolt-elements-background-depth-1 dark:bg-bolt-elements-background-depth-2 data-[state=open]:animate-in animate-duration-200 data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 w-64"
           >
             <ContextMenu.Group className="p-2 border-b border-solid border-bolt-elements-borderColor">
+            {!isFolder && (
+                <ContextMenuItem onSelect={handleDownloadFile}>
+                  <div className="flex items-center gap-3 hover:translate-x-1 transition-transform">
+                    <div className="i-ph:download text-green-500" />
+                    <span>Télécharger le fichier</span>
+                  </div>
+                </ContextMenuItem>
+              )}
               <ContextMenuItem onSelect={() => setIsCreatingFile(true)}>
                 <div className="flex items-center gap-3 hover:translate-x-1 transition-transform">
                   <div className="i-ph:file-plus text-blue-500" />
@@ -558,6 +612,7 @@ function FileContextMenu({
                   <span>Copier le chemin relatif</span>
                 </div>
               </ContextMenuItem>
+              
             </ContextMenu.Group>
             {!isFolder && (
               <ContextMenu.Group className="p-2 border-t border-solid border-bolt-elements-borderColor">
