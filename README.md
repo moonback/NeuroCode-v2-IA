@@ -7,7 +7,7 @@
   
   <p><em>Une plateforme de développement révolutionnaire alimentée par l'IA avec un environnement d'exécution intégré dans le navigateur</em></p>
   
-  ![Version](https://img.shields.io/badge/version-2.0-blue.svg)
+  ![Version](https://img.shields.io/badge/version-2.1-blue.svg)
   ![License](https://img.shields.io/badge/license-MIT-green.svg)
   ![Node](https://img.shields.io/badge/node-%3E%3D18.18.0-brightgreen.svg)
   ![AI Powered](https://img.shields.io/badge/AI-Powered-purple.svg)
@@ -23,6 +23,55 @@
 
 ---
 
+## 🆕 Dernières Améliorations v2.1
+
+### **🚀 Nouvelles Fonctionnalités Majeures**
+
+<table>
+<tr>
+<td width="50%">
+
+**💬 Chat Révolutionnaire**
+- 🔄 **Réponses aux Messages** : Système de réponse contextuelle
+- 📊 **Gestion d'Erreurs Avancée** : Indicateurs de progression DataStream
+- 🎯 **Invites Personnalisées** : Onglet de gestion des templates
+- ✨ **Amélioration d'Invites** : Composant professionnel intégré
+
+</td>
+<td width="50%">
+
+**🎨 Interface Modernisée**
+- 🎨 **Schémas de Conception** : Support complet avec inspecteur d'éléments
+- 🔧 **Barre Latérale Intelligente** : Bascule de visibilité des modèles
+- 📱 **Composants Modulaires** : Modal analyseur d'image séparé
+- 🌈 **Thèmes Avancés** : Préréglages et utilitaires de couleur
+
+</td>
+</tr>
+</table>
+
+### **⚡ Améliorations Techniques**
+
+<div align="center">
+
+| Fonctionnalité | Description | Impact |
+|----------------|-------------|--------|
+| **🎯 Fichiers Cibles IA** | Ciblage intelligent pour l'IA | 🔥 Performance |
+| **📤 Multi-Upload** | Téléchargement multiple avec aperçus | 🚀 Productivité |
+| **🧠 Raisonnement Google** | Annotations pour modèles de réflexion | 🎯 Précision |
+| **💾 Enregistrement Optimisé** | Mises à jour basées sur correctifs | ⚡ Rapidité |
+| **📋 Vue Contextuelle** | Résumé chat et contexte code | 🔍 Clarté |
+
+</div>
+
+### **🔧 Refactorisations Importantes**
+- **📝 Gestion des Messages** : Architecture repensée pour le composant Chat
+- **🎨 Schémas de Conception** : Migration vers module partagé
+- **📁 Système de Fichiers** : Amélioration de l'enregistrement avec correctifs
+- **🖼️ Analyseur d'Image** : Extraction en composant indépendant
+
+---
+
 ## ✨ Fonctionnalités Principales
 
 ### 🤖 **Assistant IA Intelligent**
@@ -30,10 +79,12 @@
 <tr>
 <td width="50%">
 
-**🗨️ Chat Interactif**
-- Interface conversationnelle intuitive
-- Assistance en temps réel
-- Compréhension contextuelle avancée
+**🗨️ Chat Interactif Avancé**
+- Interface conversationnelle intuitive avec réponses aux messages
+- Assistance en temps réel avec gestion d'erreurs améliorée
+- Compréhension contextuelle avancée avec vue contextuelle
+- Amélioration d'invites professionnelle intégrée
+- Support de téléchargement multi-fichiers avec aperçus
 
 **🔄 Support Multi-Modèles**
 - OpenAI GPT (3.5, 4, 4o)
@@ -46,10 +97,12 @@
 <td width="50%">
 
 **⚡ Génération Intelligente**
-- Code contextuel et personnalisé
-- Analyse automatique des erreurs
+- Code contextuel et personnalisé avec fichiers cibles IA
+- Analyse automatique des erreurs avec DataStream
 - Conseils de débogage avancés
 - Optimisation des performances
+- Annotation de raisonnement pour modèles Google
+- Gestion des invites personnalisées
 
 **🎯 Spécialisations**
 - Architecture logicielle
@@ -310,29 +363,41 @@ pnpm electron:build:dist
 
 </div>
 
-### **🎨 Personnalisation**
+### **🎨 Personnalisation Avancée**
 - **Styles** : `app/styles/` - Styles globaux
-- **Thèmes** : `uno.config.ts` - Configuration UnoCSS
-- **Composants** : Système de design modulaire
+- **Thèmes** : `uno.config.ts` - Configuration UnoCSS avec schémas de conception
+- **Composants** : Système de design modulaire avec inspecteur d'éléments
 - **Raccourcis** : Configuration personnalisable
+- **Schémas de Conception** : Préréglages de thème et utilitaires de couleur
+- **Barre Latérale** : Bascule de visibilité des modèles personnalisable
 
 ---
 
 ## 📚 Guide d'Utilisation
 
 ### **1️⃣ Interaction avec l'IA**
-> 💬 **Chat Intelligent** : Posez vos questions directement
+> 💬 **Chat Intelligent** : Posez vos questions directement avec réponses contextuelles
 > 
 > 🔧 **Commandes Spéciales** : Utilisez `/fix` pour corriger les erreurs
 > 
-> 📋 **Contexte Persistant** : L'IA se souvient de votre projet
+> 📋 **Contexte Persistant** : L'IA se souvient de votre projet avec résumé contextuel
+> 
+> 🎯 **Invites Personnalisées** : Gérez vos propres templates d'invites
+> 
+> 🔍 **Amélioration d'Invites** : Composant professionnel pour optimiser vos requêtes
 
-### **2️⃣ Gestion des Fichiers**
+### **2️⃣ Gestion des Fichiers Avancée**
 > 📁 **CRUD Complet** : Créer, modifier, supprimer via l'interface
 > 
-> 🤖 **Génération IA** : L'IA génère et modifie vos fichiers
+> 🤖 **Génération IA** : L'IA génère et modifie vos fichiers avec ciblage intelligent
 > 
 > 👁️ **Aperçu Temps Réel** : Visualisation instantanée des changements
+> 
+> 📤 **Téléchargement Multi-Fichiers** : Support complet avec aperçus et gestion serveur
+> 
+> 🎯 **Fichiers Cibles IA** : Fonctionnalité de ciblage intelligent pour l'IA
+> 
+> 💾 **Enregistrement Optimisé** : Mises à jour basées sur des correctifs intelligents
 
 ### **3️⃣ Terminal Intégré**
 > ⌨️ **Commandes Standard** : Support complet npm, node, python
