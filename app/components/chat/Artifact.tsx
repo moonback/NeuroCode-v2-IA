@@ -179,7 +179,7 @@ export const Artifact = memo(({ messageId }: ArtifactProps) => {
                   ? artifact.id === 'restored-project-setup'
                     ? 'Restore files from snapshot'
                     : 'Fichiers initiaux créés'
-                  : 'Creating initial files'}
+                  : 'Création des fichiers initiaux'}
               </div>
               {!allActionFinished && (
                 <div className="text-bolt-elements-textSecondary text-xs opacity-80">
