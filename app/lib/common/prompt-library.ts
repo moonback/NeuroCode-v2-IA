@@ -2,12 +2,14 @@ import { getSystemPrompt } from './prompts/prompts';
 import optimized from './prompts/optimized';
 import { getFineTunedPrompt } from './prompts/new-prompt';
 import type { DesignScheme } from '~/types/design-scheme';
+import type { ProjectStructure } from '~/types/project-structure';
 
 export interface PromptOptions {
   cwd: string;
   allowedHtmlElements: string[];
   modificationTagName: string;
   designScheme?: DesignScheme;
+  projectStructure?: ProjectStructure;
   supabase?: {
     isConnected: boolean;
     hasSelectedProject: boolean;
@@ -30,12 +32,12 @@ export class PromptLibrary {
     default: {
       label: 'Prompt Officiel',
       description: 'Un prompt optimisé pour de meilleurs résultats et une utilisation réduite des tokens',
-      get: (options) => getFineTunedPrompt(options.cwd, options.supabase, options.designScheme),
+      get: (options) => getFineTunedPrompt(options.cwd, options.supabase, options.designScheme, options.projectStructure),
     },
     original: {
       label: 'Prompt par Défaut', 
       description: 'Le prompt système original éprouvé',
-      get: (options) => getSystemPrompt(options.cwd, options.supabase, options.designScheme),
+      get: (options) => getSystemPrompt(options.cwd, options.supabase, options.designScheme, options.projectStructure),
     },
     optimized: {
       label: 'Prompt Optimisé (expérimental)',
@@ -57,7 +59,7 @@ export class PromptLibrary {
     const prompt = this.library[promptId];
 
     if (!prompt) {
-      throw 'Prompt Now Found';
+      throw 'Prompt Not Found';
     }
 
     return this.library[promptId]?.get(options);

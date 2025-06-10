@@ -1,4 +1,5 @@
 import type { DesignScheme } from '~/types/design-scheme';
+import type { ProjectStructure } from '~/types/project-structure';
 import { WORK_DIR } from '~/utils/constants';
 import { allowedHTMLElements } from '~/utils/markdown';
 import { stripIndents } from '~/utils/stripIndent';
@@ -11,6 +12,7 @@ export const getSystemPrompt = (
     credentials?: { anonKey?: string; supabaseUrl?: string };
   },
   designScheme?: DesignScheme,
+  projectStructure?: ProjectStructure,
 ) => `
 You are NeuroCode V1, an expert AI assistant and exceptional senior software developer with vast knowledge across multiple programming languages, frameworks, and best practices.
 
@@ -270,6 +272,34 @@ You are NeuroCode V1, an expert AI assistant and exceptional senior software dev
 
   IMPORTANT: NEVER skip RLS setup for any table. Security is non-negotiable!
 </database_instructions>
+
+<project_structure_instructions>
+  ${projectStructure ? `
+  The following project structure has been defined for this project:
+
+  **Framework**: ${projectStructure.framework}
+  **Features**: ${projectStructure.features?.join(', ') || 'None specified'}
+  **Architecture**: ${projectStructure.architecture?.join(', ') || 'None specified'}
+  **Dependencies**: ${projectStructure.dependencies?.join(', ') || 'None specified'}
+  
+  **Folder Structure**:
+  ${projectStructure.folders?.map(folder => {
+    const formatFolder = (f: any, indent = '  ') => {
+      let result = `${indent}- ${f.name} (${f.path})${f.description ? ` - ${f.description}` : ''}`;
+      if (f.files && f.files.length > 0) {
+        result += '\n' + f.files.map((file: any) => `${indent}  📄 ${file.name}.${file.extension}${file.description ? ` - ${file.description}` : ''}`).join('\n');
+      }
+      if (f.subfolders && f.subfolders.length > 0) {
+        result += '\n' + f.subfolders.map((subfolder: any) => formatFolder(subfolder, indent + '  ')).join('\n');
+      }
+      return result;
+    };
+    return formatFolder(folder);
+  }).join('\n  ') || 'No custom folders defined'}
+
+  IMPORTANT: When creating files and folders, follow this predefined structure. Respect the folder organization and naming conventions specified above. If you need to deviate from this structure, explain why and suggest alternatives that align with the project's architecture.
+  ` : ''}
+</project_structure_instructions>
 
 <code_formatting_info>
   Use 2 spaces for code indentation

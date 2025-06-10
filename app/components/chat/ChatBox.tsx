@@ -14,7 +14,9 @@ import { SpeechRecognitionButton } from '~/components/chat/SpeechRecognition';
 import { ImportButtons } from '~/components/chat/chatExportAndImport/ImportButtons';
 import GitCloneButton from './GitCloneButton';
 import { ColorSchemeDialog } from '~/components/ui/ColorSchemeDialog';
+import { ProjectStructureDialog } from '~/components/ui/ProjectStructureDialog';
 import type { DesignScheme } from '~/types/design-scheme';
+import type { ProjectStructure } from '~/types/project-structure';
 import type { ElementInfo } from '~/components/workbench/Inspector';
 
 import { ExpoQrModal } from '~/components/workbench/ExpoQrModal';
@@ -68,6 +70,8 @@ interface ChatBoxProps {
   append?: (message: Message) => void;
   designScheme?: DesignScheme;
   setDesignScheme?: (scheme: DesignScheme) => void;
+  projectStructure?: ProjectStructure;
+  setProjectStructure?: (structure: ProjectStructure) => void;
   selectedElement?: ElementInfo | null;
   setSelectedElement?: ((element: ElementInfo | null) => void) | undefined;
   runAnimation?: () => void;
@@ -521,6 +525,12 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
 {!props.chatStarted && (
             <ColorSchemeDialog designScheme={props.designScheme} setDesignScheme={props.setDesignScheme} />
           )}
+              {!props.chatStarted && (
+                <ProjectStructureDialog 
+                  projectStructure={props.projectStructure} 
+                  setProjectStructure={props.setProjectStructure} 
+                />
+              )}
               <IconButton 
                 title="Télécharger un fichier" 
                 className="transition-all hover:bg-bolt-elements-item-backgroundAccent/50" 
