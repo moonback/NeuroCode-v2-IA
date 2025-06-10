@@ -40,7 +40,13 @@ export default function VercelConnection() {
       });
 
       if (!response.ok) {
-        throw new Error('Invalid token or unauthorized');
+        if (response.status === 403) {
+          throw new Error('Access denied: Your Vercel token does not have sufficient permissions.');
+        }
+        if (response.status === 401) {
+          throw new Error('Unauthorized: Your Vercel token is invalid or has expired.');
+        }
+        throw new Error(`Authentication failed: ${response.status} - ${response.statusText}`);
       }
 
       const userData = (await response.json()) as any;
@@ -54,7 +60,8 @@ export default function VercelConnection() {
     } catch (error) {
       console.error('Auth error:', error);
       logStore.logError('Failed to authenticate with Vercel', { error });
-      toast.error('Failed to connect to Vercel');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to connect to Vercel';
+      toast.error(errorMessage);
       updateVercelConnection({ user: null, token: '' });
     } finally {
       isConnecting.set(false);
@@ -108,16 +115,30 @@ export default function VercelConnection() {
                   'disabled:opacity-50',
                 )}
               />
-              <div className="mt-2 text-sm text-bolt-elements-textSecondary">
-                <a
-                  href="https://vercel.com/account/tokens"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-bolt-elements-borderColorActive hover:underline inline-flex items-center gap-1"
-                >
-                  Get your token
-                  <div className="i-ph:arrow-square-out w-4 h-4" />
-                </a>
+              <div className="mt-2 text-sm text-bolt-elements-textSecondary space-y-2">
+                <div>
+                  <a
+                    href="https://vercel.com/account/tokens"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-bolt-elements-borderColorActive hover:underline inline-flex items-center gap-1"
+                  >
+                    Get your token
+                    <div className="i-ph:arrow-square-out w-4 h-4" />
+                  </a>
+                </div>
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <div className="i-ph:info w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                    <div className="text-xs">
+                      <p className="font-medium text-blue-700 dark:text-blue-300 mb-1">Token Requirements:</p>
+                      <p className="text-blue-600 dark:text-blue-400">
+                        Your Vercel token must have <strong>read access</strong> to projects and deployments. 
+                        If you're getting a 403 error, please create a new token with the required permissions.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 

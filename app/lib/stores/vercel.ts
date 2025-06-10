@@ -40,7 +40,13 @@ export async function fetchVercelStats(token: string) {
     });
 
     if (!projectsResponse.ok) {
-      throw new Error(`Failed to fetch projects: ${projectsResponse.status}`);
+      if (projectsResponse.status === 403) {
+        throw new Error('Access denied: Your Vercel token does not have sufficient permissions to access projects. Please ensure your token has the required scopes.');
+      }
+      if (projectsResponse.status === 401) {
+        throw new Error('Unauthorized: Your Vercel token is invalid or has expired. Please check your token.');
+      }
+      throw new Error(`Failed to fetch projects: ${projectsResponse.status} - ${projectsResponse.statusText}`);
     }
 
     const projectsData = (await projectsResponse.json()) as any;
