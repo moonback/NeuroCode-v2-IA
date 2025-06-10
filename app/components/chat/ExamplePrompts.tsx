@@ -1,12 +1,12 @@
 import { type UIEvent } from 'react';
 
 const EXAMPLE_PROMPTS = [
-  { text: 'Create a modern landing page for a tech startup' },
-  { text: 'Design a landing page for a luxury real estate company' },
-  { text: 'Build a landing page for a fitness coaching service' },
-  { text: 'Make a landing page for a digital marketing agency' },
-  { text: 'Design a landing page for an online learning platform' },
-  { text: 'Create a landing page for a restaurant delivery service' },
+  { text: 'Landing SaaS B2B avec hero, pricing tiers, testimonials et CTA conversion' },
+  { text: 'Page produit e-commerce: galerie, specs, reviews, panier et checkout' },
+  { text: 'Portfolio agence créative: showcase projets, équipe, process et contact' },
+  { text: 'Landing fintech: sécurité, features, dashboard preview et onboarding' },
+  { text: 'Site cabinet médical: services, équipe, rendez-vous en ligne et localisation' },
+  { text: 'Plateforme formation: catalogue cours, instructeurs, pricing et certification' },
 ];
 
 export function ExamplePrompts(sendMessage?: { (event: UIEvent, messageInput?: string): void | undefined }) {
