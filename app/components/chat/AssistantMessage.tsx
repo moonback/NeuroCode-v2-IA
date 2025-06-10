@@ -1,4 +1,4 @@
-import { memo, useState } from 'react';
+import { memo, useState, useCallback, useMemo } from 'react';
 import { Markdown } from './Markdown';
 import type { JSONValue } from 'ai';
 import { WORK_DIR } from '~/utils/constants';
@@ -40,23 +40,61 @@ function normalizedFilePath(path: string) {
 
 
 // Composant pour afficher le raisonnement avec design cohérent
+// Constantes extraites pour améliorer la lisibilité et les performances
+const READING_SPEED_WPM = 200;
+const SECTION_PATTERNS = {
+  ANALYSIS: /^\*\*(Analyse?|Évaluation|Décision|Analysis|Evaluation|Decision)\*\*:?/i,
+  MARKDOWN_HEADER: /^#+\s*/,
+  ICON_EXTRACT: /^([🔍💭✅🎯📋⚡🔧🌟]+)\s*(.*)/
+};
+
+const CONFIDENCE_STYLES = {
+  high: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300',
+  medium: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300',
+  low: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+} as const;
+
+const CONFIDENCE_INDICATORS = {
+  high: 'bg-green-500',
+  medium: 'bg-slate-500',
+  low: 'bg-red-500'
+} as const;
+
+const CONFIDENCE_LABELS = {
+  high: 'Élevée',
+  medium: 'Moyenne',
+  low: 'Faible'
+} as const;
+
 const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string; reasoningMetadata: any }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showReasoningToggle, setShowReasoningToggle] = useState(false);
+  const [contentLoaded, setContentLoaded] = useState(false);
 
-  const handleToggle = () => {
-    setIsExpanded(!isExpanded);
-  };
+  const handleToggle = useCallback(() => {
+    setIsExpanded(prev => {
+      if (!prev && !contentLoaded) {
+        setContentLoaded(true);
+      }
+      return !prev;
+    });
+  }, [contentLoaded]);
 
-  // Analyser le contenu du raisonnement pour extraire les sections structurées
-  const parseReasoningContent = (content: string) => {
+  // Optimisation du parsing avec early return et mémoïsation
+  const parseReasoningContent = useCallback((content: string) => {
+    // Early return pour les cas simples
+    if (!content?.trim()) {
+      return [{ title: '', content: [''], icon: '🧠' }];
+    }
+
     const sections: { title: string; content: string[]; icon?: string }[] = [];
     const lines = content.split('\n');
     let currentSection: { title: string; content: string[]; icon?: string } = { title: '', content: [], icon: '🧠' };
     
     for (const line of lines) {
       const trimmedLine = line.trim();
-      if (trimmedLine.match(/^\*\*(Analyse?|Évaluation|Décision|Analysis|Evaluation|Decision)\*\*:?/i)) {
+      
+      if (trimmedLine.match(SECTION_PATTERNS.ANALYSIS)) {
         if (currentSection.title) {
           sections.push(currentSection);
         }
@@ -66,7 +104,7 @@ const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string;
         let cleanTitle = titleText;
         
         // Extraire l'icône si présente
-        const iconMatch = titleText.match(/^([🔍💭✅🎯📋⚡🔧🌟]+)\s*(.*)/);
+        const iconMatch = titleText.match(SECTION_PATTERNS.ICON_EXTRACT);
         if (iconMatch) {
           icon = iconMatch[1];
           cleanTitle = iconMatch[2] || titleText;
@@ -83,7 +121,7 @@ const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string;
           sections.push(currentSection);
         }
         
-        const titleText = trimmedLine.replace(/^#+\s*/, '');
+        const titleText = trimmedLine.replace(SECTION_PATTERNS.MARKDOWN_HEADER, '');
         currentSection = {
           title: titleText,
           content: [],
@@ -102,11 +140,12 @@ const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string;
     }
     
     return sections.length > 0 ? sections : [{ title: '', content: content.split('\n'), icon: '🧠' }];
-  };
+  }, []);
 
-  const reasoningSections = parseReasoningContent(reasoning);
-  const wordCount = reasoning.split(/\s+/).length;
-  const estimatedReadTime = Math.max(1, Math.ceil(wordCount / 200)); // ~200 mots par minute
+  // Mémoïsation des calculs coûteux
+  const reasoningSections = useMemo(() => parseReasoningContent(reasoning), [reasoning, parseReasoningContent]);
+  const wordCount = useMemo(() => reasoning.split(/\s+/).length, [reasoning]);
+  const estimatedReadTime = useMemo(() => Math.max(1, Math.ceil(wordCount / READING_SPEED_WPM)), [wordCount]);
 
   // Affichage direct du composant de raisonnement
 
@@ -140,18 +179,12 @@ const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string;
                 
                 {reasoningMetadata?.confidence && (
                   <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${
-                    reasoningMetadata.confidence === 'high' 
-                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' :
-                    reasoningMetadata.confidence === 'medium' 
-                      ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' :
-                      'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                    CONFIDENCE_STYLES[reasoningMetadata.confidence as keyof typeof CONFIDENCE_STYLES] || CONFIDENCE_STYLES.medium
                   }`}>
                     <div className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
-                      reasoningMetadata.confidence === 'high' ? 'bg-green-500' :
-                      reasoningMetadata.confidence === 'medium' ? 'bg-slate-500' : 'bg-red-500'
+                      CONFIDENCE_INDICATORS[reasoningMetadata.confidence as keyof typeof CONFIDENCE_INDICATORS] || CONFIDENCE_INDICATORS.medium
                     }`} />
-                    {reasoningMetadata.confidence === 'high' ? 'Élevée' :
-                     reasoningMetadata.confidence === 'medium' ? 'Moyenne' : 'Faible'}
+                    {CONFIDENCE_LABELS[reasoningMetadata.confidence as keyof typeof CONFIDENCE_LABELS] || CONFIDENCE_LABELS.medium}
                   </span>
                 )}
                 
@@ -182,10 +215,17 @@ const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string;
           </div>
         </div>
         
-        {/* Expandable content */}
+        {/* Expandable content avec lazy loading */}
         {isExpanded && (
           <div className="border-t border-slate-200/70 dark:border-slate-700/70 bg-white/50 dark:bg-slate-800/50">
             <div className="p-4">
+              {!contentLoaded ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+                  <span className="ml-2 text-sm text-slate-500 dark:text-slate-400">Chargement du contenu...</span>
+                </div>
+              ) : (
+                <>
               
               {/* Extraction metadata */}
               {reasoningMetadata?.extractionMethod && (
@@ -243,7 +283,8 @@ const ReasoningSection = ({ reasoning, reasoningMetadata }: { reasoning: string;
                   </div>
                 </div>
               )}
-              
+                </>
+              )}
             </div>
           </div>
         )}
