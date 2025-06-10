@@ -32,6 +32,32 @@ export const TerminalTabs = memo(() => {
     }
   };
 
+  const closeTerminal = (terminalIndex: number) => {
+    if (terminalIndex === 0 || terminalCount <= 1) {
+      return; // Ne pas fermer le terminal NeuroCode ou s'il n'y a qu'un seul terminal
+    }
+
+    // Nettoyer la référence du terminal
+    if (terminalRefs.current[terminalIndex]) {
+      terminalRefs.current[terminalIndex] = null;
+    }
+
+    // Réorganiser les terminaux
+    const newTerminalRefs = terminalRefs.current.filter((_, index) => index !== terminalIndex);
+    terminalRefs.current = newTerminalRefs;
+
+    setTerminalCount(terminalCount - 1);
+
+    // Ajuster l'onglet actif si nécessaire
+    if (activeTerminal === terminalIndex) {
+      // Si on ferme l'onglet actif, basculer vers l'onglet précédent ou le premier
+      setActiveTerminal(terminalIndex > 0 ? terminalIndex - 1 : 0);
+    } else if (activeTerminal > terminalIndex) {
+      // Si on ferme un onglet avant l'onglet actif, ajuster l'index
+      setActiveTerminal(activeTerminal - 1);
+    }
+  };
+
   useEffect(() => {
     const { current: terminal } = terminalPanelRef;
 
@@ -111,21 +137,35 @@ export const TerminalTabs = memo(() => {
                     </button>
                   ) : (
                     <React.Fragment>
-                      <button
-                        key={index}
-                        className={classNames(
-                          'flex items-center text-sm cursor-pointer gap-1.5 px-3 py-2 h-full whitespace-nowrap rounded-full',
-                          {
-                            'bg-bolt-elements-terminals-buttonBackground text-bolt-elements-textPrimary': isActive,
-                            'bg-bolt-elements-background-depth-2 text-bolt-elements-textSecondary hover:bg-bolt-elements-terminals-buttonBackground':
-                              !isActive,
-                          },
+                      <div className="flex items-center gap-1">
+                        <button
+                          key={index}
+                          className={classNames(
+                            'flex items-center text-sm cursor-pointer gap-1.5 px-3 py-2 h-full whitespace-nowrap rounded-full',
+                            {
+                              'bg-bolt-elements-terminals-buttonBackground text-bolt-elements-textPrimary': isActive,
+                              'bg-bolt-elements-background-depth-2 text-bolt-elements-textSecondary hover:bg-bolt-elements-terminals-buttonBackground':
+                                !isActive,
+                            },
+                          )}
+                          onClick={() => setActiveTerminal(index)}
+                        >
+                          <div className="i-ph:terminal-window-duotone text-lg" />
+                          Terminal {terminalCount > 1 && index}
+                        </button>
+                        {terminalCount > 1 && (
+                          <button
+                            className="flex items-center bg-red-500/50 justify-center w-5 h-5 rounded-full hover:bg-bolt-elements-background-depth-1 text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              closeTerminal(index);
+                            }}
+                            title={`Fermer Terminal ${index}`}
+                          >
+                            <div className="i-ph:x text-xs" />
+                          </button>
                         )}
-                        onClick={() => setActiveTerminal(index)}
-                      >
-                        <div className="i-ph:terminal-window-duotone text-lg" />
-                        Terminal {terminalCount > 1 && index}
-                      </button>
+                      </div>
                     </React.Fragment>
                   )}
                 </React.Fragment>
