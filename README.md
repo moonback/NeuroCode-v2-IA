@@ -866,6 +866,7 @@ pnpm electron:build:dist
 > 
 > 🚀 **CI/CD** : Pipeline de déploiement intelligent
 
+
 ---
 
 ## 🤝 Contribution
