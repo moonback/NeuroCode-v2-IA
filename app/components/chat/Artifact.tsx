@@ -9,6 +9,21 @@ import { classNames } from '~/utils/classNames';
 import { cubicEasingFn } from '~/utils/easings';
 import { WORK_DIR } from '~/utils/constants';
 
+// Fonction utilitaire pour normaliser les chemins de fichiers
+function normalizedFilePath(path: string): string {
+  let normalizedPath = path;
+
+  if (normalizedPath.startsWith(WORK_DIR)) {
+    normalizedPath = path.replace(WORK_DIR, '');
+  }
+
+  if (normalizedPath.startsWith('/')) {
+    normalizedPath = normalizedPath.slice(1);
+  }
+
+  return normalizedPath;
+}
+
 const highlighterOptions = {
   langs: ['shell'],
   themes: ['light-plus', 'dark-plus'],
@@ -262,7 +277,8 @@ export function openArtifactInWorkbench(filePath: any) {
     workbenchStore.currentView.set('code');
   }
 
-  workbenchStore.setSelectedFile(`${WORK_DIR}/${filePath}`);
+  const normalizedPath = normalizedFilePath(filePath);
+  workbenchStore.setSelectedFile(`${WORK_DIR}/${normalizedPath}`);
 }
 
 const ActionList = memo(({ actions }: ActionListProps) => {

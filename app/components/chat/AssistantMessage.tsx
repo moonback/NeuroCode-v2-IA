@@ -39,6 +39,8 @@ function normalizedFilePath(path: string) {
 
 
 
+
+
 // Composant pour afficher le raisonnement avec design cohérent
 // Constantes extraites pour améliorer la lisibilité et les performances
 const READING_SPEED_WPM = 200;
@@ -437,7 +439,15 @@ export const AssistantMessage = memo(
 
         {/* Contenu principal */}
         <div className="prose prose-sm dark:prose-invert max-w-none">
-          <Markdown append={append} chatMode={chatMode} setChatMode={setChatMode} model={model} provider={provider} html>
+          <Markdown 
+            append={append} 
+            chatMode={chatMode} 
+            setChatMode={setChatMode} 
+            model={model} 
+            provider={provider} 
+            html
+            normalizedFilePath={normalizedFilePath}
+          >
             {content}
           </Markdown>
         </div>
