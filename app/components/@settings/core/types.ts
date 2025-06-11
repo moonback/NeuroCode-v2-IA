@@ -16,8 +16,7 @@ export type TabType =
   | 'event-logs'
   | 'update'
   | 'task-manager'
-  | 'tab-management'
-  | 'custom-prompts';
+  | 'tab-management';
 
 export type WindowType = 'user' | 'developer';
 
