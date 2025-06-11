@@ -4,6 +4,21 @@ import type { BundledLanguage } from 'shiki';
 import { createScopedLogger } from '~/utils/logger';
 import { rehypePlugins, remarkPlugins, allowedHTMLElements } from '~/utils/markdown';
 import { Artifact, openArtifactInWorkbench } from './Artifact';
+
+// Fonction utilitaire pour normaliser les chemins de fichiers
+function normalizedFilePath(path: string): string {
+  let normalizedPath = path;
+
+  if (normalizedPath.startsWith('/home/project/')) {
+    normalizedPath = path.replace('/home/project/', '');
+  }
+
+  if (normalizedPath.startsWith('/')) {
+    normalizedPath = normalizedPath.slice(1);
+  }
+
+  return normalizedPath;
+}
 import { CodeBlock } from './CodeBlock';
 import type { Message } from 'ai';
 import styles from './Markdown.module.scss';
@@ -22,10 +37,11 @@ interface MarkdownProps {
   setChatMode?: (mode: 'discuss' | 'build') => void;
   model?: string;
   provider?: ProviderInfo;
+  normalizedFilePath?: (path: string) => string;
 }
 
 export const Markdown = memo(
-  ({ children, html = false, limitedMarkdown = false, append, setChatMode, model, provider }: MarkdownProps) => {
+  ({ children, html = false, limitedMarkdown = false, append, setChatMode, model, provider, normalizedFilePath: externalNormalizedFilePath }: MarkdownProps) => {
     logger.trace('Render');
 
     const sanitizedContent = useMemo(() => {
@@ -151,7 +167,9 @@ export const Markdown = memo(
                 data-href={href}
                 onClick={() => {
                   if (type === 'file') {
-                    openArtifactInWorkbench(path);
+                    const pathNormalizer = externalNormalizedFilePath || normalizedFilePath;
+                    const normalizedPath = pathNormalizer(path as string);
+                    openArtifactInWorkbench(normalizedPath);
                   } else if (type === 'message' && append) {
                     append({
                       id: `quick-action-message-${Date.now()}`,
