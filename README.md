@@ -866,15 +866,6 @@ pnpm electron:build:dist
 > 
 > 🚀 **CI/CD** : Pipeline de déploiement intelligent
 
-### Personnaliser le prompt système
-
-NeuroCode propose plusieurs invites système pour orienter l'IA :
-- `default` : prompt officiel optimisé.
-- `original` : prompt historique.
-- `optimized` : version expérimentale.
-
-Vous pouvez choisir le prompt dans l'onglet **Paramètres** de l'application.
-Pour créer de nouvelles invites, ajoutez-les dans `app/lib/common/prompt-library.ts`.
 
 ---
 
