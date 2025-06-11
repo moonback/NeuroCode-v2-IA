@@ -15,8 +15,9 @@ import {
   filteredContextItems,
   pinnedContextItems,
   contextItemsByType,
-  type ContextItem 
+  type ContextItem
 } from '~/lib/stores/context';
+import RoadmapPanel from './RoadmapPanel';
 import { classNames } from '~/utils/classNames';
 import { path } from '~/utils/path';
 
@@ -28,6 +29,8 @@ const ContextPanel = memo(() => {
   const $filteredItems = useStore(filteredContextItems);
   const $pinnedItems = useStore(pinnedContextItems);
   const $itemsByType = useStore(contextItemsByType);
+
+  const [activeTab, setActiveTab] = useState<'context' | 'roadmap'>('context');
   
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -35,8 +38,10 @@ const ContextPanel = memo(() => {
 
   // Mettre à jour le filtre de recherche quand le terme de recherche change
   useEffect(() => {
-    contextSearchFilter.set(searchTerm);
-  }, [searchTerm]);
+    if (activeTab === 'context') {
+      contextSearchFilter.set(searchTerm);
+    }
+  }, [searchTerm, activeTab]);
 
   // Filtrer et trier les éléments à afficher
   const displayedItems = useMemo(() => {
@@ -68,15 +73,40 @@ const ContextPanel = memo(() => {
           className="fixed bottom-4 right-4 w-96 max-h-[70vh] bg-bolt-elements-background-depth-1 dark:bg-bolt-elements-background-depth-2 rounded-lg shadow-lg border border-bolt-elements-borderColor overflow-hidden z-50"
         >
           <div className="flex items-center justify-between p-3 border-b border-bolt-elements-borderColor">
-            <h3 className="text-sm font-medium text-bolt-elements-textPrimary">Contexte LLM</h3>
-            <div className="flex items-center gap-2">
+            <div className="flex gap-2">
               <button
-                onClick={clearContextItems}
-                className="p-1 bg-red-900 text-white hover:text-bolt-elements-textPrimary hover:bg-red-500 rounded-md hover:bg-bolt-elements-background-depth-3 transition-colors"
-                title="Effacer les éléments non épinglés"
+                onClick={() => setActiveTab('context')}
+                className={classNames(
+                  'text-sm px-2 py-1 rounded',
+                  activeTab === 'context'
+                    ? 'bg-bolt-elements-background-depth-3 text-white'
+                    : 'bg-bolt-elements-background-depth-2 text-bolt-elements-textSecondary hover:bg-bolt-elements-background-depth-3'
+                )}
               >
-                <div className="i-ph:trash size-4" />
+                Contexte
               </button>
+              <button
+                onClick={() => setActiveTab('roadmap')}
+                className={classNames(
+                  'text-sm px-2 py-1 rounded',
+                  activeTab === 'roadmap'
+                    ? 'bg-bolt-elements-background-depth-3 text-white'
+                    : 'bg-bolt-elements-background-depth-2 text-bolt-elements-textSecondary hover:bg-bolt-elements-background-depth-3'
+                )}
+              >
+                Roadmap
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              {activeTab === 'context' && (
+                <button
+                  onClick={clearContextItems}
+                  className="p-1 bg-red-900 text-white hover:text-bolt-elements-textPrimary hover:bg-red-500 rounded-md hover:bg-bolt-elements-background-depth-3 transition-colors"
+                  title="Effacer les éléments non épinglés"
+                >
+                  <div className="i-ph:trash size-4" />
+                </button>
+              )}
               <button
                 onClick={closeContextPanel}
                 className="p-1 bg-bolt-elements-background-depth-4 text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary rounded-md hover:bg-bolt-elements-background-depth-3 transition-colors"
@@ -87,6 +117,8 @@ const ContextPanel = memo(() => {
             </div>
           </div>
           
+          {activeTab === 'context' && (
+            <>
           {/* Barre de recherche */}
           <div className="p-2 border-b border-bolt-elements-borderColor">
             <div className="relative">
@@ -100,7 +132,7 @@ const ContextPanel = memo(() => {
               />
             </div>
           </div>
-          
+
           {/* Onglets de filtrage */}
           <div className="p-2 border-b border-bolt-elements-borderColor">
             <div className="flex items-center gap-2">
@@ -217,9 +249,9 @@ const ContextPanel = memo(() => {
             ) : (
               <div className="divide-y divide-bolt-elements-borderColor">
                 {displayedItems.map((item) => (
-                  <ContextItemComponent 
-                    key={item.id} 
-                    item={item} 
+                  <ContextItemComponent
+                    key={item.id}
+                    item={item}
                     isHovered={hoveredItemId === item.id}
                     onHover={() => setHoveredItemId(item.id)}
                     onLeave={() => setHoveredItemId(null)}
@@ -228,7 +260,7 @@ const ContextPanel = memo(() => {
               </div>
             )}
           </div>
-          
+
           {/* Footer avec actions supplémentaires */}
           <div className="border-t border-bolt-elements-borderColor p-2">
             <div className="flex items-center justify-between">
@@ -249,6 +281,9 @@ const ContextPanel = memo(() => {
               )}
             </div>
           </div>
+          </>
+        )}
+        {activeTab === 'roadmap' && <RoadmapPanel />}
         </motion.div>
       )}
     </AnimatePresence>
