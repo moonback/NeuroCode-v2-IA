@@ -1,3 +1,8 @@
+/**
+ * Main system prompt used by NeuroCode.
+ * getFineTunedPrompt is the default prompt accessed via PromptLibrary.
+ * Adjust <response_requirements> or <system_constraints> sections to tweak behaviour.
+ */
 import type { DesignScheme } from '~/types/design-scheme';
 import { WORK_DIR } from '~/utils/constants';
 import { allowedHTMLElements } from '~/utils/markdown';
