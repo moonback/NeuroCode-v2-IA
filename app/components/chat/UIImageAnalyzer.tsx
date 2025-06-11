@@ -74,13 +74,7 @@ const ANALYSIS_OPTIONS: AnalysisOption[] = [
 - Flexible grids and adaptive components
 - Responsive images with srcset
 
-**Next Step:** Implementation with clear structure and detailed comments.
-
-**Dev/PM Checklist:**
-☐ Design tokens exported
-☐ Components tested
-☐ Accessibility validated
-☐ Performance optimized`
+**Next Step:** Implementation with clear structure and detailed comments.'`
   },
 
   {
