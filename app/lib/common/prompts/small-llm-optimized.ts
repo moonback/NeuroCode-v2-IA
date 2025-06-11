@@ -276,7 +276,7 @@ Ensure correct XML-like structure for tags.
     - \`file\`: For writing/updating files (include \`filePath\` attribute)
     - \`start\`: For starting dev servers (use only when necessary/ or new dependencies are installed)
 13. Order actions logically - dependencies MUST be installed first
-14. For Vite project must include vite config and index.html for entry point
+14. For Vite projects, include a `vite.config.ts` file and an `index.html` entry point
 
 CRITICAL: These rules are ABSOLUTE and MUST be followed WITHOUT EXCEPTION in EVERY response.
 
