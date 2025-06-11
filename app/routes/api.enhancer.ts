@@ -12,7 +12,7 @@ export async function action(args: ActionFunctionArgs) {
 const logger = createScopedLogger('api.enhancher');
 
 async function enhancerAction({ context, request }: ActionFunctionArgs) {
-  const { message, model, provider, description, type, context: userContext, complexity, outputType, language, tone, databaseType, features, architecture, deployment } = await request.json<{
+  const { message, model, provider, description, type, context: userContext, complexity, outputType, language, tone, databaseType, features, architecture, deployment, customPrompt } = await request.json<{
     message?: string;
     description?: string;
     context?: string;
@@ -28,6 +28,7 @@ async function enhancerAction({ context, request }: ActionFunctionArgs) {
     model: string;
     provider: ProviderInfo;
     apiKeys?: Record<string, string>;
+    customPrompt?: string;
   }>();
 
   const { name: providerName } = provider;
@@ -159,6 +160,7 @@ async function enhancerAction({ context, request }: ActionFunctionArgs) {
       env: context.cloudflare?.env as any,
       apiKeys,
       providerSettings,
+      customPrompt,
       options: {
         system: systemPrompt,
 

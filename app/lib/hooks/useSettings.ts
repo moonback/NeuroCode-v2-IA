@@ -16,6 +16,8 @@ import {
   updateContextOptimization,
   updateEventLogs,
   updatePromptId,
+  customPromptStore,
+  updateCustomPrompt,
 } from '~/lib/stores/settings';
 import { useCallback, useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
@@ -53,6 +55,8 @@ export interface UseSettingsReturn {
   eventLogs: boolean;
   promptId: string;
   setPromptId: (promptId: string) => void;
+  customPrompt: string;
+  setCustomPrompt: (prompt: string) => void;
   isLatestBranch: boolean;
   enableLatestBranch: (enabled: boolean) => void;
   autoSelectTemplate: boolean;
@@ -76,6 +80,7 @@ export function useSettings(): UseSettingsReturn {
   const debug = useStore(isDebugMode);
   const eventLogs = useStore(isEventLogsEnabled);
   const promptId = useStore(promptStore);
+  const customPrompt = useStore(customPromptStore);
   const isLatestBranch = useStore(latestBranchStore);
   const autoSelectTemplate = useStore(autoSelectStarterTemplate);
   const [activeProviders, setActiveProviders] = useState<ProviderInfo[]>([]);
@@ -128,6 +133,11 @@ export function useSettings(): UseSettingsReturn {
   const setPromptId = useCallback((id: string) => {
     updatePromptId(id);
     logStore.logSystem(`Prompt template updated to ${id}`);
+  }, []);
+
+  const setCustomPrompt = useCallback((prompt: string) => {
+    updateCustomPrompt(prompt);
+    logStore.logSystem('Custom prompt updated');
   }, []);
 
   const enableLatestBranch = useCallback((enabled: boolean) => {
@@ -193,6 +203,8 @@ export function useSettings(): UseSettingsReturn {
     setEventLogs,
     promptId,
     setPromptId,
+    customPrompt,
+    setCustomPrompt,
     isLatestBranch,
     enableLatestBranch,
     autoSelectTemplate,

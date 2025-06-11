@@ -33,6 +33,7 @@ export async function streamText(props: {
   files?: FileMap;
   providerSettings?: Record<string, IProviderSetting>;
   promptId?: string;
+  customPrompt?: string;
   contextOptimization?: boolean;
   contextFiles?: FileMap;
   summary?: string;
@@ -48,6 +49,7 @@ export async function streamText(props: {
     files,
     providerSettings,
     promptId,
+    customPrompt,
     contextOptimization,
     contextFiles,
     summary,
@@ -118,7 +120,7 @@ export async function streamText(props: {
   );
 
   let systemPrompt =
-    PromptLibrary.getPropmtFromLibrary(promptId || 'default', {
+    (customPrompt ? customPrompt : PromptLibrary.getPropmtFromLibrary(promptId || 'default', {
       cwd: WORK_DIR,
       allowedHtmlElements: allowedHTMLElements,
       modificationTagName: MODIFICATIONS_TAG_NAME,
@@ -128,7 +130,7 @@ export async function streamText(props: {
         hasSelectedProject: options?.supabaseConnection?.hasSelectedProject || false,
         credentials: options?.supabaseConnection?.credentials || undefined,
       },
-    }) ?? getSystemPrompt();
+    })) ?? getSystemPrompt();
 
   if (chatMode === 'build' && contextFiles && contextOptimization) {
     const codeContext = createFilesContext(contextFiles, true);

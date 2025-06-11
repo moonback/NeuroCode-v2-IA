@@ -40,10 +40,11 @@ function parseCookies(cookieHeader: string): Record<string, string> {
 }
 
 async function chatAction({ context, request }: ActionFunctionArgs) {
-  const { messages, files, promptId, contextOptimization, supabase, chatMode, designScheme, generateProjectPlan } = await request.json<{
+  const { messages, files, promptId, customPrompt, contextOptimization, supabase, chatMode, designScheme, generateProjectPlan } = await request.json<{
     messages: Messages;
     files: any;
     promptId?: string;
+    customPrompt?: string;
     contextOptimization: boolean;
     chatMode: 'discuss' | 'build';
     designScheme?: DesignScheme;
@@ -486,6 +487,7 @@ function assessComplexity(message: string): string {
               files,
               providerSettings,
               promptId,
+              customPrompt,
               contextOptimization,
               contextFiles: filteredFiles,
               chatMode,
@@ -582,6 +584,7 @@ function assessComplexity(message: string): string {
           files,
           providerSettings,
           promptId,
+          customPrompt,
           contextOptimization,
           contextFiles: filteredFiles,
           chatMode,
