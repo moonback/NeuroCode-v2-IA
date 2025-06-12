@@ -1,0 +1,12 @@
+/* Couleurs Figma */
+:root {
+  --figma-400: #0D99FF;
+  --figma-500: #0D99FF;
+  --figma-600: #0D99FF;
+}
+
+.dark {
+  --figma-400: #0D99FF;
+  --figma-500: #0D99FF;
+  --figma-600: #0D99FF;
+} 

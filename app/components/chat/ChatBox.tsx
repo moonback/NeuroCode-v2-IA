@@ -26,6 +26,8 @@ import type { ProviderInfo } from '~/types/model';
 import type { Message } from 'ai';
 import { workbenchStore } from '~/lib/stores/workbench';
 import { useStore } from '@nanostores/react';
+import { FigmaImportButton } from './FigmaImportButton';
+import { FigmaService } from '~/lib/services/figmaService';
 
 interface ChatBoxProps {
   isModelSettingsCollapsed: boolean;
@@ -94,6 +96,31 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
       
       // Focus sur le textarea
       props.textareaRef.current.focus();
+    }
+  };
+
+  const handleFigmaImport = async (fileId: string) => {
+    try {
+      // Convertir le fichier Figma en structure de données
+      const figmaNode = await FigmaService.convertFigmaFile(fileId);
+      
+      // Générer le code React
+      const reactCode = FigmaService.generateReactCode(figmaNode);
+      
+      // Créer un message avec le code généré
+      const message = `J'ai importé et converti la maquette Figma. Voici le code React généré :\n\n\`\`\`tsx\n${reactCode}\n\`\`\``;
+      
+      // Envoyer le message
+      props.handleSendMessage?.({} as React.UIEvent, message);
+      
+      // Nettoyer le textarea
+      if (props.textareaRef?.current) {
+        props.textareaRef.current.value = '';
+        props.textareaRef.current.style.height = `${props.TEXTAREA_MIN_HEIGHT}px`;
+      }
+    } catch (error) {
+      console.error('Erreur lors de l\'importation Figma:', error);
+      toast.error('Erreur lors de la conversion de la maquette Figma');
     }
   };
 
@@ -642,6 +669,12 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
                   <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform -skew-x-12 group-hover:animate-pulse"></div>
                 </IconButton>
               )}
+
+              {/* Ajouter le bouton d'import Figma */}
+              <FigmaImportButton
+                onImport={handleFigmaImport}
+                disabled={props.isStreaming}
+              />
 
             </div>
 
