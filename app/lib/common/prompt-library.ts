@@ -2,6 +2,7 @@ import { getSystemPrompt } from './prompts/prompts';
 import optimized from './prompts/optimized';
 import { getFineTunedPrompt } from './prompts/new-prompt';
 import type { DesignScheme } from '~/types/design-scheme';
+import { getSmallLLMOptimizedPrompt } from './prompts/small-llm-optimized';
 
 export interface PromptOptions {
   cwd: string;
@@ -41,6 +42,11 @@ export class PromptLibrary {
       label: 'Prompt Optimisé (expérimental)',
       description: 'Une version expérimentale du prompt pour une utilisation réduite des tokens',
       get: (options) => optimized(options),
+    },
+    smallLLMOptimized: {
+      label: 'Prompt Optimisé (Français)',
+      description: 'Une version expérimentale du prompt pour une utilisation réduite des tokens',
+      get: (options) => getSmallLLMOptimizedPrompt(options.cwd, options.supabase, options.designScheme),
     },
   };
   static getList() {
